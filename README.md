@@ -1,3 +1,5 @@
+![Economic Modeling Studio: build, estimate, validate and evolve economic models from modular components](docs/images/header.png)
+
 # Economic Modeling Studio
 
 **Version 1.4.2**
