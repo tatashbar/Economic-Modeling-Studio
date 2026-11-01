@@ -32,7 +32,7 @@ Around this sits a governed workflow, scaled to the model's size and risk level:
 3. **You stay in control.** Agents ask clarifying questions, present two to four options with trade-offs and a simple benchmark, draft section by section, and ask before writing files.
 4. **Gates check the work.** Each stage has written exit criteria, and independent validation is separate from building.
 
-The lifecycle is **Concept → Design → Build → Estimate → Validate → Release / Operate**. Small models move through it in days with light checks. Large ones add architecture decisions, staged integration and periodic revalidation.
+The lifecycle is **Concept → Design → Build → Estimate → Validate → Release / Operate**. Small models move through it quickly with light checks. Large ones add architecture decisions, staged integration and periodic revalidation.
 
 ## Typical uses
 
