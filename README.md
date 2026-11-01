@@ -34,6 +34,11 @@ Around this sits a governed workflow, scaled to the model's size and risk level:
 
 The lifecycle is **Concept → Design → Build → Estimate → Validate → Release / Operate**. Small models move through it quickly with light checks. Large ones add architecture decisions, staged integration and periodic revalidation.
 
+## Quick start
+1. Open this folder in your coding agent (from the project root or any subfolder), and run `git config core.hooksPath .githooks` once to enable the commit guard.
+2. Type `/start` (`$start` in Codex) and describe what you want to do. Alternatives: `/help` for what exists, `/project-stage-detect` to see where a project stands, `/adopt <path>` to bring in an existing model.
+3. Follow the suggested next command. A typical first step is `/scope-question`, then `/select-model-class`.
+
 ## Typical uses
 
 | Task | Commands | What you get |
@@ -86,7 +91,7 @@ The studio is not tied to one assistant. Instructions, commands and rules are pl
 Tool conventions change quickly. If a tool moves its folders, update `tools/sync_agents.py` and regenerate.
 
 ## Contents
-- [How it works](#how-it-works) · [Typical uses](#typical-uses) · [Works with your coding agent](#works-with-your-coding-agent) · [What it covers](#what-it-covers) · [Models as lego sets](#models-as-lego-sets) · [Quick start](#quick-start) · [Commands](#commands) · [Typical workflows](#typical-workflows)
+- [How it works](#how-it-works) · [Quick start](#quick-start) · [Typical uses](#typical-uses) · [Works with your coding agent](#works-with-your-coding-agent) · [What it covers](#what-it-covers) · [Models as lego sets](#models-as-lego-sets) · [Commands](#commands) · [Typical workflows](#typical-workflows)
 - [Quality controls](#quality-controls) · [The agents](#the-agents) · [Repository layout](#repository-layout) · [Setup](#setup)
 - [Intended use: public data only](#intended-use-public-data-only) · [Limitations](#limitations) · [Customizing](#customizing) · [Version history](#version-history)
 
@@ -161,11 +166,6 @@ The studs on each brick are shared among its elements in proportion to their cou
 **Hover to see the wiring.** Hovering a brick fades everything it is not connected to. Here the fiscal rule is highlighted together with the core it feeds, the monetary rule it reads and the carbon-pricing block whose revenue it receives. The hover text also lists the brick's elements and findings.
 
 ![Hovering the fiscal-debt-rule brick: it and the bricks it connects to stay lit while the rest fade](docs/images/lego-hover.png)
-
-## Quick start
-1. Open this folder in your coding agent (from the project root or any subfolder), and run `git config core.hooksPath .githooks` once to enable the commit guard.
-2. Type `/start` (`$start` in Codex) and describe what you want to do. Alternatives: `/help` for what exists, `/project-stage-detect` to see where a project stands, `/adopt <path>` to bring in an existing model.
-3. Follow the suggested next command. A typical first step is `/scope-question`, then `/select-model-class`.
 
 ## Commands
 Full list: [docs/skill-catalog.md](docs/skill-catalog.md).
