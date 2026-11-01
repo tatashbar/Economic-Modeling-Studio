@@ -42,6 +42,7 @@ Run these agents as subagents (the `Task` tool), in parallel where the steps are
 3. Check timing: lagged joints are really lagged in the code; same-period joints sit in a simultaneous block that the solver handles jointly
 4. Check frequencies: each brick on a different frequency has a declared bridge, and the bridge is implemented and tested
 5. Check identities: each declared accounting identity holds numerically in a run, not only on paper
+   - Recount each brick's elements from its code (`python tools/lego.py elements <manifest> <brick> --from-mod <file>`) and compare with the declared counts; explain any non-square brick and mark constraints verified only after a run confirms them
 6. List bricks that are unvalidated or stale and block release until they are validated
 
 ## Checkpoints with the user
@@ -61,6 +62,7 @@ The check report lists tool errors and warnings, manifest-to-code findings, timi
 ## Gate / verdict
 - Verdict: PASS / PASS WITH CONDITIONS / FAIL / NOT ASSESSED (if the code is absent, the manifest-to-code comparison is NOT ASSESSED)
 - Identity residuals from an actual run are reported
+- Declared element counts match the code, or the difference is explained
 
 ## Suggested next steps
 - `/validate-model`

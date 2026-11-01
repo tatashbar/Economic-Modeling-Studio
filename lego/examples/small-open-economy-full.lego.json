@@ -217,7 +217,25 @@
       ],
       "status": "attached",
       "validation": "unvalidated",
-      "code": null
+      "code": null,
+      "elements": {
+        "variables": {
+          "endogenous": 22
+        },
+        "equations": 22,
+        "parameters": {
+          "estimated": 14,
+          "calibrated": 9
+        },
+        "shocks": 9,
+        "data": {
+          "series": 8,
+          "vintage": "2026Q2"
+        },
+        "constraints": {
+          "verified": 1
+        }
+      }
     },
     {
       "id": "world-exogenous",
@@ -244,6 +262,20 @@
         "y": 6,
         "rot": 0,
         "level": 1
+      },
+      "elements": {
+        "variables": {
+          "endogenous": 6
+        },
+        "equations": 6,
+        "parameters": {
+          "calibrated": 12
+        },
+        "shocks": 6,
+        "data": {
+          "series": 6,
+          "vintage": "2026Q2"
+        }
       }
     },
     {
@@ -273,6 +305,20 @@
         "y": 6,
         "rot": 0,
         "level": 1
+      },
+      "elements": {
+        "variables": {
+          "endogenous": 2
+        },
+        "equations": 2,
+        "parameters": {
+          "estimated": 4,
+          "calibrated": 1
+        },
+        "shocks": 1,
+        "constraints": {
+          "verified": 1
+        }
       }
     },
     {
@@ -328,6 +374,24 @@
         "y": 4,
         "rot": 0,
         "level": 2
+      },
+      "elements": {
+        "variables": {
+          "endogenous": 7
+        },
+        "equations": 7,
+        "parameters": {
+          "calibrated": 6,
+          "assumed": 2
+        },
+        "shocks": 2,
+        "data": {
+          "series": 3,
+          "vintage": "2026Q2"
+        },
+        "constraints": {
+          "verified": 1
+        }
       }
     },
     {
@@ -362,6 +426,25 @@
         "y": 4,
         "rot": 0,
         "level": 2
+      },
+      "elements": {
+        "variables": {
+          "endogenous": 8
+        },
+        "equations": 8,
+        "parameters": {
+          "estimated": 2,
+          "calibrated": 5
+        },
+        "shocks": 2,
+        "data": {
+          "series": 4,
+          "vintage": "2026Q2"
+        },
+        "constraints": {
+          "verified": 1,
+          "unverified": 1
+        }
       }
     },
     {
@@ -390,6 +473,20 @@
         "y": 4,
         "rot": 0,
         "level": 2
+      },
+      "elements": {
+        "variables": {
+          "endogenous": 6
+        },
+        "equations": 6,
+        "parameters": {
+          "calibrated": 4,
+          "assumed": 1
+        },
+        "shocks": 1,
+        "constraints": {
+          "unverified": 1
+        }
       }
     },
     {
@@ -426,6 +523,21 @@
         "y": 6,
         "rot": 0,
         "level": 1
+      },
+      "elements": {
+        "variables": {
+          "endogenous": 9
+        },
+        "equations": 9,
+        "parameters": {
+          "estimated": 3,
+          "calibrated": 6
+        },
+        "shocks": 1,
+        "data": {
+          "series": 4,
+          "vintage": "2026Q2"
+        }
       }
     },
     {
@@ -457,6 +569,20 @@
         "y": 6,
         "rot": 0,
         "level": 1
+      },
+      "elements": {
+        "variables": {
+          "endogenous": 7
+        },
+        "equations": 6,
+        "parameters": {
+          "calibrated": 7
+        },
+        "shocks": 1,
+        "data": {
+          "series": 2,
+          "vintage": "2026Q2"
+        }
       }
     },
     {
@@ -492,6 +618,21 @@
         "y": 6,
         "rot": 0,
         "level": 1
+      },
+      "elements": {
+        "variables": {
+          "endogenous": 6
+        },
+        "equations": 6,
+        "parameters": {
+          "calibrated": 5,
+          "assumed": 3
+        },
+        "shocks": 1,
+        "data": {
+          "series": 3,
+          "vintage": "2025"
+        }
       }
     },
     {
@@ -522,6 +663,17 @@
         "y": 4,
         "rot": 0,
         "level": 2
+      },
+      "elements": {
+        "variables": {
+          "endogenous": 3
+        },
+        "equations": 3,
+        "parameters": {
+          "calibrated": 2,
+          "assumed": 2
+        },
+        "shocks": 1
       }
     },
     {
@@ -554,6 +706,19 @@
         "y": 2,
         "rot": 0,
         "level": 3
+      },
+      "elements": {
+        "variables": {
+          "endogenous": 10
+        },
+        "equations": 10,
+        "parameters": {
+          "calibrated": 4
+        },
+        "data": {
+          "series": 1,
+          "vintage": "household survey 2024"
+        }
       }
     },
     {
@@ -580,6 +745,14 @@
         "y": 2,
         "rot": 0,
         "level": 3
+      },
+      "elements": {
+        "variables": {
+          "exogenous": 6
+        },
+        "parameters": {
+          "calibrated": 2
+        }
       }
     }
   ],

@@ -37,6 +37,8 @@ Each agent is defined in `.claude/agents/<name>.md`. If your tool runs subagents
 2. Explain the open studs: which inputs currently run on stubs and what that means economically (for example 'exports are exogenous, so the exchange rate cannot affect demand through trade')
 3. Offer the catalog bricks that would fill each open stud, and the parts bin of detached bricks
 4. Point out simultaneous blocks (solved jointly) and the solve order
+   - Explain the colours: the brick colour is the component type; the studs show what the brick is made of (x variables, = equations, θ parameters, ε shocks, D data series, ≤ constraints), in proportion to their counts
+   - Read out the **Inside the bricks** findings: non-square bricks, parameters that are assumptions without a source, constraints not yet verified in a run
 5. On request, write the picture with `--html <file>` (a self-contained page) or `--mermaid` for documents. Bricks stack on the bricks whose outputs they read, with no limit on levels. To build the picture as a stepped pyramid, show the plan of `python tools/lego.py arrange <manifest>` and, with approval, add `--apply`; `--style grid` returns to the default. Positions change the picture only, never the wiring; report any `picture:` warnings from `check`
 
 ## Checkpoints with the user
@@ -55,6 +57,7 @@ The explanation is given in conversation; the optional HTML page or Mermaid diag
 ## Gate / verdict
 - The description matches the tool's output; nothing is inferred beyond it
 - Economic consequences of open studs are explained
+- Element findings (non-square bricks, unsourced parameters, unverified constraints) are reported when declared
 
 ## Suggested next steps
 - `/lego-add`

@@ -17,6 +17,31 @@ MAX_GHOSTS = 6
 PALETTE = {"baseplate": "#3f9b46", "environment": "#8d6e63", "policy": "#1e88e5", "fiscal": "#f6b21b",
            "external": "#e53935", "financial": "#8e24aa", "sector": "#fb8c00", "climate": "#00897b",
            "household": "#d81b60", "satellite": "#607d8b", "output": "#455a64"}
+# what a brick is made of; shown on its studs and in the "Inside the bricks" panel (always with a symbol, never by colour alone)
+ELEMENT_STYLE = {"variables": ("#f2b705", "x", "variables"), "equations": ("#2f6fd6", "=", "equations"),
+                 "parameters": ("#d64541", "θ", "parameters"), "shocks": ("#ef7d22", "ε", "shocks"),
+                 "data": ("#2e9d57", "D", "data series"), "constraints": ("#8246c4", "≤", "constraints")}
+
+
+def _element_studs(el, n):
+    """Share n studs among the elements in proportion to their counts (largest remainder, at least one each)."""
+    w = [(k, el[k]["total"]) for k in ELEMENT_STYLE if k in el and el[k]["total"] > 0]
+    tot = sum(v for _, v in w)
+    if not w or n <= 0:
+        return []
+    if len(w) >= n:
+        w = sorted(w, key=lambda t: -t[1])[:n]
+        tot = sum(v for _, v in w)
+    base = {k: max(1, int(n * v / tot)) for k, v in w}
+    while sum(base.values()) > n:
+        k = max(base, key=lambda k: (base[k], -dict(w)[k]))
+        base[k] -= 1
+    rem = sorted(w, key=lambda t: -(n * t[1] / tot - int(n * t[1] / tot)))
+    i = 0
+    while sum(base.values()) < n:
+        base[rem[i % len(rem)][0]] += 1
+        i += 1
+    return [ELEMENT_STYLE[k][0] for k, _ in w for _ in range(base[k])]
 
 
 # ------------------------------------------------------------------ colour and geometry helpers
@@ -173,9 +198,22 @@ def _brick_svg(it, stud_id, e):
     else:
         cells = [(i, j) for j in range(dd) for i in range(w)]
         sock = set(sorted(cells, key=lambda t: (-t[1], t[0]))[:d["sockets"]])
+        studs = [t for t in cells if t not in sock]  # back row first, so each element forms a band
+        ecol = dict(zip(sorted(studs, key=lambda t: (t[1], t[0]) if w >= dd else (t[0], t[1])),
+                        _element_studs(d.get("elements") or {}, len(studs))))
+        kd, el = [], []
         for i, j in sorted(cells, key=lambda t: (t[0] + t[1], t[0])):
             sx, sy = P(x + i + 0.5, y + j + 0.5, z + h)
-            out.append(_socket(sx, sy) if (i, j) in sock else _ref(stud_id[c], sx, sy))
+            if (i, j) in sock:
+                kd.append(_socket(sx, sy))
+                el.append(_socket(sx, sy))
+            else:
+                kd.append(_ref(stud_id[c], sx, sy))
+                el.append(_ref(stud_id[ecol.get((i, j), c)], sx, sy))
+        if ecol:  # two sets of studs: by element (default) or by component; the legend switch picks one
+            out.append(f'<g class="se">{"".join(el)}</g><g class="sk">{"".join(kd)}</g>')
+        else:
+            out.append("".join(kd))
     # name on the long face, kind on the short face: the lower-left face for a brick along x, the lower-right face
     # for a brick turned along y
     left = (f'matrix(0.866 0.5 0 1 {P(x, y + dd, z + h)[0]:.1f} {P(x, y + dd, z + h)[1]:.1f})', w, ink_l)
@@ -226,9 +264,9 @@ def _assemble(items, floor_shadows, cls, pad=(26, 22, 26, 34), top_shadows=()):
     stud_cols = []
     for it in items:
         if it.kind in ("brick", "stud"):
-            col = it.data["color"]
-            if col not in stud_cols:
-                stud_cols.append(col)
+            for col in [it.data["color"]] + [ELEMENT_STYLE[k][0] for k in (it.data.get("elements") or {})]:
+                if col not in stud_cols:
+                    stud_cols.append(col)
     stud_id = {c: "s" + c.lstrip("#") for c in stud_cols}
     pts_all = [p for it in items for p in it.corners()]
     for poly in list(floor_shadows) + list(top_shadows):
@@ -280,9 +318,13 @@ def _scene(m, rep, cat, helpers):
         st = stubs_by.get(b["id"], [])
         needs = ", ".join(q["port"] + (" (stub: " + q["stub"] + ")" if q["stub"] and any(s["port"] == q["port"] for s in st) else "")
                           for q in reqs(b)) or "nothing"
+        el = helpers["elements_of"](b)[0]
         tip = (f'{b["id"]} ({kind}, {b.get("validation", "unvalidated")})\n{b.get("summary", "")}\n'
                f'provides: {", ".join(provs(b)) or "nothing"}\nneeds: {needs}')
-        return dict(label=b["id"], sub=f'{kind} · gives {len(provs(b))} · needs {len(reqs(b))}', kind=kind,
+        if el:
+            tip += "\ninside: " + helpers["elements_line"](el)
+            tip += "".join(f"\n{'⚠' if lv == 'warn' else '•'} {msg}" for lv, msg in helpers["element_flags"](b, el))
+        return dict(label=b["id"], sub=f'{kind} · gives {len(provs(b))} · needs {len(reqs(b))}', kind=kind, elements=el,
                     color=PALETTE.get(kind, "#888"), val=b.get("validation", "unvalidated"), tip=tip,
                     sockets=len({s["port"] for s in st}), gi=gid.get(b["id"]), bin=bin_,
                     rel=sorted(gid[r] for r in rel.get(b["id"], ()) if r in gid))
@@ -426,6 +468,27 @@ code{background:#eef1f5;padding:0 4px;border-radius:4px;font-size:12px}
 .bin-brick{width:210px;height:auto}
 .empty{color:#97a3b1;font-size:13px;margin:0}
 .hint{font-size:12px;color:var(--mut);margin:0 0 0 2px}
+.switch{display:inline-flex;align-items:center;gap:6px;font-weight:600;color:var(--ink);cursor:pointer}
+body:has(#elmode:checked) .sk,body:not(:has(#elmode:checked)) .se{display:none}
+body:not(:has(#elmode:checked)) .eleg{opacity:.45}
+.ec{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--ink);white-space:nowrap}
+.ec b{display:inline-block;min-width:17px;height:17px;padding:0 3px;border-radius:5px;background:var(--c);color:#fff;
+  font:700 11px/17px "Segoe UI",Arial,sans-serif;text-align:center;box-shadow:inset 0 -2px 0 rgba(0,0,0,.18)}
+.ec b.lt{color:#2b2100}
+.ec small{color:var(--mut);font-size:11px}
+.an{display:flex;flex-direction:column;gap:10px}
+.an-row{display:grid;grid-template-columns:minmax(150px,210px) 1fr;gap:4px 14px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
+.an-row:first-child{border-top:0}
+.an-name{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:600;min-width:0}
+.an-name i{flex:0 0 12px;height:12px;border-radius:3px}
+.an-name span{font-weight:400;color:var(--mut);font-size:11px}
+.an-bar{display:flex;height:12px;border-radius:6px;overflow:hidden;background:#eef1f5}
+.an-bar span{display:block;min-width:3px}
+.an-counts{grid-column:2;display:flex;flex-wrap:wrap;gap:4px 12px}
+.an-flags{grid-column:2;font-size:12px;line-height:1.5}
+.an-flags .w{color:#b26a00}.an-flags .n{color:var(--mut)}
+.an-none{grid-column:2;font-size:12px;color:#97a3b1}
+@media (max-width:640px){.an-row{grid-template-columns:1fr}.an-counts,.an-flags,.an-none{grid-column:1}}
 %%HOVER%%
 </style></head><body>
 <header><h1>%%NAME%%</h1><div class="chips">%%CHIPS%%</div></header>
@@ -435,7 +498,10 @@ code{background:#eef1f5;padding:0 4px;border-radius:4px;font-size:12px}
 <div class="legend">
 <span><i class="ok">✓</i>validated</span><span><i class="ring"></i>not yet validated</span><span><i class="st">!</i>stale (changed since validation)</span>
 <span><i class="sock"></i>open stud: input running on a stub</span><span><i class="gh"></i>suggested brick that would fill it</span>
-<span>Bricks sit on the baseplate; satellites and outputs sit on the brick they read. Hover a brick to see what it connects to.</span></div></div>
+<span>Bricks sit on the baseplate; satellites and outputs sit on the brick they read. Hover a brick to see what it connects to.</span></div>
+<div class="legend"><label class="switch"><input type="checkbox" id="elmode" checked>Studs show what each brick is made of</label>
+<span class="eleg">%%ELEGEND%%</span><span>Brick colour shows the component; untick to colour the studs by component too.</span></div></div>
+<section class="card"><h3>Inside the bricks</h3><div class="an">%%ANATOMY%%</div></section>
 <section class="card"><h3>Parts bin (detached bricks)</h3><div class="shelf">%%SHELF%%</div></section>
 </div>
 <div class="side">
@@ -466,6 +532,33 @@ def render(m, rep, cat, helpers):
     sims = li(f"<li>{e(', '.join(b))}</li>" for b in rep["sim_blocks"])
     ids = li(f"<li>{e(i['name'])}: {e(i['status'])}</li>" for i in rep["identities"]) if rep["identities"] else "<li>none declared</li>"
     probs = li([f"<li class='err'>{e(x)}</li>" for x in rep["errors"]] + [f"<li class='warn'>{e(x)}</li>" for x in rep["warnings"]])
+    chip = lambda k, n=None, note="": (f'<span class="ec" style="--c:{ELEMENT_STYLE[k][0]}" title="{ELEMENT_STYLE[k][2]}"><b{" class=lt" if k == "variables" else ""}>'
+                                       f'{ELEMENT_STYLE[k][1]}</b>{"" if n is None else n}'
+                                       f'{" " + ELEMENT_STYLE[k][2] if n is None else ""}{f" <small>{e(note)}</small>" if note else ""}</span>')
+    elegend = " ".join(chip(k) for k in ELEMENT_STYLE)
+    rows = []
+    for b in att:
+        el = rep.get("elements", {}).get(b["id"])
+        name = (f'<div class="an-name"><i style="background:{PALETTE.get(b.get("kind"), "#888")}"></i>{e(b["id"])}'
+                f'<span>{e(b.get("kind", ""))}</span></div>')
+        if not el:
+            rows.append(f'<div class="an-row">{name}<div class="an-none">elements not declared yet '
+                        f'(<code>lego.py elements</code>)</div></div>')
+            continue
+        bar = "".join(f'<span style="flex:{el[k]["total"]};background:{ELEMENT_STYLE[k][0]}" '
+                      f'title="{el[k]["total"]} {ELEMENT_STYLE[k][2]}"></span>' for k in ELEMENT_STYLE if k in el and el[k]["total"])
+        counts = []
+        for k in ELEMENT_STYLE:
+            if k in el:
+                nz = [(p, n) for p, n in el[k]["parts"].items() if n and not (k == "data" and p == "series")]
+                parts = [p for p, _ in nz] if len(nz) == 1 else [f"{n} {p}" for p, n in nz]  # "22 endogenous", not "22 22 endogenous"
+                parts += [("vintage " if f == "vintage" else "") + t for f, t in el[k]["text"].items()]
+                counts.append(chip(k, el[k]["total"], " · ".join(parts)))
+        flags = "".join(f'<div class="{"w" if lv == "warn" else "n"}">{"⚠" if lv == "warn" else "•"} {e(msg)}</div>'
+                        for lv, msg in helpers["element_flags"](b, el))
+        rows.append(f'<div class="an-row">{name}<div class="an-bar">{bar}</div><div class="an-counts">{"".join(counts)}</div>'
+                    + (f'<div class="an-flags">{flags}</div>' if flags else "") + "</div>")
+    anatomy = "".join(rows) or '<p class="empty">no bricks attached</p>'
     more_html = ""
     if more:
         more_html = ('<p class="hint">More bricks in the catalog that would help: '
@@ -473,6 +566,6 @@ def render(m, rep, cat, helpers):
     page = PAGE
     for k, v in (("%%TITLE%%", e(m.get("name", ""))), ("%%NAME%%", e(m.get("name", "Model"))), ("%%HOVER%%", hover),
                  ("%%CHIPS%%", chips), ("%%SCENE%%", scene), ("%%SHELF%%", shelf), ("%%STUBS%%", stubs),
-                 ("%%MORE%%", more_html), ("%%JOINTS%%", joints), ("%%SIMS%%", sims), ("%%IDS%%", ids), ("%%PROBS%%", probs)):
+                 ("%%MORE%%", more_html), ("%%ELEGEND%%", elegend), ("%%ANATOMY%%", anatomy), ("%%JOINTS%%", joints), ("%%SIMS%%", sims), ("%%IDS%%", ids), ("%%PROBS%%", probs)):
         page = page.replace(k, v)
     return page

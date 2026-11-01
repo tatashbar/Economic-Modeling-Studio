@@ -51,6 +51,7 @@ Run these agents as subagents (the `Task` tool), in parallel where the steps are
 3. For each required input, decide: hard requirement, or a stub with a documented fallback. For each lag, state whether the dependence is on the previous period
 4. Pick a slot if the brick is an alternative to another (monetary rule, sectoral structure). A different frequency from the usual core needs a bridge note
 5. List the checks the brick must pass (identities, calibration targets, neutral-attachment test)
+   - Once the component is built, its elements (variables, equations, parameters, shocks, data, constraints) are declared in the model manifest with `python tools/lego.py elements`; the catalog spec stays generic
 6. Write `lego/catalog/<id>.json` after approval, then verify with `python tools/lego.py catalog`. If the component itself still has to be built, point to the matching `/build-*` command
 
 ## Checkpoints with the user

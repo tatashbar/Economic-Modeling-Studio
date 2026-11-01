@@ -55,7 +55,8 @@ Run these agents as subagents (the `Task` tool), in parallel where the steps are
 4. Match each block to a catalog brick (`python tools/lego.py catalog`); where none fits, draft a new brick spec with `/lego-brick`. Reuse port names from `lego/ports.json` so units agree
 5. Declare the closure slots that must be filled exactly once (for example the monetary rule) and the accounting identities the assembled model must satisfy
 6. Create the manifest with `python tools/lego.py new <manifest> --name ... --freq ... --class ... --bricks ...` (or write the JSON), then run `check` and `show --html`
-7. Report open studs, simultaneous blocks, frequency mismatches that need a bridge, and which bricks are still unvalidated. Mark all bricks 'unvalidated' unless a validation report exists for them
+7. Declare what each brick is made of with `python tools/lego.py elements <manifest> <brick> --from-mod <file>` (Dynare) or `--set` (other code): variables, equations, parameters (estimated, calibrated, or assumed without a source), shocks, data series with vintage, and constraints. The picture colours each brick's studs by these elements
+8. Report open studs, simultaneous blocks, frequency mismatches that need a bridge, and which bricks are still unvalidated. Mark all bricks 'unvalidated' unless a validation report exists for them
 
 ## Checkpoints with the user
 - After the brick table: approve cut points
@@ -79,6 +80,7 @@ The manifest records baseplate, bricks, ports, stubs, slots, identities and vali
 - Every required input has a source brick or a documented stub
 - The manifest is written only after the user approves the decomposition
 - Bricks without a validation report are marked unvalidated
+- Elements are declared for every brick whose code exists, and any non-square brick (equations not matching endogenous variables) is explained
 
 ## Suggested next steps
 - `/lego-show`

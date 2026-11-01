@@ -38,6 +38,7 @@ Every `/build-*` command now ends by registering the model as a lego set, so mod
 - declared accounting identities (e.g. balance of payments) can be verified from the attached bricks and stubs
 - **simultaneous blocks**: bricks that depend on each other in the same period are listed, with the solve order
 - change history and revision count; bricks next to a changed brick are marked **stale** until re-validated
+- **inside each brick** (when elements are declared): equations that do not match the endogenous variables, parameters that are assumptions without a source, and constraints not yet verified in a run. These are warnings and notes, never errors
 
 **Not guaranteed by the tool.** It checks the *wiring*, not the economics. It cannot tell you that the elasticities in a new trade brick are sensible, or that the code implements the variables it declares. That is what `/lego-check` (manifest against code), the neutral-attachment test, calibration and `/validate-model` are for:
 
@@ -52,7 +53,9 @@ Every `/build-*` command now ends by registering the model as a lego set, so mod
 - **ghost bricks** (dashed, translucent, with a +) are catalog bricks that would fill an open stud, placed where they would go
 - bricks **stack vertically, with no limit on the number of levels**: a brick on layer 2 or higher stands on the brick whose outputs it reads, so towers can be as tall as the model is deep (set `"layer"` on a brick to raise it, and `"on": "<brick id>"` to choose its host)
 - the picture has two layouts. **grid** (the default) stands the towers side by side, tallest at the back. **pyramid** (`python tools/lego.py arrange <manifest> --apply`) builds the bricks into a stepped pyramid: each step one level up, narrower and set back, resting on the step below, with foundation components at the bottom and bricks that read them higher up; above the top step it continues as a stair as high as needed. Positions are stored in each brick's `"place"` (`x`, `y`, `level`, and `rot` 0 or 90), so any brick can be moved by hand; bricks without a place stand in the front yard. `arrange --style grid` clears the positions. Positions only affect the picture, never the wiring
-- **hover** a brick to fade everything it is not connected to
+- the **studs show what each brick is made of**: they are shared among its elements in proportion to their counts. Yellow **x** variables, blue **=** equations, red **θ** parameters, orange **ε** shocks, green **D** data series, purple **≤** constraints. The brick colour stays the component type, so the picture answers two questions at once: which part of the economy, and what it is built from. A switch under the picture colours the studs by component instead; a brick without declared elements keeps plain studs
+- the **Inside the bricks** panel lists each brick with a bar split by element, the counts by status (endogenous or exogenous; estimated, calibrated or assumed; verified or unverified; data vintage) and its findings
+- **hover** a brick to fade everything it is not connected to; the hover text also lists its elements
 - detached bricks sit in the **parts bin** below; the panels at the side list stubs, joints, simultaneous blocks, identities and problems
 
 ## Files
@@ -62,7 +65,7 @@ Every `/build-*` command now ends by registering the model as a lego set, so mod
 | `lego/catalog/*.json` | reusable brick specs (interfaces and checks only; no code or parameters) |
 | `lego/ports.json` | shared variable names with units, so bricks agree on what a variable is |
 | `lego/examples/*.lego.json` and `.html` | worked examples: a starter set and the full small open-economy set, each built as a stepped pyramid |
-| `tools/lego.py` | the engine: catalog, new, show, check, attach, detach, swap, validate, arrange |
+| `tools/lego.py` | the engine: catalog, new, show, check, attach, detach, swap, validate, arrange, elements |
 | `tools/lego_view.py` | the 3D picture renderer (isometric SVG inside a self-contained HTML page) |
 
 ## Command-line use
@@ -77,11 +80,14 @@ python tools/lego.py detach <manifest> financial-accelerator --apply
 python tools/lego.py swap   <manifest> monetary-taylor monetary-fx-managed --apply
 python tools/lego.py validate <manifest> fiscal-debt-rule --report validation/my-model/validation-report.md --apply
 python tools/lego.py arrange <manifest> --apply                          # build the picture as a stepped pyramid
+python tools/lego.py elements <manifest> core-gap-open --from-mod models/dsge/my-model/core.mod --apply
+python tools/lego.py elements <manifest> fiscal-debt-rule --set parameters.assumed=2 data.vintage=2026Q2 --apply
 ```
 Changes are shown as a plan and are written only with `--apply`. A change that introduces errors is refused unless `--force` is given.
 
 - **Validation status.** `validate` records an independent validation result for one brick, with the report as evidence. Attaching, detaching or swapping a neighbour later marks it stale.
 - **Identities come with bricks.** A catalog brick can declare the accounting identities it brings (the fiscal brick brings public debt dynamics, the external brick the balance of payments). They are added to the manifest when the brick is attached and set aside while it is in the parts bin.
+- **Elements.** `elements` declares what a brick is made of. `--from-mod` counts a Dynare file: `var` (endogenous), `varexo_det` (exogenous), `varexo` (shocks), `parameters` (estimated if listed in `estimated_params`, calibrated otherwise), equations in the `model` block (tags and `#` model-local variables excluded), `varobs` (data series) and `occbin_constraints` (constraints, unverified until a run checks them). `--set` adds or corrects what the code cannot tell, such as which calibrated parameters are assumptions without a source, a data vintage, or constraints now verified. A recount keeps the number of assumed parameters set earlier. Without `--from-mod` or `--set` it shows the current declaration.
 - **Parts bin.** A detached brick that would fill an open stud is suggested first. If its catalog definition has changed since it was detached, re-attaching takes the current definition and marks the brick unvalidated.
 
 ## Manifest format (short)
@@ -94,6 +100,8 @@ Changes are shown as a plan and are written only with `--apply`. A change that i
   "bricks": [{
     "id": "trade-sector-armington", "kind": "sector", "freq": "Q", "status": "attached", "validation": "unvalidated",
     "slot": null, "bridge": null, "code": "models/trade/my-trade/",
+    "elements": {"variables": {"endogenous": 9}, "equations": 9, "parameters": {"estimated": 3, "calibrated": 5, "assumed": 1},
+                 "shocks": 1, "data": {"series": 4, "vintage": "2026Q2"}, "constraints": {"verified": 1, "unverified": 0}},
     "provides": ["net_exports"],
     "requires": ["real_exchange_rate", {"port": "tariff_rate", "stub": "unchanged baseline tariff path"},
                  {"port": "output_gap", "lag": 1}]
@@ -104,6 +112,7 @@ Changes are shown as a plan and are written only with `--apply`. A change that i
 - `kind` is one of: baseplate, environment, policy, fiscal, external, financial, sector, climate, household, satellite, output.
 - `status` is `attached` or `detached`; `validation` is `validated`, `unvalidated` or `stale`; a validated brick also records `validation_report` and `validated_on`.
 - An identity with a `brick` belongs to that brick and is checked only while the brick is attached.
+- `elements` is optional. Each element is a whole number or an object with its status fields: variables (`endogenous`, `exogenous`), parameters (`estimated`, `calibrated`, `assumed`), data (`series`, plus a free-text `vintage`), constraints (`verified`, `unverified`); equations and shocks are whole numbers. `elements_source` records the file they were counted from.
 
 ## Adding your own bricks
 The catalog covers a small open-economy set (core, rest of world, two monetary rules, fiscal, trade, external, financial, labor, commodities, carbon and energy, physical climate damage, input-output, CGE, household incidence, fan charts), integrated-policy-framework tools (FX intervention, capital flow measures, macroprudential policy) and a baseplate for stand-alone input-output or SAM models (`core-io-leontief`). It is a starting point, not a complete library. Use `/lego-brick` to add yours, and build the component itself with the relevant `/build-*` command.

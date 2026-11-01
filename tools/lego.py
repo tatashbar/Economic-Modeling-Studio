@@ -16,12 +16,21 @@ Commands (changes are shown as a plan; nothing is written without --apply):
   attach <manifest> <brick-id|file> [--apply] [--force]
   detach <manifest> <brick-id> [--apply] [--force]
   swap <manifest> <old-brick-id> <new-brick-id|file> [--apply] [--force]
+  arrange <manifest> [--style pyramid|grid] [--apply]
+  validate <manifest> <brick-id> --report FILE [--apply]
+  elements <manifest> <brick-id> [--from-mod FILE] [--set KEY=VALUE ...] [--apply]
+
+Inside each brick: an optional "elements" block declares what the brick is made of (variables, equations,
+parameters, shocks, data series, constraints), with their status (estimated, calibrated or assumed parameters;
+verified or unverified constraints). The picture colours each brick's studs by these elements, and `check` flags
+equation counts that do not match the endogenous variables, unsourced parameters and unverified constraints.
 """
 import argparse
 import copy
 import datetime
 import json
 import os
+import re
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -91,6 +100,124 @@ def attached(m):
 
 def layer_of(b):
     return b.get("layer", LAYER.get(b.get("kind"), 1))
+
+
+# ------------------------------------------------------------------ elements (what a brick is made of)
+# element -> the status breakdown it may carry; a plain whole number is also accepted
+ELEMENTS = {"variables": ("endogenous", "exogenous"), "equations": (), "parameters": ("estimated", "calibrated", "assumed"),
+            "shocks": (), "data": ("series",), "constraints": ("verified", "unverified")}
+ELEMENT_SYMBOL = {"variables": "x", "equations": "=", "parameters": "θ", "shocks": "ε", "data": "D", "constraints": "≤"}
+ELEMENT_TEXT = ("vintage", "source")  # free-text fields allowed inside an element (e.g. data vintage)
+
+
+def elements_of(b):
+    """Normalized elements of a brick and the problems found: ({name: {"total": n, "parts": {...}, "text": {...}}}, [msg])."""
+    raw, out, probs = b.get("elements"), {}, []
+    if raw is None:
+        return out, probs
+    if not isinstance(raw, dict):
+        return out, ["elements must be an object such as {\"variables\": 12, \"equations\": 12}"]
+    whole = lambda v: isinstance(v, int) and not isinstance(v, bool) and v >= 0
+    for name, v in raw.items():
+        if name not in ELEMENTS:
+            probs.append(f"unknown element '{name}' (use: {', '.join(ELEMENTS)})")
+            continue
+        if whole(v):
+            out[name] = {"total": v, "parts": {}, "text": {}}
+            continue
+        if not isinstance(v, dict):
+            probs.append(f"element '{name}' must be a whole number or an object")
+            continue
+        parts, text = {}, {}
+        for k, x in v.items():
+            if k in ELEMENT_TEXT:
+                text[k] = str(x)
+            elif k not in ELEMENTS[name]:
+                probs.append(f"element '{name}': unknown field '{k}' (use: {', '.join(ELEMENTS[name] + ELEMENT_TEXT) or 'a whole number'})")
+            elif not whole(x):
+                probs.append(f"element '{name}.{k}' must be a whole number")
+            else:
+                parts[k] = x
+        out[name] = {"total": sum(parts.values()), "parts": parts, "text": text}
+    return out, probs
+
+
+def element_flags(b, el):
+    """Findings that matter for the model, in order of severity: (level, message) with level 'warn' or 'note'."""
+    f = []
+    endo = el.get("variables", {}).get("parts", {}).get("endogenous")
+    if endo is None and "variables" in el and not el["variables"]["parts"]:
+        endo = el["variables"]["total"]
+    eq = el.get("equations", {}).get("total")
+    if endo is not None and eq is not None and endo != eq:
+        f.append(("warn", f"{eq} equations for {endo} endogenous variables (the brick's system is not square)"))
+    unver = el.get("constraints", {}).get("parts", {}).get("unverified", 0)
+    if unver:
+        f.append(("warn" if b.get("validation") == "validated" else "note",
+                  f"{unver} constraint(s) not yet verified in a run" + (" although the brick is marked validated"
+                                                                        if b.get("validation") == "validated" else "")))
+    assumed = el.get("parameters", {}).get("parts", {}).get("assumed", 0)
+    if assumed:
+        f.append(("note", f"{assumed} parameter(s) are assumptions without a source (show them in sensitivity runs)"))
+    return f
+
+
+def elements_line(el):
+    """Compact text such as: x 14 (12 endogenous, 2 exogenous) · = 12 · θ 18 (6 estimated, 12 calibrated)."""
+    bits = []
+    for name in ELEMENTS:
+        if name not in el:
+            continue
+        e = el[name]
+        nz = [(k, n) for k, n in e["parts"].items() if n and not (name == "data" and k == "series")]
+        extra = nz[0][0] if len(nz) == 1 else ", ".join(f"{n} {k}" for k, n in nz)
+        extra = ", ".join(x for x in (extra, *(f"{k} {t}" for k, t in e["text"].items())) if x)
+        noun = "data series" if name == "data" else (name[:-1] if e["total"] == 1 else name)
+        bits.append(f"{ELEMENT_SYMBOL[name]} {e['total']} {noun}" + (f" ({extra})" if extra else ""))
+    return " · ".join(bits)
+
+
+def _strip_mod(text):
+    text = re.sub(r"/\*.*?\*/", " ", text, flags=re.S)
+    text = re.sub(r"//[^\n]*", " ", text)
+    return re.sub(r"(?m)^\s*%[^\n]*", " ", text)
+
+
+def _names(stmt):
+    stmt = re.sub(r"\$[^$]*\$", " ", stmt)        # TeX names
+    stmt = re.sub(r"\([^()]*\)", " ", stmt)        # options and long names
+    return [t for t in re.split(r"[\s,]+", stmt) if re.match(r"^[A-Za-z_]\w*$", t)]
+
+
+def elements_from_mod(text):
+    """Count the elements of a Dynare .mod file. Parameters in estimated_params are 'estimated', the rest 'calibrated';
+    the file cannot tell which calibrated values lack a source, so 'assumed' is left for the modeler to set."""
+    t = _strip_mod(text)
+    decl = lambda kw: [n for s in re.findall(rf"(?m)^\s*{kw}\b([^;]*);", t) for n in _names(s)]
+    endo, exo, exo_det, params = decl("var"), decl("varexo"), decl("varexo_det"), decl("parameters")
+    obs = decl("varobs")
+    model = re.search(r"(?ms)^\s*model\b[^;]*;(.*?)^\s*end\s*;", t)
+    eqs = 0
+    if model:
+        body = re.sub(r"\[[^\]]*\]", " ", model.group(1))  # equation tags
+        eqs = sum(1 for s in body.split(";") if s.strip() and not s.strip().startswith("#"))
+    est = re.search(r"(?ms)^\s*estimated_params\s*;(.*?)^\s*end\s*;", t)
+    est_names = set()
+    if est:
+        for line in est.group(1).split(";"):
+            head = line.strip().split(",")[0].strip()
+            if head and not head.startswith(("stderr", "corr")):
+                est_names.add(head)
+    n_est = len([p for p in params if p in est_names])
+    occ = re.search(r"(?ms)^\s*occbin_constraints\s*;(.*?)^\s*end\s*;", t)
+    n_con = len(re.findall(r"\bname\s+'", occ.group(1))) if occ else 0
+    el = {"variables": {"endogenous": len(endo), "exogenous": len(exo_det)}, "equations": eqs,
+          "parameters": {"estimated": n_est, "calibrated": len(params) - n_est, "assumed": 0}, "shocks": len(exo)}
+    if obs:
+        el["data"] = {"series": len(obs)}
+    if n_con:
+        el["constraints"] = {"verified": 0, "unverified": n_con}
+    return el
 
 
 def stacks(m):
@@ -377,6 +504,16 @@ def check(m):
         if la > 1 and not any(lb == la - 1 and _overlap(fa, fb) for _, lb, fb in placed):
             W.append(f"picture: {a} on level {la} has nothing under it")
 
+    # what each brick is made of: optional, so problems here are warnings and notes, never errors
+    r["elements"] = {}
+    for b in att:
+        el, probs = elements_of(b)
+        W += [f"{b['id']}: {p}" for p in probs]
+        if el:
+            r["elements"][b["id"]] = el
+            for level, msg in element_flags(b, el):
+                (W if level == "warn" else I).append(f"{b['id']}: {msg}")
+
     counts = {"validated": 0, "unvalidated": 0, "stale": 0}
     for b in att:
         counts[b.get("validation", "unvalidated")] = counts.get(b.get("validation", "unvalidated"), 0) + 1
@@ -624,6 +761,15 @@ def render_text(m, rep, cat):
         for t in tall:
             o.append("  " + "  >  ".join(f"{b['id']} {MARK.get(b.get('validation', 'unvalidated'))}" for b in t))
     o.append("")
+    if rep.get("elements"):
+        o.append("INSIDE THE BRICKS (x variables, = equations, θ parameters, ε shocks, D data series, ≤ constraints):")
+        for b in att:
+            if b["id"] in rep["elements"]:
+                o.append(f"  {b['id']:<26} {elements_line(rep['elements'][b['id']])}")
+        missing = [b["id"] for b in att if b["id"] not in rep["elements"]]
+        if missing:
+            o.append("  not declared yet: " + ", ".join(missing) + "  (lego.py elements <manifest> <brick> --from-mod FILE)")
+        o.append("")
     if rep["stubs"]:
         o.append("OPEN STUDS (inputs using a stub; attach a brick to fill them):")
         for s in rep["stubs"]:
@@ -729,7 +875,8 @@ def render_html(m, rep, cat):
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     import lego_view
     helpers = {"attached": attached, "provs": provs, "reqs": reqs, "layer_of": layer_of, "stacks": stacks, "footprint": footprint,
-               "suggestions": suggestions, "model_validation": model_validation}
+               "suggestions": suggestions, "model_validation": model_validation, "elements_of": elements_of,
+               "elements_line": elements_line, "element_flags": element_flags}
     return lego_view.render(m, rep, cat, helpers)
 
 
@@ -886,6 +1033,75 @@ def cmd_validate(a):
     print(f"\napplied: {a.manifest} is now revision {m2['revision']}")
 
 
+def _set_element(el, spec):
+    key, _, val = spec.partition("=")
+    name, _, field = key.strip().partition(".")
+    if name not in ELEMENTS or not val:
+        raise SystemExit(f"--set {spec}: use ELEMENT=N or ELEMENT.FIELD=N with ELEMENT one of {', '.join(ELEMENTS)}")
+    if field in ELEMENT_TEXT:
+        cur = el.get(name)
+        el[name] = dict(cur) if isinstance(cur, dict) else ({"series": cur} if name == "data" and isinstance(cur, int) else {})
+        el[name][field] = val
+        return
+    if not val.isdigit():
+        raise SystemExit(f"--set {spec}: the value must be a whole number")
+    if not field:
+        el[name] = int(val)
+        return
+    if field not in ELEMENTS[name]:
+        raise SystemExit(f"--set {spec}: '{name}' has the fields {', '.join(ELEMENTS[name] + ELEMENT_TEXT)}")
+    cur = el.get(name)
+    el[name] = dict(cur) if isinstance(cur, dict) else {}
+    el[name][field] = int(val)
+
+
+def cmd_elements(a):
+    """Declare what a brick is made of: counted from a Dynare .mod file, set by hand, or both (--set after --from-mod)."""
+    m = load_manifest(a.manifest)
+    b = find(m, a.brick)
+    if b is None:
+        raise SystemExit(f"'{a.brick}' is not a brick in {a.manifest}")
+    m2 = copy.deepcopy(m)
+    b2 = find(m2, a.brick)
+    el = copy.deepcopy(b2.get("elements") or {})
+    src = a.from_mod or (b.get("code") if not a.set and str(b.get("code") or "").endswith(".mod") else None)
+    if src:
+        if not os.path.isfile(src):
+            raise SystemExit(f"model file not found: {src}")
+        with open(src, encoding="utf-8", errors="replace") as f:
+            counted = elements_from_mod(f.read())
+        keep_assumed = (el.get("parameters") or {}).get("assumed", 0) if isinstance(el.get("parameters"), dict) else 0
+        el.update(counted)
+        if keep_assumed and keep_assumed <= counted["parameters"]["calibrated"]:  # a modeler's judgment survives a recount
+            el["parameters"]["calibrated"] -= keep_assumed
+            el["parameters"]["assumed"] = keep_assumed
+        b2["elements_source"] = src.replace("\\", "/")
+    for s in a.set or []:
+        _set_element(el, s)
+    if not src and not a.set:
+        cur, probs = elements_of(b)
+        print(f"{a.brick}: {elements_line(cur) or 'no elements declared'}")
+        for p in probs:
+            print(f"  problem: {p}")
+        print("\nSet them with --from-mod FILE (a Dynare model) and/or --set ELEMENT[.FIELD]=N, then --apply.")
+        return
+    b2["elements"] = el
+    norm, probs = elements_of(b2)
+    if probs:
+        raise SystemExit("; ".join(probs))
+    _stamp(m2, "elements", a.brick, a.note or (f"counted from {src}" if src else "set by hand"))
+    print(f"PLAN: {a.brick} is made of: {elements_line(norm)}")
+    for level, msg in element_flags(b2, norm):
+        print(f"  {'warning' if level == 'warn' else 'note'}: {msg}")
+    if b.get("validation") == "validated" and b.get("elements") != el:
+        print("  note: the brick is marked validated; if its code changed, re-validate it before release")
+    if not a.apply:
+        print("\n(dry run: nothing written. Re-run with --apply to make the change.)")
+        return
+    write_json(a.manifest, m2)
+    print(f"\napplied: {a.manifest} is now revision {m2['revision']}")
+
+
 def cmd_swap(a):
     m = load_manifest(a.manifest)
     spec = resolve_spec(a.new, load_catalog())
@@ -917,6 +1133,10 @@ def main(argv=None):
     p.add_argument("manifest"); p.add_argument("brick")
     p.add_argument("--status", choices=VALIDATION, default="validated"); p.add_argument("--report")
     p.add_argument("--apply", action="store_true"); p.add_argument("--note"); p.set_defaults(fn=cmd_validate)
+    p = sub.add_parser("elements", help="declare what a brick is made of: variables, equations, parameters, shocks, data, constraints")
+    p.add_argument("manifest"); p.add_argument("brick"); p.add_argument("--from-mod", help="count them from a Dynare .mod file")
+    p.add_argument("--set", nargs="+", metavar="ELEMENT[.FIELD]=N", help="e.g. parameters.assumed=3 data.vintage=2026Q2")
+    p.add_argument("--apply", action="store_true"); p.add_argument("--note"); p.set_defaults(fn=cmd_elements)
     a = ap.parse_args(argv)
     a.fn(a)
 

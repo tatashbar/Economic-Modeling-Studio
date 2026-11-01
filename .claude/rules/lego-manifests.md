@@ -14,3 +14,4 @@ paths:
 - Picture positions (`place`) come from `python tools/lego.py arrange` or are edited by hand; they never change the wiring, and `check` warns if bricks overlap or float
 - A brick is marked validated only with a validation report as evidence (`validate --report <path>`)
 - A brick changed since validation is stale and is re-validated, with its neighbours, before release
+- Declare each brick's elements (variables, equations, parameters, shocks, data, constraints) with `python tools/lego.py elements`, counted from the code where possible; mark unsourced parameters as `assumed` and constraints as `verified` only after a run confirms them

@@ -2,7 +2,7 @@
 
 # Economic Modeling Studio
 
-**Version 1.4.2**
+**Version 1.5.0**
 
 A studio for building, estimating, validating and using economic models. **119 specialist agents** and **85 skills** (workflow commands such as `/build-dsge` or `/validate-model`) cover specification, building, estimation and independent validation for semi-structural projection and DSGE, input-output and CGE, trade and climate-economy models, deep learning, reinforcement learning, neural-network solvers, LLM-based tools, agent-based and game-theoretic models, and other econometric models. The studio also lets you work with every model as a **lego set**: a core model with plug-and-play components that can be added, swapped or removed, with explicit interfaces and the impact of every change checked first. It works with any coding agent that reads `AGENTS.md`: Claude Code, Codex, Cursor, Grok Build, Gemini CLI and others.
 
@@ -22,7 +22,7 @@ Around this sits a governed workflow, scaled to the model's size and risk level:
 
 ![Lego view of a small open-economy model built as a stepped pyramid: the core baseplate as the ground, foundation components on the bottom step, and on the steps above them the policy rules, sectors, satellites and outputs that read their outputs; a dashed catalog brick in the front yard would fill an open input](docs/images/lego-full-set.png)
 
-*Lego view generated from a model manifest by `/lego-show`, built as a stepped pyramid with `lego.py arrange`. Baseplate: the core model. Bricks: components, colored by type; each step rests on the bricks whose outputs it reads, with no limit on the number of levels. Dashed sockets: inputs running on documented closures. Dashed bricks: catalog components that would supply them. Badges: validation status.*
+*Lego view generated from a model manifest by `/lego-show`, built as a stepped pyramid with `lego.py arrange`. Baseplate: the core model. Bricks: components, colored by type. Studs: colored by what each brick is made of (variables, equations, parameters, shocks, data, constraints). Each step rests on the bricks whose outputs it reads, with no limit on the number of levels. Dashed sockets: inputs running on documented closures. Dashed bricks: catalog components that would supply them. Badges: validation status.*
 
 > The repository contains the studio (agents, commands, rules, templates and guardrails), not a library of finished models. Models are built in your own copy.
 
@@ -117,6 +117,7 @@ Any model can be represented as a set of bricks, so you can see what it is made 
 - The **baseplate** is the core model (for example a gap model or a DSGE).
 - A **brick** is a component: a trade sector, a fiscal block, a financial accelerator, a carbon-pricing block, a CGE, a household microsimulation, a fan-chart tool.
 - **Studs** are the variables a brick provides and needs, each with a unit and a timing (same period or lagged).
+- **Inside each brick** are its elements: variables, equations, parameters, shocks, data series and constraints. They color the brick's studs, so the brick color tells you *which part of the economy* it is and the stud colors tell you *what it is made of*.
 - A needed variable that nothing provides is an **open stud**. The model keeps running on a documented **stub** (for example "exports follow an exogenous baseline path"), so a model without a trade sector still works.
 
 | You want to | Command |
@@ -129,6 +130,7 @@ Any model can be represented as a set of bricks, so you can see what it is made 
 | Check that everything fits | `/lego-check` |
 | Build the picture as a stepped pyramid (positions only, never wiring) | `python tools/lego.py arrange` |
 | Record a brick's validation result (with the report as evidence) | `python tools/lego.py validate` |
+| Declare what a brick is made of (counted from a Dynare `.mod` file, or set by hand) | `python tools/lego.py elements` |
 | Create a brick that is not in the catalog | `/lego-brick` |
 
 Every change is shown as a **plan first**: new joints, inputs that become endogenous or exogenous, new simultaneous blocks, frequency mismatches, conflicts, and which neighbouring bricks must be re-validated. Nothing is written until you approve. The tool checks the wiring (units, timing, duplicate providers, accounting identities, bridges between frequencies); whether a brick is *economically* right stays with calibration and validation, including a neutral-attachment test (a new brick set to neutral values must reproduce the old baseline).
@@ -141,7 +143,22 @@ See the [guide](docs/lego.md) and two worked examples (open the HTML files in a 
 
 ![A starter lego set: a baseplate with five bricks in a two-step pyramid, four dashed ghost bricks suggested for open studs, and a detached financial-accelerator brick in the parts bin that would fill credit_spread](docs/images/lego-starter-set.png)
 
-**Hover to see the wiring.** Hovering a brick fades everything it is not connected to. Here the fiscal rule is highlighted together with the core it feeds, the monetary rule it reads and the carbon-pricing block whose revenue it receives.
+**Inside the bricks.** Each brick can declare its elements, each with its own color and symbol:
+
+| Element | Symbol | Color | Status shown |
+|---|---|---|---|
+| Variables | x | yellow | endogenous, exogenous |
+| Equations | = | blue | count checked against the endogenous variables |
+| Parameters | θ | red | estimated, calibrated, or an assumption without a source |
+| Shocks | ε | orange | count |
+| Data series | D | green | count and vintage |
+| Constraints | ≤ | purple | verified in a run, or not yet verified |
+
+The studs on each brick are shared among its elements in proportion to their counts, so a heavily parameterized block or a data-rich satellite stands out at a glance; a switch under the picture turns the studs back to the component color. The **Inside the bricks** panel lists every brick with a proportional bar, the counts with their status, and findings that matter for the model: a brick whose equations do not match its endogenous variables, parameters that are assumptions without a source (to be shown in sensitivity runs), and constraints not yet verified in a run (a warning if the brick is marked validated). These findings are warnings and notes, never errors. Elements are optional: a brick that does not declare them keeps plain studs. `python tools/lego.py elements <manifest> <brick> --from-mod model.mod` counts them from a Dynare file (estimated parameters come from `estimated_params`, shocks from `varexo`, data from `varobs`), and `--set parameters.assumed=3 data.vintage=2026Q2` adds what the code cannot tell. Symbols as well as colors identify each element, so the picture also reads in grayscale and for color-blind readers.
+
+![The Inside the bricks panel of the full example: for each brick a bar split by element and the counts by status, with flags for a non-square labor block, unsourced parameters and unverified constraints](docs/images/lego-inside-bricks.png)
+
+**Hover to see the wiring.** Hovering a brick fades everything it is not connected to. Here the fiscal rule is highlighted together with the core it feeds, the monetary rule it reads and the carbon-pricing block whose revenue it receives. The hover text also lists the brick's elements and findings.
 
 ![Hovering the fiscal-debt-rule brick: it and the bricks it connects to stay lit while the rest fade](docs/images/lego-hover.png)
 
@@ -271,6 +288,7 @@ Adapt `studio-config.yaml` and `.claude/docs/confidentiality-and-ai-use.md` to t
 Agents and skills are Markdown files with YAML frontmatter; edit them freely. After changes run `python tools/validate_studio.py`. To add an agent, create `.claude/agents/<name>.md` and list it as a peer in the related agents. To add a command, create `.claude/skills/<name>/SKILL.md`. Path-scoped standards live in `.claude/rules/`. After changing commands or rules, run `python tools/sync_agents.py` to update the copies for other coding agents.
 
 ## Version history
+- **1.5.0** — Inside the bricks: bricks can declare their elements (variables, equations, parameters, shocks, data, constraints) with their status. Studs are colored by element, a new panel shows each brick's makeup, `check` flags non-square blocks, unsourced parameters and unverified constraints, and `lego.py elements` counts elements from Dynare files. README header and lego images updated.
 - **1.4.2** — Improved agents and skills: fuller, more professional guidance written from a modeler's perspective, with lego engine workflows unchanged.
 - **1.4.1** — Completes 1.4.0: `check` warns when hand-placed bricks overlap or float; a naming fix for the capital-flows specialist; `lego.py arrange` documented in `/lego-show` and the lego rule.
 - **1.4.0** — Open-economy policy mix: four agents (framework, external frictions, microfounded model, low-income countries) and three bricks (FX intervention, capital flow measures, macroprudential policy). Lego view: vertical stacking with no limit on levels; `lego.py arrange` builds a set into a stepped pyramid with positions stored in the manifest; `lego.py validate` records validation results with evidence; identities come with their bricks; parts-bin suggestions; clearer change plans. Cursor guards answer in JSON; git guard finds a working Python. New README pictures.

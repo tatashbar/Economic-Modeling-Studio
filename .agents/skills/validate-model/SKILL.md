@@ -50,6 +50,7 @@ Each agent is defined in `.claude/agents/<name>.md`. If your tool runs subagents
 2. Conceptual soundness: assumptions, literature, limitations
    - Check intended use against the design domain
 3. Implementation: independent re-implementation of core outputs; unit tests; identity checks
+   - For lego models, check each brick's declared elements against the code: equations match endogenous variables, unsourced (assumed) parameters appear in sensitivity runs, and constraints are verified in a run
 4. Outcomes: backtests, benchmark comparison, sensitivity and stress cases
 5. Issue findings with severity (High/Medium/Low) and a rating: PASS / PASS WITH CONDITIONS / FAIL / NOT ASSESSED
 6. If the model has a model.lego.json, validate each brick and each joint separately (interfaces, units, timing, neutral-attachment test); treat stale bricks as unvalidated. For each brick rated PASS (or PASS WITH CONDITIONS, with the conditions in the report), record it with `python tools/lego.py validate <manifest> <brick> --report validation/<model>/validation-report.md --apply`

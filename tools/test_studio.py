@@ -803,6 +803,90 @@ class TestLego(unittest.TestCase):
         self.assertIn("BASEPLATE", scene)
         self.assertIn("trade-sector-armington", scene)  # ghost brick suggested for the open net_exports stud
 
+    # ---- elements: what each brick is made of
+    def test_elements_are_optional_and_checked(self):
+        m = self.manifest()
+        for b in m["bricks"]:
+            b.pop("elements", None)
+        rep = self.lego.check(m)
+        self.assertEqual(rep["errors"], [])
+        self.assertEqual(rep["elements"], {})  # a manifest without elements still works
+        core = self.lego.find(m, "core-gap-open")
+        core["elements"] = {"variables": {"endogenous": 7}, "equations": 6, "parameters": {"calibrated": 4, "assumed": 2},
+                            "constraints": {"unverified": 1}}
+        rep = self.lego.check(m)
+        self.assertEqual(rep["errors"], [])  # element findings are never errors
+        self.assertTrue(any("6 equations for 7 endogenous" in w for w in rep["warnings"]))
+        self.assertTrue(any("2 parameter(s) are assumptions" in n for n in rep["info"]))
+        self.assertTrue(any("not yet verified" in n for n in rep["info"]))
+        core["validation"] = "validated"  # a validated brick with unverified constraints is a warning
+        self.assertTrue(any("although the brick is marked validated" in w for w in self.lego.check(m)["warnings"]))
+        core["elements"] = {"variables": "many", "widgets": 3, "parameters": {"guessed": 1}}
+        w = self.lego.check(m)["warnings"]
+        for frag in ("unknown element 'widgets'", "element 'variables' must be", "unknown field 'guessed'"):
+            self.assertTrue(any(frag in x for x in w), frag)
+
+    def test_elements_are_counted_from_a_dynare_file(self):
+        mod = """// small model
+var y pi i r $r$ (long_name='real rate');
+varexo e_y e_pi;
+varexo_det g;
+parameters beta sigma kappa phi_pi rho;
+model;
+[name='IS'] y = y(+1) - sigma*(i - pi(+1)) + e_y;
+pi = beta*pi(+1) + kappa*y + e_pi;
+# rr = i - pi(+1);
+i = phi_pi*pi;
+r = i - pi(+1) + 0*g;
+end;
+estimated_params;
+kappa, gamma_pdf, 0.1, 0.05;
+stderr e_y, inv_gamma_pdf, 0.01, inf;
+end;
+varobs y pi;
+"""
+        el = self.lego.elements_from_mod(mod)
+        self.assertEqual(el["variables"], {"endogenous": 4, "exogenous": 1})
+        self.assertEqual(el["equations"], 4)  # tags and model-local variables are not equations
+        self.assertEqual(el["shocks"], 2)
+        self.assertEqual(el["parameters"], {"estimated": 1, "calibrated": 4, "assumed": 0})
+        self.assertEqual(el["data"], {"series": 2})
+        d = tempfile.mkdtemp()
+        mp = os.path.join(d, "core.mod")
+        write(mp, mod)
+        p = self.temp_manifest()
+        rc, out = self.cli("elements", p, "core-gap-open", "--from-mod", mp, "--set", "parameters.assumed=1", "data.vintage=2026Q2")
+        self.assertEqual(rc, 0, out)
+        self.assertIn("dry run", out)
+        self.assertNotIn("assumed", json.dumps(self.lego.find(json.loads(read(p)), "core-gap-open").get("elements", {})))
+        rc, out = self.cli("elements", p, "core-gap-open", "--from-mod", mp, "--set", "parameters.assumed=1", "--apply")
+        self.assertEqual(rc, 0, out)
+        b = self.lego.find(json.loads(read(p)), "core-gap-open")
+        self.assertEqual(b["elements"]["parameters"]["assumed"], 1)
+        self.assertTrue(b["elements_source"].endswith("core.mod"))
+        rc, out = self.cli("elements", p, "core-gap-open", "--set", "widgets=2")
+        self.assertNotEqual(rc, 0)
+        os.remove(mp)
+        os.rmdir(d)
+
+    def test_studs_show_elements_with_a_component_switch_and_an_anatomy_panel(self):
+        m = self.manifest()
+        html = self.lego.render_html(m, self.lego.check(m), self.cat)
+        scene = self.svgs(html)[0]
+        self.assertIn('class="se"', scene)   # studs coloured by element
+        self.assertIn('class="sk"', scene)   # and by component, for the switch
+        self.assertIn('id="elmode" checked', html)
+        self.assertNotIn("<script", html)    # the switch is pure CSS
+        self.assertIn("Inside the bricks", html)
+        for sym in ("variables", "equations", "parameters", "shocks", "data series", "constraints"):
+            self.assertIn(sym, html)
+        self.assertIn("inside: x ", html)    # the hover text lists the elements too
+        for b in m["bricks"]:
+            b.pop("elements", None)
+        bare = self.lego.render_html(m, self.lego.check(m), self.cat)
+        self.assertNotIn('class="se"', self.svgs(bare)[0])
+        self.assertIn("elements not declared yet", bare)
+
     def test_open_studs_are_drawn_as_sockets_and_ghosts(self):
         m = self.manifest()
         rep = self.lego.check(m)
