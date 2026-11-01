@@ -36,9 +36,13 @@ The lifecycle is **Concept → Design → Build → Estimate → Validate → Re
 
 ## Quick start
 1. Get your own copy with git: `git clone https://github.com/tatashbar/Economic-Modeling-Studio.git`. If you downloaded the ZIP instead, run `git init` inside the folder first, since the ZIP has no `.git` folder.
-2. Open the folder in your coding agent (from the project root or any subfolder), and run `git config core.hooksPath .githooks` once to enable the commit guard, which blocks commits of restricted data, raw data and secrets.
-3. Type `/start` (`$start` in Codex) and describe what you want to do. Alternatives: `/help` for what exists, `/project-stage-detect` to see where a project stands, `/adopt <path>` to bring in an existing model.
-4. Follow the suggested next command. A typical first step is `/scope-question`, then `/select-model-class`.
+2. Start your coding agent **in** the studio folder, so that it is the session's working folder:
+   - The right folder directly contains `.claude`, `AGENTS.md` and `README.md`. If unzipping created a nested `Economic-Modeling-Studio-main` folder inside another one, use the inner one.
+   - **Claude desktop app:** start a new session and choose this folder in the folder picker next to the message box. Attaching the folder to a message is not enough, because commands load only from the working folder, when the session starts.
+   - **Terminal:** `cd` into the folder (or any subfolder) and start your agent there.
+3. Run `git config core.hooksPath .githooks` once to enable the commit guard, which blocks commits of restricted data, raw data and secrets.
+4. Type `/` and check that `start` appears in the list. If it does not, the session is in the wrong folder: go back to step 2. Then type `/start` (`$start` in Codex) and describe what you want to do, for example `/start build a simple small open economy model for Austria`. Alternatives: `/help` for what exists, `/project-stage-detect` to see where a project stands, `/adopt <path>` to bring in an existing model.
+5. Follow the suggested next command. A typical first step is `/scope-question`, then `/select-model-class`.
 
 ## Typical uses
 
