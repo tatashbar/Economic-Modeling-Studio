@@ -35,9 +35,10 @@ Around this sits a governed workflow, scaled to the model's size and risk level:
 The lifecycle is **Concept → Design → Build → Estimate → Validate → Release / Operate**. Small models move through it quickly with light checks. Large ones add architecture decisions, staged integration and periodic revalidation.
 
 ## Quick start
-1. Open this folder in your coding agent (from the project root or any subfolder), and run `git config core.hooksPath .githooks` once to enable the commit guard.
-2. Type `/start` (`$start` in Codex) and describe what you want to do. Alternatives: `/help` for what exists, `/project-stage-detect` to see where a project stands, `/adopt <path>` to bring in an existing model.
-3. Follow the suggested next command. A typical first step is `/scope-question`, then `/select-model-class`.
+1. Get your own copy with git: `git clone https://github.com/tatashbar/Economic-Modeling-Studio.git`. If you downloaded the ZIP instead, run `git init` inside the folder first, since the ZIP has no `.git` folder.
+2. Open the folder in your coding agent (from the project root or any subfolder), and run `git config core.hooksPath .githooks` once to enable the commit guard, which blocks commits of restricted data, raw data and secrets.
+3. Type `/start` (`$start` in Codex) and describe what you want to do. Alternatives: `/help` for what exists, `/project-stage-detect` to see where a project stands, `/adopt <path>` to bring in an existing model.
+4. Follow the suggested next command. A typical first step is `/scope-question`, then `/select-model-class`.
 
 ## Typical uses
 
@@ -262,7 +263,7 @@ tools/precommit_guard.py   git pre-commit guard for restricted data, raw data an
 - A coding agent (Claude Code, Codex, Cursor, Grok Build, Gemini CLI or another that reads `AGENTS.md`), and Python 3.9 or later (hooks and tools use only the standard library).
 - Your modeling software as needed (Dynare/MATLAB, Julia, Python, R, GAMS), configured in `studio-config.yaml`; `/setup-environment` can guide this.
 - Verify the install: `python tools/validate_studio.py` (integrity) and `python tools/test_studio.py` (hooks and consistency).
-- Enable the commit guard once per clone: `git config core.hooksPath .githooks`.
+- Enable the commit guard once per copy: `git config core.hooksPath .githooks`. It needs a git repository: clone with git, or run `git init` first in a ZIP download.
 - Start your agent from the project folder or any subfolder; the hooks find the project root automatically. If a hook script is missing, it does nothing rather than blocking your session.
 
 ## Intended use: public data only
