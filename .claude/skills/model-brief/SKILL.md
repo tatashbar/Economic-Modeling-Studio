@@ -14,6 +14,13 @@ Creates the model brief: purpose, model class, mechanisms, data, validation leve
 
 Arguments: `$ARGUMENTS`
 
+## Purpose
+Write the model brief: the one document that says what a model is for and what it is not for, which class it belongs to, which mechanisms it must contain, what data it needs, how deeply it will be validated, who will build it, by when, and what could go wrong. The output is the reference against which every later decision and the final validation are judged.
+
+**Use it when** a modeling project has been scoped and the model class chosen, before specification starts.
+
+**Do not use it when** the work is exploratory and labeled as such (`/quick-model`), or the question is not yet precise (`/scope-question`).
+
 ## Before you start
 1. **Check required inputs.** For each input below record `FOUND` or `ABSENT` (never 'assumed'):
    - docs/briefs/<name>-scope.md (recommended)
@@ -29,18 +36,41 @@ Arguments: `$ARGUMENTS`
 
 Run these agents as subagents (the `Task` tool), in parallel where the steps are independent. Subagents only write to the paths named in your instructions.
 
+## Key design decisions (present options, let the user choose)
+| Decision | Typical options | What it changes |
+|---|---|---|
+| Purpose | forecasting, policy analysis, scenario, research | Validation focus |
+| Risk level | low, medium, high | Validation depth and sign-offs |
+| Ownership | studio team, counterpart, shared | Documentation and training |
+| Timeline | weeks, months | Model size and scope |
+
 ## Workflow
 1. Collect the scoping note, the chosen model class and available resources
 2. Draft the brief from `docs/templates/model-brief.md`, one section at a time, with approval for each
+   - State non-purposes explicitly
 3. Assign risk level with the model-risk-governance-specialist
 4. Set milestones sized to the model class and flag dependencies
+   - Include data, validation and documentation milestones
+
+## Checkpoints with the user
+- After each section of the brief
+- After risk assignment: confirm validation depth
+
+## Common pitfalls
+- No non-purposes, so the model is later used for everything
+- Timelines that ignore validation
+- Unclear ownership after delivery
 
 ## Output
 `docs/models/<name>/model-brief.md`
 
+The brief covers purpose and non-purposes, model class, mechanisms, data, validation level, team, timeline, risks and dependencies.
+
 ## Gate / verdict
 - Purpose and non-purposes are stated
 - Risk level and validation depth are agreed
+- Milestones include validation and documentation
+- Ownership after delivery is stated
 
 ## Suggested next steps
 - `/literature-review`

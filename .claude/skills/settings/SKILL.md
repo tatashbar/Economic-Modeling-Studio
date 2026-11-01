@@ -14,6 +14,13 @@ Views or changes studio configuration: rigor level, default languages, review re
 
 Arguments: `$ARGUMENTS`
 
+## Purpose
+View or change the studio's configuration (rigor level, default languages, review requirements, confidentiality defaults) with the consequences of every change explained before it is made. Changes that weaken validation or confidentiality require explicit confirmation.
+
+**Use it when** a team wants to adapt the studio to its stack, risk appetite or institutional rules.
+
+**Do not use it when** setting up a new environment (`/setup-environment`).
+
 ## Before you start
 1. **Check required inputs.** For each input below record `FOUND` or `ABSENT` (never 'assumed'):
    - studio-config.yaml
@@ -30,11 +37,18 @@ Arguments: `$ARGUMENTS`
 3. Ask for confirmation, then edit `studio-config.yaml`
 4. Warn if a change conflicts with `.claude/docs/model-risk-levels.md`
 
+## Common pitfalls
+- Lowering rigor for high-risk models
+- Changing confidentiality defaults without reviewing data already in the project
+
 ## Output
 `studio-config.yaml`
 
+The configuration file is updated, and the conversation records what changed and why.
+
 ## Gate / verdict
 - Changes that weaken confidentiality or validation need explicit user confirmation
+- Each change is explained before it is applied
 
 ## Suggested next steps
 - `/help`

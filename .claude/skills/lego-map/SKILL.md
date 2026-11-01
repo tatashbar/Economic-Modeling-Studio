@@ -14,6 +14,13 @@ Represents a model as a lego set: a baseplate (core), bricks (components) and st
 
 Arguments: `$ARGUMENTS`
 
+## Purpose
+Represent a model, new or existing, as a lego set: a baseplate (the core), bricks (components such as policy rules, sectors, external, financial and climate blocks, satellites) and studs (declared interfaces with units and timing). The manifest makes the model's structure explicit, lets the engine check wiring, and makes components attachable, detachable and swappable. Cuts are made where the model already has clean interfaces, and strongly simultaneous parts stay together.
+
+**Use it when** a model is built (every `/build-*` skill ends here), adopted (`/adopt`), or needs to become modular.
+
+**Do not use it when** a single new component is being added to an existing set (`/lego-add`).
+
 ## Before you start
 1. **Check required inputs.** For each input below record `FOUND` or `ABSENT` (never 'assumed'):
    - Model specification, equations or code
@@ -32,6 +39,15 @@ Arguments: `$ARGUMENTS`
 
 Run these agents as subagents (the `Task` tool), in parallel where the steps are independent. Subagents only write to the paths named in your instructions.
 
+## Key design decisions (present options, let the user choose)
+| Decision | Typical options | What it changes |
+|---|---|---|
+| Cut points | coarse (few large bricks), fine (many small bricks) | Flexibility versus simultaneity |
+| Stubs | exogenous baseline paths, fixed values, simple rules | Whether bricks run alone |
+| Slots | monetary rule, fiscal rule, sectoral structure | Swappable closures |
+| Identities | resource constraint, BoP, government budget, sectoral balances | Assembly checks |
+| Picture | grid, stepped pyramid | Presentation only |
+
 ## Workflow
 1. Read the specification or code and list the model's blocks: the core, policy rules, sectors, external and financial blocks, climate, satellites and output tools
 2. Propose where to cut. Prefer cuts where the model already has a clean interface; keep strongly simultaneous parts as one brick. Show a table of bricks with what each provides and requires (variable, unit, timing lag), and ask the user to approve the cut points
@@ -41,14 +57,28 @@ Run these agents as subagents (the `Task` tool), in parallel where the steps are
 6. Create the manifest with `python tools/lego.py new <manifest> --name ... --freq ... --class ... --bricks ...` (or write the JSON), then run `check` and `show --html`
 7. Report open studs, simultaneous blocks, frequency mismatches that need a bridge, and which bricks are still unvalidated. Mark all bricks 'unvalidated' unless a validation report exists for them
 
+## Checkpoints with the user
+- After the brick table: approve cut points
+- After stubs: approve each fallback
+- Before writing the manifest
+
+## Common pitfalls
+- Cutting through strongly simultaneous equations
+- Inventing port names that duplicate existing ones
+- Marking bricks validated without a report
+- Hiding variables exchanged outside declared ports
+
 ## Output
 `models/<family>/<name>/model.lego.json (and, on request, lego-view.html next to it)`
+
+The manifest records baseplate, bricks, ports, stubs, slots, identities and validation status; the optional HTML view shows the set as stacked bricks.
 
 ## Gate / verdict
 - `check` reports no errors
 - Every variable exchanged between bricks is a declared port with a unit
 - Every required input has a source brick or a documented stub
 - The manifest is written only after the user approves the decomposition
+- Bricks without a validation report are marked unvalidated
 
 ## Suggested next steps
 - `/lego-show`

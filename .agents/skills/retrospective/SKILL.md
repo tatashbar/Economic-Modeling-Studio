@@ -12,6 +12,13 @@ Runs a retrospective on a forecast round, model build or project: what worked, w
 
 Arguments: whatever the user wrote after the command name.
 
+## Purpose
+Run a retrospective on a forecast round, model build or project: gather the facts, decompose forecast errors into data, model, judgment and unforeseen shocks, and turn lessons into actions with owners. The output improves the next round rather than assigning blame.
+
+**Use it when** a forecast round or project ends, or after a large forecast miss.
+
+**Do not use it when** the aim is to re-plan an ongoing project (`/milestone-review`).
+
 ## Before you start
 1. **Check required inputs.** For each input below record `FOUND` or `ABSENT` (never 'assumed'):
    - Project artifacts
@@ -30,14 +37,26 @@ Each agent is defined in `.claude/agents/<name>.md`. If your tool runs subagents
 ## Workflow
 1. Gather facts: plan vs. actual, forecast errors, issues, rework
 2. Decompose errors by data, model, judgment and shocks where relevant
+   - Use data revisions, model reruns with final data and the overlay log
 3. Identify process and methodology changes
 4. Record actions with owners
+
+## Checkpoints with the user
+- After the error decomposition: agree the main lessons
+
+## Common pitfalls
+- Attributing every miss to unforeseeable shocks
+- Lessons without actions
+- Ignoring what went well
 
 ## Output
 `production/retrospectives/<name>-<date>.md`
 
+The record documents facts, error decomposition, lessons, and actions with owners and dates.
+
 ## Gate / verdict
 - Each lesson has an action and an owner
+- Error decomposition uses the overlay log where judgment was applied
 
 ## Suggested next steps
 - `/milestone-review`

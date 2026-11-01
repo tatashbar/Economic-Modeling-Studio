@@ -12,6 +12,13 @@ Runs a phase gate: checks exit criteria for the current stage and returns PASS /
 
 Arguments: whatever the user wrote after the command name.
 
+## Purpose
+Run a phase gate: check, criterion by criterion, whether the evidence for leaving the current stage exists in the project's files, collect specialist verdicts, and return an overall verdict with blockers, owners and next actions. A gate never passes by default; missing evidence means NOT ASSESSED.
+
+**Use it when** a project wants to move from one stage to the next (concept, design, build, estimate, validate, operate), or before a milestone review.
+
+**Do not use it when** the question is release approval for a model (`/model-risk-review`, `/model-release`).
+
 ## Before you start
 1. **Check required inputs.** For each input below record `FOUND` or `ABSENT` (never 'assumed'):
    - Stage artifacts
@@ -31,14 +38,26 @@ Each agent is defined in `.claude/agents/<name>.md`. If your tool runs subagents
 ## Workflow
 1. Read the gate definition in `.claude/docs/phase-gates.md`
 2. Check every criterion against actual files; mark FOUND or ABSENT
+   - Cite the file path for each FOUND item; for lego models include the manifest check status
 3. Ask the economic-reasoning, methodology and model-risk specialists for a verdict on their criteria
 4. Return an overall verdict with blockers, owners and next actions
+
+## Checkpoints with the user
+- Before the verdict is recorded: review blockers and owners
+
+## Common pitfalls
+- Passing on promises rather than files
+- Criteria marked FOUND without a file reference
+- Blockers without owners
 
 ## Output
 `production/gates/<stage>-<date>.md`
 
+The gate record lists each criterion with FOUND or ABSENT and its evidence path, specialist verdicts, the overall verdict, blockers, owners and next actions.
+
 ## Gate / verdict
 - Verdict 'NOT ASSESSED' if required evidence is absent — never a pass by default
+- Every FOUND criterion cites a file
 
 ## Suggested next steps
 - `/milestone-review`

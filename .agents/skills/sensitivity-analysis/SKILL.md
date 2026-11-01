@@ -12,6 +12,13 @@ Runs global sensitivity and uncertainty analysis to rank assumptions and paramet
 
 Arguments: whatever the user wrote after the command name.
 
+## Purpose
+Rank the parameters and assumptions that drive a model's results using global methods, propagate their uncertainty, and test whether the conclusions survive plausible ranges of the top drivers. The output is a key-driver ranking and a statement of how uncertain the results really are, including structural uncertainty where alternative models exist.
+
+**Use it when** a model's results will inform decisions, calibration is uncertain, or reviewers ask which assumptions matter.
+
+**Do not use it when** the question is whether conclusions survive other models or identification schemes (`/robustness-check`).
+
 ## Before you start
 1. **Check required inputs.** For each input below record `FOUND` or `ABSENT` (never 'assumed'):
    - Model code
@@ -26,17 +33,39 @@ Arguments: whatever the user wrote after the command name.
 
 Each agent is defined in `.claude/agents/<name>.md`. If your tool runs subagents, run these agents as subagents, in parallel where the steps are independent; otherwise read each agent's file and apply its instructions in turn. Subagents only write to the paths named in your instructions.
 
+## Key design decisions (present options, let the user choose)
+| Decision | Typical options | What it changes |
+|---|---|---|
+| Method | Morris screening, Sobol indices, Monte Carlo propagation | Interaction detection and cost |
+| Ranges | posterior intervals, literature ranges, expert ranges | Plausibility |
+| Outputs | decision-relevant metrics | Relevance |
+| Cost control | surrogate models, sparse sampling | Feasibility |
+
 ## Workflow
 1. Define output metrics and plausible parameter/assumption ranges with rationale
 2. Run Sobol/Morris or Monte Carlo analysis
+   - Check convergence of indices; report total-effect indices for interactions
 3. Rank drivers and test whether conclusions are robust to them
 4. Report structural uncertainty if alternative models exist
+
+## Checkpoints with the user
+- After ranges: confirm their sources
+- After ranking: confirm which drivers need further evidence
+
+## Common pitfalls
+- One-at-a-time sensitivity in nonlinear models
+- Ranges without sources
+- Outputs that do not relate to the decision
 
 ## Output
 `validation/<model>/sensitivity-report.md`
 
+The report presents ranges with sources, methods, index estimates with convergence, the key-driver ranking and the robustness of conclusions.
+
 ## Gate / verdict
 - Ranges justified; top drivers identified
+- Index convergence is checked
+- Interactions are assessed with total-effect indices
 
 ## Suggested next steps
 - `/validate-model`

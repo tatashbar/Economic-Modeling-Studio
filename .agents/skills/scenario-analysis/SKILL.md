@@ -12,6 +12,13 @@ Designs and runs scenarios and risk assessments with consistent assumptions acro
 
 Arguments: whatever the user wrote after the command name.
 
+## Purpose
+Design and run scenarios (coherent narratives of what could happen, translated into consistent shocks across the relevant models) and compare them with the baseline, explaining the transmission. The output is a set of conditional scenarios with explicit assumptions, and likelihood language only where a method supports it.
+
+**Use it when** risks to a baseline must be explored, stress narratives prepared, or decision-makers need "what if" analysis.
+
+**Do not use it when** density forecasts are the right communication (`/fan-chart`), or financial-sector losses are the focus (`/stress-test`).
+
 ## Before you start
 1. **Check required inputs.** For each input below record `FOUND` or `ABSENT` (never 'assumed'):
    - Baseline
@@ -27,17 +34,41 @@ Arguments: whatever the user wrote after the command name.
 
 Each agent is defined in `.claude/agents/<name>.md`. If your tool runs subagents, run these agents as subagents, in parallel where the steps are independent; otherwise read each agent's file and apply its instructions in turn. Subagents only write to the paths named in your instructions.
 
+## Key design decisions (present options, let the user choose)
+| Decision | Typical options | What it changes |
+|---|---|---|
+| Narrative | external shock, domestic shock, policy shift, combined | Relevance |
+| Severity | plausible, severe, reverse-engineered to breaking points | Use of results |
+| Models | core model, satellites, multi-country | Channel coverage |
+| Policy response | endogenous, fixed, alternative responses | Interpretation |
+| Probability | none, model-based, expert-elicited | Likelihood language |
+
 ## Workflow
 1. Define the scenario narrative, shocks and what is held constant
+   - Calibrate severity to historical episodes where possible
 2. Translate to model inputs in each relevant model; ensure consistency
 3. Run scenarios; compare to baseline with transmission explanation
 4. Assign likelihood language only if a method supports it
 
+## Checkpoints with the user
+- After the narrative: confirm shocks and assumptions
+- After results: confirm communication of likelihood
+
+## Common pitfalls
+- Inconsistent shock translations across models
+- Unstated policy responses
+- Scenarios presented as forecasts
+- Probability words without a method
+
 ## Output
 `forecasts/scenarios/<name>.md`
 
+The report describes each narrative, the shock translations, results versus baseline with transmission, and the basis for any likelihood statements.
+
 ## Gate / verdict
 - Scenario labelled as conditional; assumptions explicit
+- Shock translations are consistent across models
+- Policy-response assumptions are stated
 
 ## Suggested next steps
 - `/chart-pack`

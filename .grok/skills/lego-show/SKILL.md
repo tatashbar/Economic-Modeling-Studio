@@ -12,6 +12,13 @@ Shows a model as a lego set: baseplate, bricks, joints, open studs, parts bin an
 
 Arguments: whatever the user wrote after the command name.
 
+## Purpose
+Show a model as a lego set in terms an economist can act on: what the core is, which components are attached and what they exchange, which inputs still run on stubs and what that means economically, which bricks could fill the gaps, which blocks are solved jointly, and in what order. On request it draws the set as a self-contained HTML picture or a Mermaid diagram, with bricks stacked on the bricks whose outputs they read, at any number of levels.
+
+**Use it when** explaining a model to colleagues or counterparts, deciding what to add next, or documenting structure.
+
+**Do not use it when** the wiring must be verified (`/lego-check`).
+
 ## Before you start
 1. **Check required inputs.** For each input below record `FOUND` or `ABSENT` (never 'assumed'):
    - A model.lego.json manifest (create one with /lego-map)
@@ -32,11 +39,22 @@ Each agent is defined in `.claude/agents/<name>.md`. If your tool runs subagents
 4. Point out simultaneous blocks (solved jointly) and the solve order
 5. On request, write the picture with `--html <file>` (a self-contained page) or `--mermaid` for documents. Bricks stack on the bricks whose outputs they read, with no limit on levels. To build the picture as a stepped pyramid, show the plan of `python tools/lego.py arrange <manifest>` and, with approval, add `--apply`; `--style grid` returns to the default. Positions change the picture only, never the wiring; report any `picture:` warnings from `check`
 
+## Checkpoints with the user
+- Before applying a new arrangement to the picture
+
+## Common pitfalls
+- Describing channels the manifest does not contain
+- Confusing picture positions with wiring
+- Ignoring stubs when interpreting results
+
 ## Output
 `(conversation); optionally lego-view.html next to the manifest`
 
+The explanation is given in conversation; the optional HTML page or Mermaid diagram sits next to the manifest.
+
 ## Gate / verdict
 - The description matches the tool's output; nothing is inferred beyond it
+- Economic consequences of open studs are explained
 
 ## Suggested next steps
 - `/lego-add`

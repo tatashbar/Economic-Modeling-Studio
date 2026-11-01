@@ -14,6 +14,13 @@ Estimates Bayesian VARs with prior choice, hyperparameter selection, conditional
 
 Arguments: `$ARGUMENTS`
 
+## Purpose
+Estimate a Bayesian VAR for forecasting and scenario analysis, with priors chosen by a documented rule, stability and convergence checked, conditional and unconditional forecasts produced, and out-of-sample accuracy compared with simple benchmarks. The output is a BVAR whose forecasting value has been demonstrated, not assumed.
+
+**Use it when** forecasting several macro variables jointly, producing conditional forecasts on assumed paths (policy rates, commodity prices, foreign demand), or building a benchmark for structural and ML models.
+
+**Do not use it when** structural identification is the aim (`/estimate-var`, `/identify-shocks`), or many indicators at mixed frequencies drive the forecast (`/nowcast`).
+
 ## Before you start
 1. **Check required inputs.** For each input below record `FOUND` or `ABSENT` (never 'assumed'):
    - Data sheet
@@ -28,17 +35,44 @@ Arguments: `$ARGUMENTS`
 
 Run these agents as subagents (the `Task` tool), in parallel where the steps are independent. Subagents only write to the paths named in your instructions.
 
+## Key design decisions (present options, let the user choose)
+| Decision | Typical options | What it changes |
+|---|---|---|
+| Prior | Minnesota, normal-inverse-Wishart, sum-of-coefficients, dummy-initial-observation, steady-state prior | Shrinkage and long-run behavior |
+| Hyperparameters | marginal-likelihood maximization, hierarchical, fixed by rule | Fit versus overfitting |
+| Size | small, medium, large | Information versus shrinkage needs |
+| Volatility | constant, stochastic volatility | Density forecasts |
+| Conditioning | hard conditions, soft conditions, structural scenarios | Interpretation of conditional forecasts |
+
 ## Workflow
 1. Choose prior family and select hyperparameters by a documented rule
+   - Transform variables consistently (levels, logs, growth rates) and state why
 2. Estimate; check convergence and stability
+   - Posterior draws with stable roots; MCMC diagnostics where samplers are used
 3. Produce unconditional and conditional forecasts
+   - Show which shocks deliver conditioning paths and whether they are plausible
 4. Evaluate out-of-sample against random walk and AR benchmarks
+   - Rolling origins; point and density scores; equal-accuracy tests
+
+## Checkpoints with the user
+- After variable and prior choice: confirm the specification
+- After evaluation: confirm whether the BVAR is fit for forecasting use
+
+## Common pitfalls
+- Hyperparameters tuned on the evaluation sample
+- Conditional forecasts requiring implausible shocks
+- Ignoring stochastic volatility when densities matter
+- Evaluating on revised data as if real time
 
 ## Output
 `docs/models/<name>/bvar-results.md`; code and settings in `models/econometrics/<name>/`
 
+The results document reports the prior and hyperparameters, diagnostics, forecasts and the out-of-sample comparison; code and settings allow exact rerun.
+
 ## Gate / verdict
 - Out-of-sample comparison with benchmarks present
+- Hyperparameter rule is documented
+- Density forecasts are checked for calibration
 
 ## Suggested next steps
 - `/forecast-round`

@@ -256,10 +256,13 @@ class TestIntegrity(unittest.TestCase):
 
     def test_no_forbidden_mentions(self):
         pat = re.compile(r"\bIMF\b|GIMF|International Monetary|Game Studios|Donchitos|[Cc]entral banks?\b")
+        # IPF agents may cite the IMF papers that define the framework (with imf.org links)
+        ipf_pat = re.compile(r"GIMF|International Monetary|Game Studios|Donchitos|[Cc]entral banks?\b")
         me = os.path.abspath(__file__)
         for p in glob.glob(os.path.join(ROOT, "**", "*"), recursive=True) + glob.glob(os.path.join(ROOT, ".claude", "**", "*"), recursive=True):
             if os.path.isfile(p) and os.path.abspath(p) != me and p.endswith((".md", ".py", ".json", ".yaml", ".txt")):
-                self.assertIsNone(pat.search(read(p)), p)
+                rule = ipf_pat if os.path.basename(p).startswith("ipf-") else pat
+                self.assertIsNone(rule.search(read(p)), p)
 
     def test_readme_has_version(self):
         readme = read(os.path.join(ROOT, "README.md"))

@@ -14,6 +14,13 @@ Defines data requirements and checks availability, vintages, confidentiality cla
 
 Arguments: `$ARGUMENTS`
 
+## Purpose
+Define what data a model needs and check, series by series, whether they exist, where they come from, what they mean, how reliable they are, and how confidential they are. The output is a data sheet and a pipeline plan that prevent late surprises: missing series, mismatched concepts, short samples or data that cannot legally be used.
+
+**Use it when** a model is scoped and its observables and calibration targets are known, or an existing model moves to a new country.
+
+**Do not use it when** the data pipeline already exists and only needs refreshing.
+
 ## Before you start
 1. **Check required inputs.** For each input below record `FOUND` or `ABSENT` (never 'assumed'):
    - docs/models/<name>/model-spec.md
@@ -29,17 +36,42 @@ Arguments: `$ARGUMENTS`
 
 Run these agents as subagents (the `Task` tool), in parallel where the steps are independent. Subagents only write to the paths named in your instructions.
 
+## Key design decisions (present options, let the user choose)
+| Decision | Typical options | What it changes |
+|---|---|---|
+| Sources | national statistics, international databases, private data | Coverage, cost, licensing |
+| Frequency | annual, quarterly, monthly | Model design |
+| Sample | full history, post-break | Estimation reliability |
+| Treatments | seasonal adjustment, splicing, interpolation | Data quality |
+
 ## Workflow
 1. List the observables, frequency, sample and concept for each series
+   - Match each concept to the model variable definition
 2. Check availability and source; classify confidentiality class
+   - Record licenses and redistribution rights
 3. Assess quality (revisions, breaks, seasonality) and propose treatments
 4. Produce a data sheet and pipeline plan
+   - Note vintages needed for real-time evaluation
+
+## Checkpoints with the user
+- After the list: confirm observables and samples
+- After quality review: confirm proposed treatments
+
+## Common pitfalls
+- Concepts that differ from model definitions (cash versus accrual, gross versus net)
+- Licenses checked too late
+- Ignoring breaks and rebasing
+- No plan for vintages
 
 ## Output
 `docs/models/<name>/data-sheet.md`
 
+The data sheet lists each series with definition, source, frequency, sample, classification, license, quality notes and proposed treatments, plus the pipeline plan.
+
 ## Gate / verdict
 - Each series has a source, definition, classification and quality note
+- Licenses and redistribution rights are recorded
+- Concept mismatches with the model are documented
 
 ## Suggested next steps
 - `/calibration-plan`

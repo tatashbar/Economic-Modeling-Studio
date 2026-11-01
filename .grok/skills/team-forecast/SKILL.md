@@ -12,6 +12,13 @@ Orchestrates a full forecast round across nowcasting, core model, ML ensemble, j
 
 Arguments: whatever the user wrote after the command name.
 
+## Purpose
+Orchestrate a full forecast round with a team: freeze and check data, run nowcasts, the core model, BVAR and ML forecasters in parallel, combine them, log overlays agreed with stakeholders, build risks and charts, and deliver a reviewed brief. The output is a reproducible round package with stated risk balance.
+
+**Use it when** a regular forecast round requires several models and contributors.
+
+**Do not use it when** one analyst can run the round alone (`/forecast-round`).
+
 ## Before you start
 1. **Check required inputs.** For each input below record `FOUND` or `ABSENT` (never 'assumed'):
    - Frozen data vintage
@@ -36,15 +43,30 @@ Each agent is defined in `.claude/agents/<name>.md`. If your tool runs subagents
 ## Workflow
 1. Phase 1: data-engineer freezes the vintage; data-quality checks run
 2. Phase 2 (parallel): nowcast, core model, BVAR and ML forecasters run
+   - Validate lego assemblies before running (`python tools/lego.py validate`)
 3. Phase 3: forecast-combination-specialist combines; stakeholder-liaison-specialist logs overlays with stakeholders
 4. Phase 4 (parallel): scenario-risk-analysis-specialist builds risks; visualization-dashboard-specialist builds charts
 5. Phase 5: policy-brief-writer drafts the brief; economic-reasoning-specialist and policy-relevance-specialist review; archive the package
 
+## Checkpoints with the user
+- End of Phase 1: confirm the data cut-off
+- End of Phase 3: approve the combined forecast and overlays
+- Before release: approve the brief
+
+## Common pitfalls
+- Models run on different vintages
+- Overlays agreed but not logged
+- Revisions from the previous round left unexplained
+
 ## Output
 `forecasts/<round>/`
 
+The round folder holds the frozen vintage, all model outputs, the combination, overlay log, risks, charts, brief and review records.
+
 ## Gate / verdict
 - Reproducible; overlays logged; risk balance stated
+- All models use the frozen vintage
+- Revisions from the previous round are explained
 
 ## Suggested next steps
 - `/retrospective`

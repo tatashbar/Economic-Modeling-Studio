@@ -14,6 +14,13 @@ Builds LLM-agent economic simulations (synthetic households, firms, forecasters,
 
 Arguments: `$ARGUMENTS`
 
+## Purpose
+Build an economic simulation populated by LLM-powered agents (synthetic households, firms, forecasters or negotiators) and measure how much of what they do reflects stable behavior rather than prompt wording or model choice. The output is an exploratory simulation with sensitivity and reproducibility evidence, compared with human data wherever it exists.
+
+**Use it when** piloting surveys or experiments, exploring expectation formation and reactions to communication, or prototyping behavioral rules for agent-based models.
+
+**Do not use it when** results will be presented as evidence of human behavior without validation, or when a calibrated behavioral or agent-based model already answers the question (`/build-abm`).
+
 ## Before you start
 1. **Check required inputs.** For each input below record `FOUND` or `ABSENT` (never 'assumed'):
    - Simulation design
@@ -29,19 +36,46 @@ Arguments: `$ARGUMENTS`
 
 Run these agents as subagents (the `Task` tool), in parallel where the steps are independent. Subagents only write to the paths named in your instructions.
 
+## Key design decisions (present options, let the user choose)
+| Decision | Typical options | What it changes |
+|---|---|---|
+| Personas | survey-grounded demographics, stylized types | Representativeness |
+| Information and memory | fixed context, evolving memory, news feeds | Dynamics of beliefs |
+| Protocol | survey questions, market game, negotiation | What is measured |
+| Models | at least two LLMs; versions pinned | Model dependence |
+| Validation data | human surveys, lab experiments | Strength of conclusions |
+
 ## Workflow
 1. Specify agent personas, information sets, memory and decision protocols
+   - Use structured outputs; record prompts and versions
 2. Run pilot simulations across prompts, seeds and at least two LLMs
 3. Compare behavior to human experimental or survey evidence
+   - Compare means, dispersion, treatment effects and heterogeneity
+   - Check for contamination from well-known published experiments
 4. Quantify prompt and model sensitivity; label results exploratory unless validated
 5. Document reproducibility details (model versions, temperature, seeds)
+
+## Checkpoints with the user
+- After the design: confirm personas and protocol
+- After pilots: confirm sensitivity is acceptable before scaling
+- Before reporting: agree on the labeling of results
+
+## Common pitfalls
+- Treating simulated agents as representative humans
+- Results driven by one prompt wording
+- LLMs reciting famous experiments rather than behaving
+- Large simulated samples giving false precision
 
 ## Output
 `models/llm/<name>-agents/`
 
+The folder holds persona and protocol definitions, prompts, run scripts, raw outputs, sensitivity analysis, the human-data comparison and a reproducibility record.
+
 ## Gate / verdict
 - Sensitivity across prompts and models reported
 - Output labelled exploratory unless validated against human data
+- Prompts, model versions, temperature and seeds are archived
+- Contamination risk is assessed
 
 ## Suggested next steps
 - `/ai-audit`

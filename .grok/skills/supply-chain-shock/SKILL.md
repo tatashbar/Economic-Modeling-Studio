@@ -12,6 +12,13 @@ Analyzes sectoral and supply-chain shocks with input-output and production-netwo
 
 Arguments: whatever the user wrote after the command name.
 
+## Purpose
+Analyze a sectoral or supply-chain shock (a disaster, export ban, sanctions, port closure or input shortage) by propagating it through input-output and production-network models, identifying bottlenecks, and estimating output, price, employment and trade effects under low and high substitutability. The output compares nonlinear network results with a first-order approximation and evaluates mitigation options with their costs.
+
+**Use it when** a disruption hits specific sectors or suppliers and its economy-wide effects, bottlenecks and resilience options must be assessed.
+
+**Do not use it when** the shock is purely a demand change suitable for multipliers (`/build-io-sam`) or a tariff scenario (`/trade-policy-analysis`).
+
 ## Before you start
 1. **Check required inputs.** For each input below record `FOUND` or `ABSENT` (never 'assumed'):
    - IO or network data
@@ -29,19 +36,42 @@ Arguments: whatever the user wrote after the command name.
 
 Each agent is defined in `.claude/agents/<name>.md`. If your tool runs subagents, run these agents as subagents, in parallel where the steps are independent; otherwise read each agent's file and apply its instructions in turn. Subagents only write to the paths named in your instructions.
 
+## Key design decisions (present options, let the user choose)
+| Decision | Typical options | What it changes |
+|---|---|---|
+| Network | national IO, multi-regional IO, firm-level | Detail and coverage |
+| Substitution | Leontief, low CES, high CES | Severity of bottlenecks |
+| Shock form | output loss, price spike, quantity rationing | Propagation pattern |
+| Duration | weeks, months, permanent | Role of inventories |
+| Mitigation | diversification, stockpiles, reshoring | Policy options |
+
 ## Workflow
 1. Define the shock: sector, region, size, duration and substitution assumptions
 2. Propagate through the network with low and high substitutability
 3. Estimate output, price, employment and trade effects; identify bottlenecks
 4. Compare with a first-order (Hulten-style) approximation and explain differences
 5. Evaluate mitigation options: diversification, stockpiles, reshoring
+   - Include costs in normal times, not only benefits in crises
+
+## Checkpoints with the user
+- After defining the shock: confirm size, duration and substitution range
+- After results: confirm mitigation options to evaluate
+
+## Common pitfalls
+- Fixed coefficients for large, persistent shocks
+- Aggregation hiding single points of failure
+- Missing foreign suppliers
+- Mitigation without cost
 
 ## Output
 `forecasts/sectoral/<name>-supply-chain.md`
 
+The report defines the shock, presents results under low and high substitution, compares them with the first-order result, identifies bottlenecks and evaluates mitigation with costs.
+
 ## Gate / verdict
 - Results shown for low and high substitution
 - Data coverage limits disclosed
+- Mitigation options include their costs
 
 ## Suggested next steps
 - `/policy-brief`

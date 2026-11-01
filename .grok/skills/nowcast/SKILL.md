@@ -12,6 +12,13 @@ Builds and runs a nowcasting system with release calendar, news decomposition an
 
 Arguments: whatever the user wrote after the command name.
 
+## Purpose
+Build and run a nowcasting system for current-quarter (or current-month) activity or inflation: indicators selected with their release timing, models estimated on a ragged edge, pseudo-real-time evaluation with vintages, predictive densities, and news decompositions that explain each update. The output is a nowcast with uncertainty and a schedule for regular updates.
+
+**Use it when** official data arrive with delays and decisions need an estimate of current conditions, or a forecast round needs better initial conditions.
+
+**Do not use it when** the horizon is several quarters ahead (`/estimate-bvar`, `/forecast-round`).
+
 ## Before you start
 1. **Check required inputs.** For each input below record `FOUND` or `ABSENT` (never 'assumed'):
    - Indicator data
@@ -28,19 +35,44 @@ Arguments: whatever the user wrote after the command name.
 
 Each agent is defined in `.claude/agents/<name>.md`. If your tool runs subagents, run these agents as subagents, in parallel where the steps are independent; otherwise read each agent's file and apply its instructions in turn. Subagents only write to the paths named in your instructions.
 
+## Key design decisions (present options, let the user choose)
+| Decision | Typical options | What it changes |
+|---|---|---|
+| Model | dynamic factor model, bridge equations, MIDAS, ML ensembles | Use of many indicators |
+| Indicators | hard data, surveys, financial, alternative data | Timeliness and noise |
+| Frequency | monthly, weekly, daily inputs | Update cadence |
+| Density | model-based, empirical errors, conformal | Uncertainty reporting |
+| Combination | single model, pooled | Robustness |
+
 ## Workflow
 1. Select and validate indicators with release timing
+   - Validate alternative data against official series before use
 2. Estimate DFM/bridge/MIDAS (and optionally ML) nowcasts
 3. Run pseudo-real-time evaluation with vintages
+   - Compare with a simple benchmark at each point in the release calendar
 4. Produce nowcast with predictive density and news decomposition
 5. Set up a schedule for updating
+
+## Checkpoints with the user
+- After indicator selection: confirm sources and licenses
+- After evaluation: confirm the system is accurate enough for use
+
+## Common pitfalls
+- Evaluation on revised data
+- Indicators added without validation
+- Point nowcasts without uncertainty
+- News decompositions not reconciled with revisions
 
 ## Output
 `forecasts/nowcasts/<target>-<date>.md`; model code in `models/econometrics/<name>/`
 
+Each nowcast note reports the estimate, density, news since the last update and data used; model code supports scheduled updates.
+
 ## Gate / verdict
 - Pseudo-real-time evaluation performed
 - Predictive density provided
+- Indicators are validated and licensed
+- News decompositions accompany every update
 
 ## Suggested next steps
 - `/forecast-round`

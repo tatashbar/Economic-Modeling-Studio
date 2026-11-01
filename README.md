@@ -1,6 +1,6 @@
 # Economic Modeling Studio
 
-**Version 1.4.1**
+**Version 1.4.2**
 
 A studio for building, estimating, validating and using economic models. **119 specialist agents** and **85 skills** (workflow commands such as `/build-dsge` or `/validate-model`) cover specification, building, estimation and independent validation for semi-structural projection and DSGE, input-output and CGE, trade and climate-economy models, deep learning, reinforcement learning, neural-network solvers, LLM-based tools, agent-based and game-theoretic models, and other econometric models. The studio also lets you work with every model as a **lego set**: a core model with plug-and-play components that can be added, swapped or removed, with explicit interfaces and the impact of every change checked first. It works with any coding agent that reads `AGENTS.md`: Claude Code, Codex, Cursor, Grok Build, Gemini CLI and others.
 
@@ -23,6 +23,14 @@ Around this sits a governed workflow, scaled to the model's size and risk level:
 *Lego view generated from a model manifest by `/lego-show`, built as a stepped pyramid with `lego.py arrange`. Baseplate: the core model. Bricks: components, colored by type; each step rests on the bricks whose outputs it reads, with no limit on the number of levels. Dashed sockets: inputs running on documented closures. Dashed bricks: catalog components that would supply them. Badges: validation status.*
 
 > The repository contains the studio (agents, commands, rules, templates and guardrails), not a library of finished models. Models are built in your own copy.
+
+## How it works
+1. **You state a question or a task.** For example: "what would a 10% tariff on imports from X do to the economy of country Y?", "build a small open-economy DSGE", "run this quarter's forecast round".
+2. **A command runs the workflow.** Each command (for example `/build-cge`) names a primary agent and the specialists who join it. They work in parallel where possible.
+3. **You stay in control.** Agents ask clarifying questions, present two to four options with trade-offs and a simple benchmark, draft section by section, and ask before writing files.
+4. **Gates check the work.** Each stage has written exit criteria, and independent validation is separate from building.
+
+The lifecycle is **Concept → Design → Build → Estimate → Validate → Release / Operate**. Small models move through it in days with light checks. Large ones add architecture decisions, staged integration and periodic revalidation.
 
 ## Typical uses
 
@@ -76,7 +84,7 @@ The studio is not tied to one assistant. Instructions, commands and rules are pl
 Tool conventions change quickly. If a tool moves its folders, update `tools/sync_agents.py` and regenerate.
 
 ## Contents
-- [Typical uses](#typical-uses) · [Works with your coding agent](#works-with-your-coding-agent) · [What it covers](#what-it-covers) · [How it works](#how-it-works) · [Models as lego sets](#models-as-lego-sets) · [Quick start](#quick-start) · [Commands](#commands) · [Typical workflows](#typical-workflows)
+- [How it works](#how-it-works) · [Typical uses](#typical-uses) · [Works with your coding agent](#works-with-your-coding-agent) · [What it covers](#what-it-covers) · [Models as lego sets](#models-as-lego-sets) · [Quick start](#quick-start) · [Commands](#commands) · [Typical workflows](#typical-workflows)
 - [Quality controls](#quality-controls) · [The agents](#the-agents) · [Repository layout](#repository-layout) · [Setup](#setup)
 - [Intended use: public data only](#intended-use-public-data-only) · [Limitations](#limitations) · [Customizing](#customizing) · [Version history](#version-history)
 
@@ -100,14 +108,6 @@ Tool conventions change quickly. If a tool moves its folders, update `tools/sync
 | **Cross-cutting support** | Data and statistics (national accounts, surveys, high-frequency data, quality), computation (Dynare/MATLAB, Python, Julia, GAMS, HPC/GPU, MLOps, symbolic derivation), validation, risk and ethics, and communication |
 
 Models are classed **small, medium or large**, and effort scales with class (see [model classes](.claude/docs/model-classes.md)). A decision table there maps common questions to the right model family.
-
-## How it works
-1. **You state a question or a task.** For example: "what would a 10% tariff on imports from X do to the economy of country Y?", "build a small open-economy DSGE", "run this quarter's forecast round".
-2. **A command runs the workflow.** Each command (for example `/build-cge`) names a primary agent and the specialists who join it. They work in parallel where possible.
-3. **You stay in control.** Agents ask clarifying questions, present two to four options with trade-offs and a simple benchmark, draft section by section, and ask before writing files.
-4. **Gates check the work.** Each stage has written exit criteria, and independent validation is separate from building.
-
-The lifecycle is **Concept → Design → Build → Estimate → Validate → Release / Operate**. Small models move through it in days with light checks. Large ones add architecture decisions, staged integration and periodic revalidation.
 
 ## Models as lego sets
 Any model can be represented as a set of bricks, so you can see what it is made of and change it without rebuilding it.
@@ -269,6 +269,7 @@ Adapt `studio-config.yaml` and `.claude/docs/confidentiality-and-ai-use.md` to t
 Agents and skills are Markdown files with YAML frontmatter; edit them freely. After changes run `python tools/validate_studio.py`. To add an agent, create `.claude/agents/<name>.md` and list it as a peer in the related agents. To add a command, create `.claude/skills/<name>/SKILL.md`. Path-scoped standards live in `.claude/rules/`. After changing commands or rules, run `python tools/sync_agents.py` to update the copies for other coding agents.
 
 ## Version history
+- **1.4.2** — Improved agents and skills: fuller, more professional guidance written from a modeler's perspective, with lego engine workflows unchanged.
 - **1.4.1** — Completes 1.4.0: `check` warns when hand-placed bricks overlap or float; a naming fix for the capital-flows specialist; `lego.py arrange` documented in `/lego-show` and the lego rule.
 - **1.4.0** — Open-economy policy mix: four agents (framework, external frictions, microfounded model, low-income countries) and three bricks (FX intervention, capital flow measures, macroprudential policy). Lego view: vertical stacking with no limit on levels; `lego.py arrange` builds a set into a stepped pyramid with positions stored in the manifest; `lego.py validate` records validation results with evidence; identities come with their bricks; parts-bin suggestions; clearer change plans. Cursor guards answer in JSON; git guard finds a working Python. New README pictures.
 - **1.3.0** — Works with any coding agent: `AGENTS.md` as the shared instructions (imported by `CLAUDE.md` and `GEMINI.md`); command and rule copies for Codex, Cursor, Grok Build and Gemini generated from `.claude/` by `tools/sync_agents.py`; Cursor hooks; a git pre-commit guard for every tool. Raw data protected from shell edits as well as file edits. `models/econometrics/` with its own rules. README rewritten for practitioners.

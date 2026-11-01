@@ -14,6 +14,13 @@ Orchestrates a fiscal analysis package: DSA, multipliers, microsimulation, inves
 
 Arguments: `$ARGUMENTS`
 
+## Purpose
+Orchestrate a fiscal analysis package: debt sustainability, fiscal multipliers, tax-benefit microsimulation, public investment and fiscal risks, all built on one macro-fiscal baseline and reconciled into a single report. The output is a package whose fiscal numbers agree across components and whose growth, debt and distributional effects are consistent.
+
+**Use it when** a budget, fiscal reform, consolidation plan or fiscal framework must be assessed comprehensively.
+
+**Do not use it when** only debt sustainability (`/debt-sustainability`) or distributional effects (`/distributional-analysis`) are needed.
+
 ## Before you start
 1. **Check required inputs.** For each input below record `FOUND` or `ABSENT` (never 'assumed'):
    - Fiscal and macro baseline
@@ -35,14 +42,27 @@ Run these agents as subagents (the `Task` tool), in parallel where the steps are
 ## Workflow
 1. Phase 1: align on baseline with financial-programming-specialist
 2. Phase 2 (parallel): DSA, multipliers, microsimulation, investment and risk analyses
+   - Growth effects of adjustment use the agreed multiplier range in the DSA
 3. Phase 3: reconcile into one consistent package; check debt dynamics and macro-fiscal consistency
 4. Phase 4: independent review; policy-brief-writer drafts the integrated report
+
+## Checkpoints with the user
+- End of Phase 1: approve the baseline
+- End of Phase 3: review reconciliation issues
+
+## Common pitfalls
+- Components using different baselines
+- DSA growth inconsistent with multipliers
+- Microsimulation revenue that does not match the fiscal accounts
 
 ## Output
 `forecasts/fiscal/<country>-<date>/`
 
+The package holds the baseline, each component analysis, the reconciliation note and the integrated report.
+
 ## Gate / verdict
 - Fiscal numbers reconcile across components
+- DSA growth paths are consistent with the multiplier assessment
 
 ## Suggested next steps
 - `/policy-brief`

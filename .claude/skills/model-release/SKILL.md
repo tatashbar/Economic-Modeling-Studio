@@ -14,6 +14,13 @@ Releases a model version: checks approvals, tags code, data and parameters, upda
 
 Arguments: `$ARGUMENTS`
 
+## Purpose
+Release a model version for use: verify that validation, the model-risk decision, the model card and a reproducible package are in place; tag code, data vintage and parameters with hashes; write release notes; update the registry; and notify users. For lego models, the manifest must check cleanly with no stale bricks. The output is a traceable release that anyone can reproduce.
+
+**Use it when** an approved model or model change goes into production use.
+
+**Do not use it when** approval has not been given (`/model-risk-review`).
+
 ## Before you start
 1. **Check required inputs.** For each input below record `FOUND` or `ABSENT` (never 'assumed'):
    - Validation report
@@ -36,14 +43,27 @@ Run these agents as subagents (the `Task` tool), in parallel where the steps are
 1. Verify approvals: validation, model risk decision, model card, replication
 2. Tag code, data vintage and parameter files; record hashes in the registry
 3. Write release notes with changes and known limitations
+   - Include changes in outputs relative to the previous version
 4. Update `production/model-registry.md`; notify users per communication plan
 5. If the model has a lego manifest, require a passing `/lego-check`, no stale bricks, and record the manifest revision in the release notes
+
+## Checkpoints with the user
+- Before tagging: confirm the version number and scope
+- Before notification: confirm release notes
+
+## Common pitfalls
+- Releasing without a recorded data vintage
+- Release notes that omit output changes
+- Stale bricks shipped as validated
 
 ## Output
 `production/releases/<model>-<version>.md`
 
+The release record lists approvals, tags and hashes, changes, output differences from the previous version, limitations, the manifest revision for lego models, and notifications sent.
+
 ## Gate / verdict
 - No release without a model-risk approval and a reproducible package
+- Output differences from the previous version are documented
 
 ## Suggested next steps
 - `/retrospective`

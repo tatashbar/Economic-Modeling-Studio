@@ -14,6 +14,13 @@ Adds a brick to a model, for example a trade sector, carbon-pricing block or lab
 
 Arguments: `$ARGUMENTS`
 
+## Purpose
+Extend a working model with a new component, such as a trade sector, a carbon-pricing block, a labor market or an IPF policy tool, as a lego brick, without breaking what already works. The engine plans the wiring first; a neutral-attachment test then proves the joint is correct before any new economics is calibrated. The output is an updated manifest with a history entry, a change note explaining every difference from the previous baseline, and neighbours flagged for re-validation.
+
+**Use it when** a model lacks a channel the question needs and a matching brick exists or can be specified.
+
+**Do not use it when** the component replaces an existing one in the same slot (`/lego-swap`) or the model has no manifest yet (`/lego-map`).
+
 ## Before you start
 1. **Check required inputs.** For each input below record `FOUND` or `ABSENT` (never 'assumed'):
    - A model.lego.json manifest
@@ -31,6 +38,14 @@ Arguments: `$ARGUMENTS`
 
 Run these agents as subagents (the `Task` tool), in parallel where the steps are independent. Subagents only write to the paths named in your instructions.
 
+## Key design decisions (present options, let the user choose)
+| Decision | Typical options | What it changes |
+|---|---|---|
+| Brick | catalog brick, new brick spec | Effort and reuse |
+| Joint timing | same-period (simultaneous block), lagged | Solver structure |
+| Frequency | same as base, different with bridge | Bridge implementation and testing |
+| Calibration scope | new brick only, new brick and touched neighbour parameters | Size of baseline change |
+
 ## Workflow
 1. Identify the need. If the model lacks a component (for example trade), check `python tools/lego.py show` for open studs and `catalog` for a matching brick. If none exists, run `/lego-brick`, and build the component with the relevant `/build-*` command
 2. Dry-run: `python tools/lego.py attach <manifest> <brick>`. Present the plan: new joints, stubs retired (inputs that become endogenous), stubs activated, new simultaneous blocks, frequency or bridge warnings, conflicts, and the neighbours that must be re-validated
@@ -40,14 +55,28 @@ Run these agents as subagents (the `Task` tool), in parallel where the steps are
 6. Calibrate the new brick and the parameters of its neighbours that it touches, re-run the baseline, and compare with the previous baseline. Explain every difference through the new channel
 7. Re-verify the accounting identities and re-validate the bricks marked stale (`/validate-model` on those bricks and their joints)
 
+## Checkpoints with the user
+- After the dry-run plan: approve the wiring before applying
+- After the neutral-attachment test: confirm it passed before calibration
+- After the new baseline: confirm every difference is explained
+
+## Common pitfalls
+- Calibrating before the neutral-attachment test, which hides wiring errors
+- Using `--force` to bypass unit or slot conflicts
+- Forgetting that retired stubs change which variables are exogenous
+- Releasing while neighbours are still stale
+
 ## Output
 `Updated model.lego.json (+ history entry) and a short change note in docs/models/<name>/`
+
+The change note records the reason for the brick, the dry-run plan, the neutral-attachment result, baseline differences with their explanation and the re-validation status of neighbours.
 
 ## Gate / verdict
 - No errors from `check`
 - Neutral-attachment test passes within tolerance
 - Identities re-verified
 - Neighbouring bricks re-validated before any release
+- The change note explains every baseline difference through the new channel
 
 ## Suggested next steps
 - `/lego-check`

@@ -12,6 +12,13 @@ Checks a lego model: all studs connected or stubbed, no duplicate providers, slo
 
 Arguments: whatever the user wrote after the command name.
 
+## Purpose
+Check that a lego model is wired correctly and that the manifest tells the truth about the code: every stud connected or stubbed, no duplicate providers, every slot filled once, units and frequencies consistent, timing as declared, identities holding numerically, and simultaneous blocks listed. The output is a verdict that blocks release while bricks are unvalidated or stale.
+
+**Use it when** after any change to a lego model, before a forecast round or release, or when results look inconsistent.
+
+**Do not use it when** the brick-level economic validation is needed (`/validate-model`).
+
 ## Before you start
 1. **Check required inputs.** For each input below record `FOUND` or `ABSENT` (never 'assumed'):
    - A model.lego.json manifest
@@ -35,11 +42,23 @@ Each agent is defined in `.claude/agents/<name>.md`. If your tool runs subagents
 5. Check identities: each declared accounting identity holds numerically in a run, not only on paper
 6. List bricks that are unvalidated or stale and block release until they are validated
 
+## Checkpoints with the user
+- After the tool output: review errors before the manifest-to-code comparison
+
+## Common pitfalls
+- Trusting the manifest without reading the code
+- Undeclared variables passed between bricks through global state
+- Identities checked symbolically but not in a run
+- Bridges declared but not tested
+
 ## Output
 `(conversation); optionally validation/<model>/lego-check.md`
 
+The check report lists tool errors and warnings, manifest-to-code findings, timing and frequency results, identity residuals and brick validation status.
+
 ## Gate / verdict
 - Verdict: PASS / PASS WITH CONDITIONS / FAIL / NOT ASSESSED (if the code is absent, the manifest-to-code comparison is NOT ASSESSED)
+- Identity residuals from an actual run are reported
 
 ## Suggested next steps
 - `/validate-model`

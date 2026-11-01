@@ -12,6 +12,13 @@ Reviews progress against milestones: scope, schedule, risk, quality, dependencie
 
 Arguments: whatever the user wrote after the command name.
 
+## Purpose
+Review a modeling project against its milestones: what was delivered, what slipped and why, how risks and open validation issues have evolved, and whether scope or schedule must change. The output is an honest status with re-planning options and their trade-offs, and an updated plan once the user approves.
+
+**Use it when** a milestone date arrives, a project slips, or scope pressure builds.
+
+**Do not use it when** the question is whether a stage's exit criteria are met (`/gate-check`).
+
 ## Before you start
 1. **Check required inputs.** For each input below record `FOUND` or `ABSENT` (never 'assumed'):
    - Project plan
@@ -29,15 +36,29 @@ Each agent is defined in `.claude/agents/<name>.md`. If your tool runs subagents
 
 ## Workflow
 1. Compare plan and actuals; list slippage and causes
+   - Distinguish data delays, model problems, validation findings and scope changes
 2. Review risk register and open validation issues
 3. Recommend scope or schedule changes with trade-offs
+   - Protect validation and documentation time rather than cutting it
 4. Update the plan after approval
+
+## Checkpoints with the user
+- Before recommending changes: agree the causes
+- Before updating the plan: approve the option
+
+## Common pitfalls
+- Cutting validation to recover schedule
+- Causes listed without owners
+- Re-planning that ignores dependencies
 
 ## Output
 `production/milestones/<name>-<date>.md`
 
+The review records plan versus actual, causes of slippage, risks, open issues, options with trade-offs and the approved plan change.
+
 ## Gate / verdict
 - Slippage has causes and owners
+- Validation and documentation time are not silently removed
 
 ## Suggested next steps
 - `/retrospective`

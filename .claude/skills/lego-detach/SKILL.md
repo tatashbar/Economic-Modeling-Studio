@@ -14,6 +14,13 @@ Detaches a brick from a model and keeps it in the parts bin. Inputs that depende
 
 Arguments: `$ARGUMENTS`
 
+## Purpose
+Take a brick out of a model while keeping the model running: inputs that depended on it switch to their declared stubs, the brick stays in the parts bin with its files and validation history, and the difference between the attached and detached runs measures the contribution of the channel that was switched off. The output is an updated manifest and a clear statement of what economic feedback was removed.
+
+**Use it when** simplifying a model, isolating the contribution of a channel, or removing a component that is unvalidated or not needed for the question.
+
+**Do not use it when** the brick should be replaced by an alternative in the same slot (`/lego-swap`).
+
 ## Before you start
 1. **Check required inputs.** For each input below record `FOUND` or `ABSENT` (never 'assumed'):
    - A model.lego.json manifest
@@ -37,13 +44,25 @@ Run these agents as subagents (the `Task` tool), in parallel where the steps are
 5. Run the model with the stubs and compare with the attached version. The difference is the contribution of the detached channel, which is useful in its own right
 6. Mark neighbours for re-validation; keep the validation status of the detached brick
 
+## Checkpoints with the user
+- After the dry-run: approve the stub consequences
+- After the comparison: confirm the interpretation of the channel's contribution
+
+## Common pitfalls
+- Detaching without explaining which feedback disappears
+- Forcing a detach that leaves open studs
+- Deleting the brick's files instead of keeping them in the parts bin
+
 ## Output
 `Updated model.lego.json (+ history entry)`
+
+The history entry records the reason; the comparison of attached and detached runs quantifies the channel's contribution.
 
 ## Gate / verdict
 - Every consumer of the brick has a stub or a replacement
 - Identities still verifiable
 - The user was shown the stub consequences before applying
+- The attached-versus-detached comparison is reported
 
 ## Suggested next steps
 - `/lego-check`

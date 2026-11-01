@@ -12,6 +12,13 @@ Runs macro-financial stress tests: scenario design, satellite models, bank and s
 
 Arguments: whatever the user wrote after the command name.
 
+## Purpose
+Run a macro-financial stress test: design severe but plausible scenarios calibrated to history and current vulnerabilities, map them to credit losses, income and funding pressures through validated satellite models, compute capital and liquidity outcomes including second-round effects, and draw policy implications. The output identifies vulnerabilities and capital or liquidity shortfalls with their sensitivity to assumptions.
+
+**Use it when** assessing resilience of banks, non-banks or the financial system, or the fiscal implications of financial stress.
+
+**Do not use it when** only macro scenarios are needed without financial-sector mapping (`/scenario-analysis`).
+
 ## Before you start
 1. **Check required inputs.** For each input below record `FOUND` or `ABSENT` (never 'assumed'):
    - Balance-sheet data
@@ -28,17 +35,42 @@ Arguments: whatever the user wrote after the command name.
 
 Each agent is defined in `.claude/agents/<name>.md`. If your tool runs subagents, run these agents as subagents, in parallel where the steps are independent; otherwise read each agent's file and apply its instructions in turn. Subagents only write to the paths named in your instructions.
 
+## Key design decisions (present options, let the user choose)
+| Decision | Typical options | What it changes |
+|---|---|---|
+| Scenario severity | historical analogues, statistical percentiles, reverse stress | Credibility |
+| Coverage | largest banks, all banks, non-banks | System view |
+| Balance sheet | static, dynamic | Interpretation |
+| Channels | credit, market, funding, contagion, fire sales | Completeness |
+| Horizon | 1–3 years | Loss accumulation |
+
 ## Workflow
 1. Design severity-calibrated scenarios and document the calibration
 2. Map to risk drivers with validated satellite models
+   - Validate satellites out of sample on historical losses
 3. Compute losses, capital and liquidity outcomes with second-round effects
+   - Interbank and common-exposure contagion; fire sales where relevant
 4. Report vulnerabilities and policy responses
+
+## Checkpoints with the user
+- After scenario design: confirm severity
+- After results: confirm policy implications
+
+## Common pitfalls
+- Scenarios milder than past crises
+- Static balance sheets read as forecasts
+- Ignoring liquidity–solvency interactions
+- Second-round effects omitted without flag
 
 ## Output
 `forecasts/stress-tests/<name>.md`
 
+The report covers scenario calibration, satellite models and validation, losses and capital and liquidity outcomes by institution or sector, second-round effects, and policy implications.
+
 ## Gate / verdict
 - Severity calibrated; satellite models validated
+- Balance-sheet assumptions are stated
+- Second-round effects are estimated or their omission is flagged
 
 ## Suggested next steps
 - `/policy-brief`

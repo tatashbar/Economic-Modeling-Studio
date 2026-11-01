@@ -14,6 +14,13 @@ Writes a technical note or methodology paper from model work: motivation, method
 
 Arguments: `$ARGUMENTS`
 
+## Purpose
+Write a technical note or methodology paper from model work: motivation, method, data, results, robustness and limitations, written for modelers and reviewers, with notation consistent with the specification and every number linked to a model run. The output can be reviewed, replicated and cited.
+
+**Use it when** a model, method or analysis must be documented for peers, reviewers or publication.
+
+**Do not use it when** the audience is non-technical (`/policy-brief`) or a short use summary is enough (`/model-card`).
+
 ## Before you start
 1. **Check required inputs.** For each input below record `FOUND` or `ABSENT` (never 'assumed'):
    - Model outputs
@@ -28,17 +35,38 @@ Arguments: `$ARGUMENTS`
 
 Run these agents as subagents (the `Task` tool), in parallel where the steps are independent. Subagents only write to the paths named in your instructions.
 
+## Key design decisions (present options, let the user choose)
+| Decision | Typical options | What it changes |
+|---|---|---|
+| Audience | internal modelers, external reviewers, journal | Depth and style |
+| Structure | methodology paper, results note, model documentation | Emphasis |
+| Robustness | appendix tables, main text | Visibility |
+
 ## Workflow
 1. Agree audience and outline with the user
 2. Draft section by section; keep notation consistent with the model spec
+   - Cite literature verified against sources
 3. Link all numbers to model runs; include limitations
 4. Run a replication check on key tables
+
+## Checkpoints with the user
+- After the outline
+- After each major section
+
+## Common pitfalls
+- Notation drifting from the specification
+- Robustness relegated or omitted
+- Unverified citations
 
 ## Output
 `docs/notes/<name>.md`
 
+The note includes motivation, method, data, results, robustness, limitations and references, with a notation table and links to model runs.
+
 ## Gate / verdict
 - All numbers link to a model run in the registry
+- Key tables pass a replication check
+- Limitations are stated in the main text
 
 ## Suggested next steps
 - `/policy-brief`

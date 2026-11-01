@@ -14,6 +14,13 @@ Orchestrates an AI model project end to end: benchmark first, AI build, interpre
 
 Arguments: `$ARGUMENTS`
 
+## Purpose
+Orchestrate an AI model project end to end with a benchmark-first discipline: define the problem and the traditional benchmark, build and compare AI candidates, interpret what they learned, audit them independently, and put the approved model into monitored production. The output is an AI model whose added value over the benchmark is demonstrated and whose risks are controlled.
+
+**Use it when** a forecasting, classification, solution or policy-learning task justifies a full AI project.
+
+**Do not use it when** a single build skill is enough (`/build-deep-forecaster`, `/build-causal-ml`, `/build-neural-solver`, `/build-drl-policy`).
+
 ## Before you start
 1. **Check required inputs.** For each input below record `FOUND` or `ABSENT` (never 'assumed'):
    - Approved model-brief
@@ -39,12 +46,26 @@ Run these agents as subagents (the `Task` tool), in parallel where the steps are
 3. Phase 3: interpretable-ml-specialist explains and probes; neural-solver or DRL specialists extend if relevant
 4. Phase 4: AI audit (ethics, red-team, leakage) by independent validators
 5. Phase 5: mlops-engineer registers, deploys and sets monitoring; model-risk-governance-specialist recommends release or block
+   - Register the model as a lego brick where it feeds a macro set (`/lego-map`)
+
+## Checkpoints with the user
+- End of Phase 1: approve problem, splits and benchmark
+- End of Phase 2: decide whether candidates beat the benchmark enough to continue
+- End of Phase 4: review audit findings
+
+## Common pitfalls
+- AI candidates built before the benchmark
+- Auditors who built the model
+- Deployment without monitoring
 
 ## Output
 `models/ai/<name>/`
 
+The project folder holds benchmark and candidate code, experiment logs, interpretation results, the audit report, registry entries and the monitoring plan.
+
 ## Gate / verdict
 - Benchmark-first protocol followed; audit not FAIL
+- Added value over the benchmark is shown with significance tests
 
 ## Suggested next steps
 - `/model-release`

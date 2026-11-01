@@ -12,6 +12,13 @@ Estimates a DSGE model by Bayesian methods with identification analysis, converg
 
 Arguments: whatever the user wrote after the command name.
 
+## Purpose
+Estimate a DSGE model with Bayesian methods so that the posterior is credible: identification checked before estimation, priors tested for what they imply, convergence demonstrated across chains, prior–posterior overlap reported, and fit evaluated with marginal likelihood, posterior predictive checks and out-of-sample forecasts. The output is an estimation report and an archived set of posterior draws that can be reused exactly.
+
+**Use it when** a built and tested DSGE model (`/build-dsge`) must be taken to data for forecasting, shock decompositions or policy analysis.
+
+**Do not use it when** the model has not passed steady-state and determinacy tests, or when calibration is the agreed approach (`/calibrate-model`).
+
 ## Before you start
 1. **Check required inputs.** For each input below record `FOUND` or `ABSENT` (never 'assumed'):
    - Built model
@@ -29,20 +36,46 @@ Arguments: whatever the user wrote after the command name.
 
 Each agent is defined in `.claude/agents/<name>.md`. If your tool runs subagents, run these agents as subagents, in parallel where the steps are independent; otherwise read each agent's file and apply its instructions in turn. Subagents only write to the paths named in your instructions.
 
+## Key design decisions (present options, let the user choose)
+| Decision | Typical options | What it changes |
+|---|---|---|
+| Observables | output, inflation, rates, exchange rate, trade, fiscal | Identification and fit |
+| Measurement | measurement errors, trend treatment, data transformations | Interpretation of shocks |
+| Sampler | random-walk Metropolis–Hastings, SMC, HMC/NUTS | Reliability with multimodal posteriors |
+| Priors | literature-based, prior predictive tuned, endogenous priors | What the data must override |
+| Sample | full, post-break | Stability of parameters |
+
 ## Workflow
 1. Run prior predictive checks and identification diagnostics
+   - Local identification (rank of the Jacobian); prior-implied moments versus data
 2. Estimate with MCMC or SMC; run multiple chains and convergence diagnostics
+   - R-hat, effective sample size, trace plots; mode-finding from several starts
 3. Compare prior vs. posterior; flag weakly identified parameters
 4. Evaluate fit: marginal likelihood, posterior predictive, out-of-sample forecasts
+   - Historical shock decomposition and smoothed shocks checked for plausibility
 5. Archive posterior draws and the exact run configuration
+
+## Checkpoints with the user
+- After identification diagnostics: confirm observables and priors
+- After estimation: review weakly identified parameters and shock plausibility
+
+## Common pitfalls
+- Posteriors equal to priors reported as estimates
+- Single-chain results
+- Measurement errors absorbing the fit
+- Large, persistent shocks soaking up misspecification
 
 ## Output
 `docs/models/<name>/estimation-report.md`
+
+The estimation report covers priors, identification, convergence, prior–posterior comparisons, fit and shock decompositions; draws and configuration are archived with the model.
 
 ## Gate / verdict
 - Convergence diagnostics pass
 - Identification issues documented
 - Posterior draws archived
+- Prior predictive checks are reported
+- Smoothed shocks are reviewed for plausibility
 
 ## Suggested next steps
 - `/validate-model`

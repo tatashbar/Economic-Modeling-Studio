@@ -14,6 +14,13 @@ Swaps one brick for an alternative that fills the same slot, for example a Taylo
 
 Arguments: `$ARGUMENTS`
 
+## Purpose
+Replace one brick with an alternative that fills the same slot, such as a Taylor rule with a managed-exchange-rate rule, an input-output block with a CGE block, or one Phillips curve with another, and compare the two versions on identical scenarios. Because the swap changes the model's structure, the comparison is a structural-uncertainty exercise and is reported as one.
+
+**Use it when** testing alternative policy regimes, sectoral structures or behavioral blocks, or assessing how much conclusions depend on a component.
+
+**Do not use it when** adding a new channel (`/lego-add`) or removing one (`/lego-detach`).
+
 ## Before you start
 1. **Check required inputs.** For each input below record `FOUND` or `ABSENT` (never 'assumed'):
    - A model.lego.json manifest
@@ -30,6 +37,13 @@ Arguments: `$ARGUMENTS`
 
 Run these agents as subagents (the `Task` tool), in parallel where the steps are independent. Subagents only write to the paths named in your instructions.
 
+## Key design decisions (present options, let the user choose)
+| Decision | Typical options | What it changes |
+|---|---|---|
+| Alternative | catalog brick in the same slot, new brick | Comparability |
+| Scenarios | baseline plus standard shocks, policy-relevant scenarios | Evidence on differences |
+| Calibration | keep shared parameters, recalibrate | Attribution of differences |
+
 ## Workflow
 1. Dry-run: `python tools/lego.py swap <manifest> <old> <new>`. Compare the two bricks: ports lost and gained, new joints, new simultaneous blocks, bridges needed
 2. Resolve errors; if ports consumed by others are lost, either the consumers need stubs or the swap is not like-for-like
@@ -37,12 +51,24 @@ Run these agents as subagents (the `Task` tool), in parallel where the steps are
 4. Run both versions on the same scenarios and tabulate the differences (this is a structural-uncertainty exercise, so report it as such)
 5. Re-validate the new brick and its neighbours
 
+## Checkpoints with the user
+- After the dry-run: approve the comparison of ports
+- After the comparison table: agree the interpretation
+
+## Common pitfalls
+- Recalibrating so much that differences cannot be attributed to the swap
+- Comparing on different scenarios
+- Treating the preferred version's results as certain
+
 ## Output
 `Updated model.lego.json and a comparison table in docs/models/<name>/`
+
+The comparison table shows both versions on identical scenarios, with explanations of differences through the swapped mechanism.
 
 ## Gate / verdict
 - Like-for-like on the slot, or the differences are documented
 - Both versions compared on identical scenarios
+- Differences are explained through the swapped mechanism
 
 ## Suggested next steps
 - `/lego-check`

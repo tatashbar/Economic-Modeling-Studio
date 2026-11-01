@@ -12,6 +12,13 @@ Orchestrates a country analysis: macro outlook, external, fiscal, financial, ris
 
 Arguments: whatever the user wrote after the command name.
 
+## Purpose
+Orchestrate a country analysis: collect context from counterparts, build a consistent baseline outlook, assess the external position, debt sustainability and financial stability in parallel, construct risks and downside scenarios, and deliver a policy note with charts, reviewed for economic logic and policy relevance. The output is an integrated country package in which all numbers come from approved models and reconcile across sections.
+
+**Use it when** a full country assessment is needed for surveillance, a program discussion or a policy dialogue.
+
+**Do not use it when** only one component is needed (`/forecast-round`, `/external-assessment`, `/debt-sustainability`, `/stress-test`).
+
 ## Before you start
 1. **Check required inputs.** For each input below record `FOUND` or `ABSENT` (never 'assumed'):
    - Country data
@@ -37,15 +44,29 @@ Each agent is defined in `.claude/agents/<name>.md`. If your tool runs subagents
 ## Workflow
 1. Phase 1: stakeholder-liaison-specialist collects context, stakeholders' views and data issues
 2. Phase 2 (parallel): baseline outlook, external assessment, DSA and financial-stability analysis
+   - All components share one macro baseline and data vintage
 3. Phase 3: scenario-risk-analysis-specialist builds risks and downside scenarios on the consistent baseline
 4. Phase 4: policy-brief-writer drafts the note; visualization-dashboard-specialist builds the chart pack
 5. Phase 5: economic-reasoning-specialist and policy-relevance-specialist review; model-risk-governance-specialist confirms that all models used are approved
 
+## Checkpoints with the user
+- End of Phase 1: confirm context and assumptions
+- End of Phase 3: confirm risks and scenarios
+- Before release: approve the note
+
+## Common pitfalls
+- Components built on different baselines or vintages
+- Unapproved models used under time pressure
+- Risks relegated to an annex
+
 ## Output
 `forecasts/country-analysis/<country>-<date>/`
 
+The package holds the baseline, component analyses, scenarios, the note, the chart pack and review records.
+
 ## Gate / verdict
 - All models used are approved; risks and uncertainty are in the main text
+- All components share one baseline and data vintage
 
 ## Suggested next steps
 - `/policy-brief`

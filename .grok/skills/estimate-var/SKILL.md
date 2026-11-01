@@ -12,6 +12,13 @@ Estimates VAR/SVAR/VECM models with diagnostics, identification and impulse resp
 
 Arguments: whatever the user wrote after the command name.
 
+## Purpose
+Estimate a VAR, structural VAR or VECM with the specification choices made explicitly, diagnostics reported, identification stated and tested, and impulse responses shown with honest uncertainty bands. The output is a set of results whose conclusions survive an alternative identification or specification.
+
+**Use it when** dynamic interactions among a few macro variables matter, structural shocks must be identified from data, or cointegration relations are of interest.
+
+**Do not use it when** the goal is forecasting many variables (`/estimate-bvar`), when responses at long horizons with external instruments are needed (`/local-projections`), or when the shock series is the deliverable (`/identify-shocks`).
+
 ## Before you start
 1. **Check required inputs.** For each input below record `FOUND` or `ABSENT` (never 'assumed'):
    - Data sheet
@@ -27,18 +34,43 @@ Arguments: whatever the user wrote after the command name.
 
 Each agent is defined in `.claude/agents/<name>.md`. If your tool runs subagents, run these agents as subagents, in parallel where the steps are independent; otherwise read each agent's file and apply its instructions in turn. Subagents only write to the paths named in your instructions.
 
+## Key design decisions (present options, let the user choose)
+| Decision | Typical options | What it changes |
+|---|---|---|
+| Specification | levels, differences, VECM | Long-run information and inference |
+| Lag length | information criteria, residual tests | Dynamics and degrees of freedom |
+| Identification | recursive, sign restrictions, long-run, external instruments, heteroskedasticity | What the shocks mean |
+| Inference | bootstrap, Bayesian, robust bands for set identification | Honest uncertainty |
+| Sample | full, post-break, excluding outliers | Stability |
+
 ## Workflow
 1. Test integration order and cointegration; choose lag length and deterministic terms
 2. Estimate the reduced form; run stability and residual diagnostics
+   - Roots, serial correlation, heteroskedasticity, normality; parameter stability tests
 3. Apply identification and compute IRFs, FEVD with bands
+   - State the economic justification for each restriction
 4. Run robustness under an alternative identification or specification
+
+## Checkpoints with the user
+- After specification: confirm variables, sample and deterministic terms
+- After identification: confirm restrictions are defensible
+
+## Common pitfalls
+- Recursive orderings without justification
+- Sign restrictions reported as point identification
+- Ignoring structural breaks
+- Over-reading forecast-error variance decompositions
 
 ## Output
 `docs/models/<name>/var-results.md`; code and settings in `models/econometrics/<name>/`
 
+The results document reports specification tests, diagnostics, identification, IRFs and FEVD with bands, and robustness; code and settings allow exact rerun.
+
 ## Gate / verdict
 - Stability and residual tests reported
 - Robustness to identification shown
+- Identification restrictions are justified economically
+- Set-identified results are reported as sets
 
 ## Suggested next steps
 - `/validate-model`

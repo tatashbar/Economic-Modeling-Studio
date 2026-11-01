@@ -14,6 +14,13 @@ Builds a deep reinforcement learning policy environment and agent for monetary, 
 
 Arguments: `$ARGUMENTS`
 
+## Purpose
+Build a deep reinforcement learning environment and agent that learns a monetary, fiscal or macroprudential policy inside a validated structural simulator, and test whether the learned policy is better than simple rules, robust outside its training conditions, and explainable. The output is a policy evaluation, not a recommendation, until all comparisons and robustness tests pass.
+
+**Use it when** the policy problem is nonlinear or high-dimensional enough that classical optimal-policy methods are impractical, or robustness across models and regimes is the focus.
+
+**Do not use it when** a linear-quadratic optimal policy or optimized simple rule can be computed directly (`/policy-simulation`), or the simulator itself is not yet validated (`/validate-model`).
+
 ## Before you start
 1. **Check required inputs.** For each input below record `FOUND` or `ABSENT` (never 'assumed'):
    - Structural simulator or approved environment spec
@@ -30,22 +37,50 @@ Arguments: `$ARGUMENTS`
 
 Run these agents as subagents (the `Task` tool), in parallel where the steps are independent. Subagents only write to the paths named in your instructions.
 
+## Key design decisions (present options, let the user choose)
+| Decision | Typical options | What it changes |
+|---|---|---|
+| Simulator | semi-structural, DSGE, agent-based | Realism and speed |
+| Observation | observable data only, latent states | Real-world implementability |
+| Reward | welfare, quadratic loss with mandate weights | What the policy optimizes |
+| Algorithm | PPO, SAC, TD3, model-based | Stability and sample efficiency |
+| Robustness design | domain randomization, adversarial shocks, model ensembles | Out-of-distribution performance |
+
 ## Workflow
 1. Agree the welfare-based reward with the economic-reasoning-specialist and write the environment spec
+   - States, actions with bounds, reward, discounting, episode design
 2. Verify the environment: known-optimal cases and unit tests for state transitions
+   - Reproduce known optimal policies in a linear-quadratic special case
 3. Train agents (PPO/SAC/TD3) with multiple seeds; log learning curves
 4. Compare the learned policy with Taylor-type and optimal-policy benchmarks
+   - Same shock sequences for all policies; welfare differences with uncertainty
 5. Stress-test out-of-distribution: other shocks, parameters, misspecified models
+   - Explain the learned policy with policy-function plots or a surrogate rule
 6. Register the model as a lego set (`/lego-map`): a baseplate plus bricks with declared studs (variables, units, timing) and stubs, so components can later be attached, detached or swapped
+
+## Checkpoints with the user
+- After the reward: confirm it matches the mandate
+- After environment verification: confirm the simulator is fit for purpose
+- After benchmarks: decide whether robustness testing is warranted
+
+## Common pitfalls
+- Reward that differs from welfare
+- Policies that exploit simulator artifacts
+- Best-seed reporting
+- Recommending policies without simple-rule comparison
 
 ## Output
 `models/ai/<name>-drl/ and docs/models/<name>/experiment-log.md (+ model.lego.json)`
+
+The model folder holds the environment, agent code, training logs across seeds, benchmark comparisons and robustness results; the experiment log records every run; the lego manifest registers the policy brick.
 
 ## Gate / verdict
 - Reward is welfare-based and approved
 - Simple-rule benchmark compared
 - Out-of-distribution test passed or limits documented
 - Lego manifest passes `python tools/lego.py check`
+- Results are reported across seeds
+- The learned policy is explained with a policy-function plot or surrogate rule
 
 ## Suggested next steps
 - `/ai-audit`

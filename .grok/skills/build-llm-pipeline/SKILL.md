@@ -12,6 +12,13 @@ Builds an LLM pipeline for extraction, classification or analysis with verificat
 
 Arguments: whatever the user wrote after the command name.
 
+## Purpose
+Build an LLM pipeline for extraction, classification or analysis of economic documents that is evaluated like a measurement instrument: confidentiality cleared first, a labelled evaluation set built before prompts, structured outputs verified against sources, and accuracy measured against agreed thresholds. The output is a pipeline with an evaluation card and defined human review.
+
+**Use it when** large document collections must be read for numbers, measures, stances or facts, or text must be classified at scale.
+
+**Do not use it when** questions are answered from a document collection with citations (`/build-rag-kb`), or the task is to simulate agents (`/build-llm-agents`).
+
 ## Before you start
 1. **Check required inputs.** For each input below record `FOUND` or `ABSENT` (never 'assumed'):
    - Task definition
@@ -28,20 +35,47 @@ Arguments: whatever the user wrote after the command name.
 
 Each agent is defined in `.claude/agents/<name>.md`. If your tool runs subagents, run these agents as subagents, in parallel where the steps are independent; otherwise read each agent's file and apply its instructions in turn. Subagents only write to the paths named in your instructions.
 
+## Key design decisions (present options, let the user choose)
+| Decision | Typical options | What it changes |
+|---|---|---|
+| Model and endpoint | internal, approved external, local | Confidentiality and quality |
+| Output format | JSON schema, labels, short text | Verifiability |
+| Verification | source quotation, cross-check with databases, consistency reruns | Error detection |
+| Thresholds | accuracy and numeric faithfulness targets | Release decision |
+| Human review | full, sampled, exceptions only | Cost and risk |
+
 ## Workflow
 1. Classify input data by confidentiality; confirm the allowed model/endpoint before any prompt is written
 2. Create a labelled evaluation set before building prompts
+   - Cover document types, languages and hard cases; keep a held-out portion
 3. Design structured-output prompts and verification steps (source cross-check, schema validation)
 4. Evaluate accuracy, numeric faithfulness and stability across prompt/model versions
+   - Error analysis by field and document type
 5. Document failure modes, human review requirements and monitoring
+   - Freeze prompt versions; rerun evaluation after any model change
+
+## Checkpoints with the user
+- After the confidentiality check: confirm the endpoint
+- After the evaluation set: confirm thresholds
+- After evaluation: approve release and review level
+
+## Common pitfalls
+- Prompts tuned on the evaluation set
+- Fluent outputs accepted without source checks
+- Silent model-version changes
+- Confidential documents sent to unapproved services
 
 ## Output
 `models/llm/<name>/ and docs/models/<name>/llm-eval-card.md`
+
+The pipeline folder holds prompts, schemas, code, the evaluation set and results; the evaluation card documents accuracy, failure modes, human review and monitoring.
 
 ## Gate / verdict
 - Confidentiality approved
 - Evaluation on a labelled set meets agreed thresholds
 - Human review defined
+- Every extracted number is traceable to its source
+- Evaluation is rerun after any model or prompt change
 
 ## Suggested next steps
 - `/ai-audit`
