@@ -869,6 +869,58 @@ varobs y pi;
         os.remove(mp)
         os.rmdir(d)
 
+    def test_dynare_count_ignores_blocks_follows_macros_and_keeps_judgments(self):
+        mod = """@#define ELB = 1
+var y pi i;
+varexo e_y e_pi;
+parameters beta kappa phi ilb;
+model;
+y = y(+1) - (i - pi(+1)) + e_y;
+pi = beta*pi(+1) + kappa*y + e_pi;
+@#if ELB
+i = max(ilb, phi*pi);
+@#else
+i = phi*pi;
+@#endif
+end;
+shocks;
+var e_y; stderr 0.01;
+var e_pi = 0.0001;
+end;
+occbin_constraints;
+name 'ELB'; bind i < ilb; relax i > ilb;
+end;
+"""
+        notes = []
+        el = self.lego.elements_from_mod(mod, notes)
+        self.assertEqual(el["variables"]["endogenous"], 3)  # `var e_y;` in the shocks block is not a declaration
+        self.assertEqual(el["equations"], 3)                 # only the active @#if branch is counted
+        self.assertEqual(el["constraints"], {"verified": 0, "unverified": 1})
+        self.assertEqual(notes, [])
+        notes = []
+        self.lego.elements_from_mod("@#for c in [1, 2]\nvar y_@{c};\n@#endfor\n", notes)
+        self.assertTrue(any("@#for is not expanded" in n for n in notes))
+        d = tempfile.mkdtemp()
+        mp = os.path.join(d, "core.mod")
+        write(mp, mod)
+        p = self.temp_manifest()
+        # marking parameters as assumed or constraints as verified moves them between statuses: the totals stay put
+        rc, out = self.cli("elements", p, "core-gap-open", "--from-mod", mp, "--set", "parameters.assumed=1",
+                           "constraints.verified=1", "data.vintage=2026Q3", "--apply")
+        self.assertEqual(rc, 0, out)
+        el = self.lego.find(json.loads(read(p)), "core-gap-open")["elements"]
+        self.assertEqual(el["parameters"], {"estimated": 0, "calibrated": 3, "assumed": 1})
+        self.assertEqual(el["constraints"], {"verified": 1, "unverified": 0})
+        # a recount after a code change keeps the modeler's judgments
+        rc, out = self.cli("elements", p, "core-gap-open", "--from-mod", mp, "--apply")
+        self.assertEqual(rc, 0, out)
+        el2 = self.lego.find(json.loads(read(p)), "core-gap-open")["elements"]
+        self.assertEqual(el2["parameters"], el["parameters"])
+        self.assertEqual(el2["constraints"], el["constraints"])
+        self.assertEqual(el2["data"]["vintage"], "2026Q3")
+        os.remove(mp)
+        os.rmdir(d)
+
     def test_studs_show_elements_with_a_component_switch_and_an_anatomy_panel(self):
         m = self.manifest()
         html = self.lego.render_html(m, self.lego.check(m), self.cat)

@@ -183,34 +183,111 @@ def _strip_mod(text):
     return re.sub(r"(?m)^\s*%[^\n]*", " ", text)
 
 
+def _macro_value(expr, defs):
+    """Value of a simple macro expression (numbers, true/false, defined names, comparisons, &&, ||, !), or None."""
+    out = []
+    for tok in re.findall(r"\d+(?:\.\d+)?|[A-Za-z_]\w*|==|!=|<=|>=|&&|\|\||[!<>()]|\"[^\"]*\"|\S", expr.strip()):
+        if tok in ("true", "false"):
+            out.append("1" if tok == "true" else "0")
+        elif re.match(r"^[A-Za-z_]\w*$", tok):
+            if tok not in defs:
+                return None
+            out.append(repr(defs[tok]))
+        elif tok in ("&&", "||"):
+            out.append(" and " if tok == "&&" else " or ")
+        elif tok == "!":
+            out.append(" not ")
+        elif re.match(r"^(\d+(\.\d+)?|==|!=|<=|>=|[<>()]|\"[^\"]*\")$", tok):
+            out.append(tok)
+        else:
+            return None
+    try:
+        return eval("".join(out), {"__builtins__": {}}, {})  # only literals and operators reach this point
+    except Exception:
+        return None
+
+
+def _macro(text, notes):
+    """Apply the Dynare macro conditionals (@#define, @#if, @#ifdef, @#ifndef, @#else, @#endif) so that only the
+    active branch is counted. Loops and includes are not expanded; a note then says the counts may be incomplete."""
+    defs, stack, out = {}, [], []
+    active = lambda: all(a for a, _ in stack)
+    for line in text.split("\n"):
+        st = line.strip()
+        if not st.startswith("@#"):
+            if active():
+                out.append(line)
+            continue
+        d = st[2:].strip()
+        kw = (d.split() or [""])[0]
+        if kw == "define":
+            mm = re.match(r"define\s+(\w+)\s*=\s*(.+)$", d)
+            if mm and active():
+                v = _macro_value(mm.group(2), defs)
+                defs[mm.group(1)] = v if v is not None else mm.group(2).strip()
+        elif kw in ("if", "ifdef", "ifndef"):
+            arg = d[len(kw):].strip()
+            v = _macro_value(arg, defs) if kw == "if" else ((arg in defs) == (kw == "ifdef"))
+            if v is None:
+                notes.append(f"macro condition '@#{d}' could not be evaluated; its first branch was counted")
+                v = True
+            stack.append((bool(v), bool(v)))
+        elif kw == "else" and stack:
+            _, taken = stack.pop()
+            stack.append((not taken, True))
+        elif kw == "endif" and stack:
+            stack.pop()
+        elif kw in ("for", "include", "includepath") and not any(f"@#{kw} " in n for n in notes):
+            notes.append(f"@#{kw} is not expanded, so the counts may be incomplete: check them against the model")
+    return "\n".join(out)
+
+
+# blocks that close with `end;` and may repeat names without declaring them (for example `var e_y;` in shocks)
+_MOD_BLOCKS = ("shocks", "mshocks", "heteroskedastic_shocks", "conditional_forecast_paths", "initval", "endval", "histval",
+               "steady_state_model", "model", "estimated_params", "estimated_params_init", "estimated_params_bounds",
+               "estimated_params_remove", "observation_trends", "deterministic_trends", "optim_weights", "osr_params_bounds",
+               "ramsey_constraints", "occbin_constraints", "model_replace", "model_remove", "matched_moments",
+               "filter_initial_state", "irf_calibration", "moment_calibration", "generate_irfs", "svar_identification",
+               "planner_objective", "pac_target_info", "verbatim", "epilogue", "perfect_foresight_controlled_paths")
+
+
+def _block(t, name):
+    m = re.search(rf"(?ms)^\s*{name}\b(?:\([^)]*\))?\s*;(.*?)^\s*end\s*;", t)
+    return m.group(1) if m else None
+
+
 def _names(stmt):
     stmt = re.sub(r"\$[^$]*\$", " ", stmt)        # TeX names
     stmt = re.sub(r"\([^()]*\)", " ", stmt)        # options and long names
     return [t for t in re.split(r"[\s,]+", stmt) if re.match(r"^[A-Za-z_]\w*$", t)]
 
 
-def elements_from_mod(text):
+def elements_from_mod(text, notes=None):
     """Count the elements of a Dynare .mod file. Parameters in estimated_params are 'estimated', the rest 'calibrated';
-    the file cannot tell which calibrated values lack a source, so 'assumed' is left for the modeler to set."""
-    t = _strip_mod(text)
-    decl = lambda kw: [n for s in re.findall(rf"(?m)^\s*{kw}\b([^;]*);", t) for n in _names(s)]
+    the file cannot tell which calibrated values lack a source, so 'assumed' is left for the modeler to set.
+    Findings about the count itself (macros that were not expanded) are appended to `notes` when a list is given."""
+    notes = [] if notes is None else notes
+    t = _macro(_strip_mod(text), notes)
+    top = re.sub(rf"(?ms)^\s*(?:{'|'.join(_MOD_BLOCKS)})\b(?:\([^)]*\))?\s*;.*?^\s*end\s*;", " ", t)  # declarations only
+    decl = lambda kw: list(dict.fromkeys(n for s in re.findall(rf"(?m)^\s*{kw}\b(?:\([^)]*\))?([^;]*);", top)
+                                         for n in _names(s)))
     endo, exo, exo_det, params = decl("var"), decl("varexo"), decl("varexo_det"), decl("parameters")
     obs = decl("varobs")
-    model = re.search(r"(?ms)^\s*model\b[^;]*;(.*?)^\s*end\s*;", t)
+    model = _block(t, "model")
     eqs = 0
-    if model:
-        body = re.sub(r"\[[^\]]*\]", " ", model.group(1))  # equation tags
+    if model is not None:
+        body = re.sub(r"\[[^\]]*\]", " ", model)  # equation tags
         eqs = sum(1 for s in body.split(";") if s.strip() and not s.strip().startswith("#"))
-    est = re.search(r"(?ms)^\s*estimated_params\s*;(.*?)^\s*end\s*;", t)
+    est = _block(t, "estimated_params")
     est_names = set()
     if est:
-        for line in est.group(1).split(";"):
+        for line in est.split(";"):
             head = line.strip().split(",")[0].strip()
             if head and not head.startswith(("stderr", "corr")):
                 est_names.add(head)
     n_est = len([p for p in params if p in est_names])
-    occ = re.search(r"(?ms)^\s*occbin_constraints\s*;(.*?)^\s*end\s*;", t)
-    n_con = len(re.findall(r"\bname\s+'", occ.group(1))) if occ else 0
+    occ = _block(t, "occbin_constraints")
+    n_con = len(re.findall(r"\bname\s+'", occ)) if occ else 0
     el = {"variables": {"endogenous": len(endo), "exogenous": len(exo_det)}, "equations": eqs,
           "parameters": {"estimated": n_est, "calibrated": len(params) - n_est, "assumed": 0}, "shocks": len(exo)}
     if obs:
@@ -1064,20 +1141,40 @@ def cmd_elements(a):
     m2 = copy.deepcopy(m)
     b2 = find(m2, a.brick)
     el = copy.deepcopy(b2.get("elements") or {})
+    count_notes = []
     src = a.from_mod or (b.get("code") if not a.set and str(b.get("code") or "").endswith(".mod") else None)
     if src:
         if not os.path.isfile(src):
             raise SystemExit(f"model file not found: {src}")
         with open(src, encoding="utf-8", errors="replace") as f:
-            counted = elements_from_mod(f.read())
-        keep_assumed = (el.get("parameters") or {}).get("assumed", 0) if isinstance(el.get("parameters"), dict) else 0
+            counted = elements_from_mod(f.read(), count_notes)
+        before = {k: (v if isinstance(v, dict) else {}) for k, v in el.items()}
         el.update(counted)
-        if keep_assumed and keep_assumed <= counted["parameters"]["calibrated"]:  # a modeler's judgment survives a recount
+        # a recount keeps the modeler's judgments: assumed parameters, the data vintage, constraints already verified
+        keep_assumed = before.get("parameters", {}).get("assumed", 0)
+        if keep_assumed and keep_assumed <= counted["parameters"]["calibrated"]:
             el["parameters"]["calibrated"] -= keep_assumed
             el["parameters"]["assumed"] = keep_assumed
+        for k, v in before.items():
+            for field in ELEMENT_TEXT:
+                if field in v and isinstance(el.get(k), dict):
+                    el[k].setdefault(field, v[field])
+        verified = before.get("constraints", {}).get("verified", 0)
+        if verified and isinstance(el.get("constraints"), dict):
+            total = el["constraints"].get("verified", 0) + el["constraints"].get("unverified", 0)
+            el["constraints"]["verified"] = min(verified, total)
+            el["constraints"]["unverified"] = total - el["constraints"]["verified"]
         b2["elements_source"] = src.replace("\\", "/")
+    sizes = {k: sum(x for x in v.values() if isinstance(x, int)) for k, v in el.items() if isinstance(v, dict)}
+    keys = {s.partition("=")[0].strip() for s in a.set or []}
     for s in a.set or []:
         _set_element(el, s)
+    # assumed parameters are calibrated values without a source, and a verified constraint was unverified before:
+    # marking them moves them between statuses and leaves the total unchanged (unless both sides are set explicitly)
+    for name, moved, frm in (("parameters", "assumed", "calibrated"), ("constraints", "verified", "unverified")):
+        if f"{name}.{moved}" in keys and f"{name}.{frm}" not in keys and sizes.get(name) and isinstance(el.get(name), dict):
+            rest = sum(x for k, x in el[name].items() if isinstance(x, int) and k not in (moved, frm))
+            el[name][frm] = max(0, sizes[name] - rest - el[name][moved])
     if not src and not a.set:
         cur, probs = elements_of(b)
         print(f"{a.brick}: {elements_line(cur) or 'no elements declared'}")
@@ -1091,6 +1188,8 @@ def cmd_elements(a):
         raise SystemExit("; ".join(probs))
     _stamp(m2, "elements", a.brick, a.note or (f"counted from {src}" if src else "set by hand"))
     print(f"PLAN: {a.brick} is made of: {elements_line(norm)}")
+    for n_ in count_notes:
+        print(f"  counting: {n_}")
     for level, msg in element_flags(b2, norm):
         print(f"  {'warning' if level == 'warn' else 'note'}: {msg}")
     if b.get("validation") == "validated" and b.get("elements") != el:
