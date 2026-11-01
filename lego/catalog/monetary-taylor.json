@@ -1,0 +1,11 @@
+{
+  "id": "monetary-taylor",
+  "name": "Monetary policy: inflation-forecast / Taylor-type rule",
+  "kind": "policy",
+  "freq": "Q",
+  "slot": "monetary_policy_rule",
+  "summary": "Policy rate responds to inflation and the output gap. Alternative to the managed-FX rule: both fill the same slot.",
+  "provides": ["policy_rate"],
+  "requires": ["inflation_cpi", "output_gap"],
+  "checks": ["determinacy (Taylor principle holds)", "rule coefficients are sourced", "response to supply and demand shocks is plausible"]
+}

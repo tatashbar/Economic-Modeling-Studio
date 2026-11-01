@@ -1,0 +1,12 @@
+{
+  "id": "io-sectoral-annual",
+  "name": "Sectoral structure: input-output (annual)",
+  "kind": "sector",
+  "freq": "A",
+  "slot": "sectoral_structure",
+  "bridge": null,
+  "summary": "Leontief input-output multipliers distribute aggregate growth across sectors. Annual data: needs a quarterly bridge (declare it in 'bridge') to attach to a quarterly core.",
+  "provides": ["sectoral_output"],
+  "requires": ["gdp_growth"],
+  "checks": ["table balances", "Hawkins-Simon condition", "fixed-coefficient limitation stated with results"]
+}

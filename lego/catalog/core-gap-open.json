@@ -1,0 +1,21 @@
+{
+  "id": "core-gap-open",
+  "name": "Core: small open-economy gap model",
+  "kind": "baseplate",
+  "freq": "Q",
+  "summary": "IS curve, Phillips curve and UIP for a small open economy. Every other brick plugs into it. Inputs from absent bricks fall back on the stubs below, so the core runs on its own.",
+  "provides": ["output_gap", "gdp_growth", "inflation_cpi", "nominal_exchange_rate", "real_exchange_rate"],
+  "requires": [
+    "policy_rate",
+    "foreign_demand",
+    "foreign_rate",
+    "world_inflation",
+    {"port": "net_exports", "stub": "exogenous path; contributes zero to the output gap beyond baseline"},
+    {"port": "fiscal_impulse", "lag": 1, "stub": "zero fiscal impulse"},
+    {"port": "risk_premium", "lag": 1, "stub": "constant at the baseline value"},
+    {"port": "credit_spread", "lag": 1, "stub": "constant at the baseline value"},
+    {"port": "energy_price", "lag": 1, "stub": "constant relative price (no energy cost channel)"},
+    {"port": "climate_damage", "lag": 1, "stub": "zero damage"}
+  ],
+  "checks": ["steady state residuals are zero", "IRF signs to demand, supply, UIP and foreign shocks", "stubbed inputs reproduce the stand-alone baseline"]
+}

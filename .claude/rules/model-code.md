@@ -1,0 +1,12 @@
+---
+paths:
+  - "models/**"
+---
+# Rules: Model Code
+
+- No hard-coded parameter values in equations or solver code; parameters come from a parameter file or block with sources
+- Every model has a documented timing convention, units and base period
+- Assert accounting identities and steady-state residuals in tests
+- Use fixed random seeds for any stochastic routine; seeds are logged
+- Never overwrite a baseline; write new results to a new, versioned path
+- Models must run from a clean checkout with one documented command

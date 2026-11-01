@@ -1,0 +1,43 @@
+---
+name: design-training
+description: "Designs a capacity-development program: needs assessment, curriculum, labs, assessment and ownership-transfer plan."
+---
+<!-- Generated from .claude/skills/design-training/SKILL.md by tools/sync_agents.py. Edit the source, then run the script. -->
+
+# /design-training — Design Training
+
+**Category:** Capacity Development · **Primary agent:** `training-curriculum-designer`
+
+Designs a capacity-development program: needs assessment, curriculum, labs, assessment and ownership-transfer plan.
+
+Arguments: whatever the user wrote after the command name.
+
+## Before you start
+1. **Check required inputs.** For each input below record `FOUND` or `ABSENT` (never 'assumed'):
+   - Counterpart description
+   - Model to be transferred
+   If a required input is `ABSENT`, that part is **`NOT ASSESSED — NO DATA`**: do not estimate or invent it; name what is missing and which skill produces it. If all required inputs are absent, stop and say so.
+2. **Check confidentiality.** Identify the data classification level of the inputs (`.claude/docs/confidentiality-and-ai-use.md`). Do not proceed with restricted or confidential data in a way the policy does not allow.
+3. **Collaboration.** Follow `.claude/docs/collaboration-protocol.md`: ask questions first, present options, get approval before writing files, and update `production/session-state/active.md` after each approved section.
+
+## Agents
+- `training-curriculum-designer` — primary agent; coordinates the work and integrates results
+- `technical-documentation-specialist` — Writes technical documentation
+- `stakeholder-liaison-specialist` — Interfaces with stakeholders and counterparts
+
+Each agent is defined in `.claude/agents/<name>.md`. If your tool runs subagents, run these agents as subagents, in parallel where the steps are independent; otherwise read each agent's file and apply its instructions in turn. Subagents only write to the paths named in your instructions.
+
+## Workflow
+1. Assess counterpart skills, tools, data access and goals
+2. Design a progressive curriculum by model class; create labs with open or synthetic data
+3. Define assessments and the criterion for model ownership transfer
+4. Draft follow-up mentoring schedule
+
+## Output
+`docs/training/<program>/`
+
+## Gate / verdict
+- Training data are non-confidential or synthetic; ownership-transfer criterion defined
+
+## Suggested next steps
+- `/create-exercise`

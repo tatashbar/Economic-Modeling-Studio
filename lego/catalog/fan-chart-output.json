@@ -1,0 +1,10 @@
+{
+  "id": "fan-chart-output",
+  "name": "Output: fan charts",
+  "kind": "output",
+  "freq": "Q",
+  "summary": "Density forecasts and fan charts for key variables. Reads from the model; feeds nothing back.",
+  "provides": [],
+  "requires": ["output_gap", "inflation_cpi", "policy_rate"],
+  "checks": ["historical coverage of the bands is checked", "method is labelled on the chart"]
+}

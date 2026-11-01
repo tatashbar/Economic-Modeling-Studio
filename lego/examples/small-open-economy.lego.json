@@ -1,0 +1,397 @@
+{
+  "lego_version": 1,
+  "name": "Small open economy (example)",
+  "class": "medium",
+  "freq": "Q",
+  "revision": 3,
+  "ports": {
+    "output_gap": {
+      "unit": "% of potential output",
+      "desc": "Deviation of output from potential"
+    },
+    "gdp_growth": {
+      "unit": "% q/q",
+      "desc": "Real GDP growth"
+    },
+    "inflation_cpi": {
+      "unit": "% q/q annualized",
+      "desc": "Consumer price inflation"
+    },
+    "nominal_exchange_rate": {
+      "unit": "LCU per USD, index",
+      "desc": "Nominal exchange rate; up = depreciation"
+    },
+    "real_exchange_rate": {
+      "unit": "index, up = depreciation",
+      "desc": "Real effective exchange rate"
+    },
+    "policy_rate": {
+      "unit": "% p.a.",
+      "desc": "Monetary policy interest rate"
+    },
+    "foreign_demand": {
+      "unit": "index",
+      "desc": "Trading-partner demand"
+    },
+    "foreign_rate": {
+      "unit": "% p.a.",
+      "desc": "Foreign interest rate"
+    },
+    "world_inflation": {
+      "unit": "% q/q annualized",
+      "desc": "Foreign / world inflation"
+    },
+    "net_exports": {
+      "unit": "contribution to GDP growth, pp",
+      "desc": "Net exports contribution to demand"
+    },
+    "fiscal_impulse": {
+      "unit": "% of GDP",
+      "desc": "Change in the fiscal stance affecting demand"
+    },
+    "risk_premium": {
+      "unit": "pp",
+      "desc": "Country risk premium over the foreign rate"
+    },
+    "credit_spread": {
+      "unit": "pp",
+      "desc": "External finance premium / lending spread"
+    },
+    "energy_price": {
+      "unit": "index",
+      "desc": "Domestic energy price incl. carbon cost"
+    },
+    "climate_damage": {
+      "unit": "% of GDP",
+      "desc": "Output loss from physical climate impacts"
+    },
+    "commodity_price": {
+      "unit": "index",
+      "desc": "Relevant commodity price index"
+    },
+    "primary_balance": {
+      "unit": "% of GDP",
+      "desc": "General government primary balance"
+    },
+    "gov_debt": {
+      "unit": "% of GDP",
+      "desc": "General government debt"
+    },
+    "resource_revenue": {
+      "unit": "% of GDP",
+      "desc": "Government revenue from natural resources"
+    },
+    "carbon_revenue": {
+      "unit": "% of GDP",
+      "desc": "Government revenue from carbon pricing"
+    },
+    "current_account": {
+      "unit": "% of GDP",
+      "desc": "Current account balance"
+    },
+    "net_foreign_assets": {
+      "unit": "% of GDP",
+      "desc": "Net international investment position"
+    },
+    "bank_credit": {
+      "unit": "% of GDP",
+      "desc": "Bank credit to the private sector"
+    }
+  },
+  "required_slots": [
+    "monetary_policy_rule"
+  ],
+  "identities": [
+    {
+      "name": "balance of payments",
+      "ports": [
+        "current_account",
+        "net_exports",
+        "net_foreign_assets"
+      ]
+    },
+    {
+      "name": "public debt dynamics",
+      "ports": [
+        "primary_balance",
+        "gov_debt",
+        "gdp_growth",
+        "policy_rate",
+        "inflation_cpi"
+      ]
+    }
+  ],
+  "bricks": [
+    {
+      "id": "core-gap-open",
+      "name": "Core: small open-economy gap model",
+      "kind": "baseplate",
+      "freq": "Q",
+      "summary": "IS curve, Phillips curve and UIP for a small open economy. Every other brick plugs into it. Inputs from absent bricks fall back on the stubs below, so the core runs on its own.",
+      "provides": [
+        "output_gap",
+        "gdp_growth",
+        "inflation_cpi",
+        "nominal_exchange_rate",
+        "real_exchange_rate"
+      ],
+      "requires": [
+        "policy_rate",
+        "foreign_demand",
+        "foreign_rate",
+        "world_inflation",
+        {
+          "port": "net_exports",
+          "stub": "exogenous path; contributes zero to the output gap beyond baseline"
+        },
+        {
+          "port": "fiscal_impulse",
+          "lag": 1,
+          "stub": "zero fiscal impulse"
+        },
+        {
+          "port": "risk_premium",
+          "lag": 1,
+          "stub": "constant at the baseline value"
+        },
+        {
+          "port": "credit_spread",
+          "lag": 1,
+          "stub": "constant at the baseline value"
+        },
+        {
+          "port": "energy_price",
+          "lag": 1,
+          "stub": "constant relative price (no energy cost channel)"
+        },
+        {
+          "port": "climate_damage",
+          "lag": 1,
+          "stub": "zero damage"
+        }
+      ],
+      "checks": [
+        "steady state residuals are zero",
+        "IRF signs to demand, supply, UIP and foreign shocks",
+        "stubbed inputs reproduce the stand-alone baseline"
+      ],
+      "status": "attached",
+      "validation": "unvalidated",
+      "code": null
+    },
+    {
+      "id": "world-exogenous",
+      "name": "Rest of world (exogenous)",
+      "kind": "environment",
+      "freq": "Q",
+      "summary": "Exogenous foreign environment: partner demand, foreign rate, world inflation and commodity prices, as scenario inputs.",
+      "provides": [
+        "foreign_demand",
+        "foreign_rate",
+        "world_inflation",
+        "commodity_price"
+      ],
+      "requires": [],
+      "checks": [
+        "series come from a documented, dated vintage",
+        "scenario paths are internally consistent"
+      ],
+      "status": "attached",
+      "validation": "unvalidated",
+      "code": null,
+      "place": {
+        "x": 2,
+        "y": 4,
+        "rot": 0,
+        "level": 1
+      }
+    },
+    {
+      "id": "monetary-taylor",
+      "name": "Monetary policy: inflation-forecast / Taylor-type rule",
+      "kind": "policy",
+      "freq": "Q",
+      "slot": "monetary_policy_rule",
+      "summary": "Policy rate responds to inflation and the output gap. Alternative to the managed-FX rule: both fill the same slot.",
+      "provides": [
+        "policy_rate"
+      ],
+      "requires": [
+        "inflation_cpi",
+        "output_gap"
+      ],
+      "checks": [
+        "determinacy (Taylor principle holds)",
+        "rule coefficients are sourced",
+        "response to supply and demand shocks is plausible"
+      ],
+      "status": "attached",
+      "validation": "unvalidated",
+      "code": null,
+      "place": {
+        "x": 8,
+        "y": 4,
+        "rot": 0,
+        "level": 1
+      }
+    },
+    {
+      "id": "fiscal-debt-rule",
+      "name": "Fiscal block with debt-stabilizing rule",
+      "kind": "fiscal",
+      "freq": "Q",
+      "slot": "fiscal_rule",
+      "summary": "Primary balance follows a debt-feedback rule; debt evolves with the real interest rate and growth (inflation is needed to turn the policy rate into a real rate). Receives resource and carbon revenue from bricks that supply them.",
+      "provides": [
+        "primary_balance",
+        "gov_debt",
+        "fiscal_impulse"
+      ],
+      "requires": [
+        {
+          "port": "gdp_growth",
+          "lag": 1
+        },
+        {
+          "port": "policy_rate",
+          "lag": 1
+        },
+        {
+          "port": "inflation_cpi",
+          "lag": 1
+        },
+        {
+          "port": "output_gap",
+          "lag": 1
+        },
+        {
+          "port": "resource_revenue",
+          "lag": 1,
+          "stub": "zero resource revenue"
+        },
+        {
+          "port": "carbon_revenue",
+          "lag": 1,
+          "stub": "zero carbon revenue"
+        }
+      ],
+      "checks": [
+        "debt dynamics identity closes exactly",
+        "rule is stabilizing (debt-feedback coefficient)",
+        "fiscal impulse sign convention matches the core"
+      ],
+      "status": "attached",
+      "validation": "unvalidated",
+      "code": null,
+      "place": {
+        "x": 5,
+        "y": 2,
+        "rot": 0,
+        "level": 2
+      }
+    },
+    {
+      "id": "external-bop-nfa",
+      "name": "External sector: balance of payments and net foreign assets",
+      "kind": "external",
+      "freq": "Q",
+      "summary": "Current account, net foreign assets and a risk premium that responds to external debt. Closes the external accounts.",
+      "provides": [
+        "current_account",
+        "net_foreign_assets",
+        "risk_premium"
+      ],
+      "requires": [
+        {
+          "port": "net_exports",
+          "stub": "exogenous baseline path"
+        },
+        "nominal_exchange_rate",
+        "foreign_rate"
+      ],
+      "checks": [
+        "balance-of-payments identity closes (errors and omissions reported)",
+        "NFA stationarity device is documented",
+        "valuation effects are explicit"
+      ],
+      "status": "attached",
+      "validation": "unvalidated",
+      "code": null,
+      "place": {
+        "x": 14,
+        "y": 4,
+        "rot": 0,
+        "level": 1
+      }
+    },
+    {
+      "id": "financial-accelerator",
+      "name": "Financial block: credit spread and accelerator",
+      "kind": "financial",
+      "freq": "Q",
+      "summary": "External finance premium that rises when activity weakens; amplifies shocks. Replaces the core's constant-spread stub.",
+      "provides": [
+        "credit_spread",
+        "bank_credit"
+      ],
+      "requires": [
+        "policy_rate",
+        "output_gap"
+      ],
+      "checks": [
+        "spread and leverage moments match the data",
+        "amplification is quantified against the frictionless core"
+      ],
+      "status": "detached",
+      "validation": "unvalidated",
+      "code": null
+    },
+    {
+      "id": "fan-chart-output",
+      "name": "Output: fan charts",
+      "kind": "output",
+      "freq": "Q",
+      "summary": "Density forecasts and fan charts for key variables. Reads from the model; feeds nothing back.",
+      "provides": [],
+      "requires": [
+        "output_gap",
+        "inflation_cpi",
+        "policy_rate"
+      ],
+      "checks": [
+        "historical coverage of the bands is checked",
+        "method is labelled on the chart"
+      ],
+      "status": "attached",
+      "validation": "unvalidated",
+      "code": null,
+      "place": {
+        "x": 11,
+        "y": 2,
+        "rot": 0,
+        "level": 2
+      }
+    }
+  ],
+  "history": [
+    {
+      "date": "2026-10-31",
+      "action": "create",
+      "brick": "core-gap-open,world-exogenous,monetary-taylor,fiscal-debt-rule,external-bop-nfa,financial-accelerator,fan-chart-output",
+      "note": ""
+    },
+    {
+      "date": "2026-10-31",
+      "action": "detach",
+      "brick": "financial-accelerator",
+      "note": "example: parts bin"
+    },
+    {
+      "date": "2026-10-31",
+      "action": "arrange",
+      "brick": "pyramid",
+      "note": "README picture"
+    }
+  ],
+  "layout": "pyramid"
+}

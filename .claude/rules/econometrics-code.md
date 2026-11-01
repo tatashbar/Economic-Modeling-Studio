@@ -1,0 +1,13 @@
+---
+paths:
+  - "models/econometrics/**"
+---
+# Rules: Econometrics Code
+
+- VARs, BVARs, local projections, factor models and nowcasting models live here, one folder per model
+- Read data from a frozen vintage in `data/processed/`; record the vintage and the estimation sample in a settings file
+- Report integration order, lag selection, stability and residual diagnostics with every estimate
+- Forecast evaluation re-estimates on data up to each origin only, and the no-look-ahead check is an automated test
+- Compare against simple benchmarks (no-change, univariate AR) on the same sample and split
+- Bootstrap and simulation draws use a fixed, logged seed
+- Estimation-only models need no lego manifest; register one if the model feeds or is fed by other bricks

@@ -1,0 +1,10 @@
+{
+  "id": "world-exogenous",
+  "name": "Rest of world (exogenous)",
+  "kind": "environment",
+  "freq": "Q",
+  "summary": "Exogenous foreign environment: partner demand, foreign rate, world inflation and commodity prices, as scenario inputs.",
+  "provides": ["foreign_demand", "foreign_rate", "world_inflation", "commodity_price"],
+  "requires": [],
+  "checks": ["series come from a documented, dated vintage", "scenario paths are internally consistent"]
+}

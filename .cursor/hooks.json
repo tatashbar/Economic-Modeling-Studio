@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "hooks": {
+    "beforeShellExecution": [
+      {
+        "command": "python -c \"import os,sys,runpy,pathlib;n=sys.argv[1];r=[pathlib.Path(x).resolve() for x in (os.environ.get('CLAUDE_PROJECT_DIR'),os.getcwd()) if x];p=next((y/'.claude'/'hooks'/n for c in r for y in [c,*c.parents] if (y/'.claude'/'hooks'/n).exists()),None);p and runpy.run_path(str(p),run_name='__main__')\" guard-commands.py"
+      }
+    ],
+    "beforeReadFile": [
+      {
+        "command": "python -c \"import os,sys,runpy,pathlib;n=sys.argv[1];r=[pathlib.Path(x).resolve() for x in (os.environ.get('CLAUDE_PROJECT_DIR'),os.getcwd()) if x];p=next((y/'.claude'/'hooks'/n for c in r for y in [c,*c.parents] if (y/'.claude'/'hooks'/n).exists()),None);p and runpy.run_path(str(p),run_name='__main__')\" guard-protected-paths.py"
+      }
+    ],
+    "afterFileEdit": [
+      {
+        "command": "python -c \"import os,sys,runpy,pathlib;n=sys.argv[1];r=[pathlib.Path(x).resolve() for x in (os.environ.get('CLAUDE_PROJECT_DIR'),os.getcwd()) if x];p=next((y/'.claude'/'hooks'/n for c in r for y in [c,*c.parents] if (y/'.claude'/'hooks'/n).exists()),None);p and runpy.run_path(str(p),run_name='__main__')\" validate-model-docs.py"
+      }
+    ]
+  }
+}

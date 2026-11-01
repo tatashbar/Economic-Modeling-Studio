@@ -1,0 +1,16 @@
+{
+  "id": "cge-annual-static",
+  "name": "Sectoral structure: CGE (annual, comparative static)",
+  "kind": "sector",
+  "freq": "A",
+  "slot": "sectoral_structure",
+  "bridge": null,
+  "summary": "Economy-wide CGE for tariff and carbon-price scenarios with welfare effects. Alternative to the IO brick in the same slot. Annual and static: needs a bridge to a quarterly core.",
+  "provides": ["sectoral_output", "welfare_change"],
+  "requires": [
+    "gdp_growth",
+    {"port": "tariff_rate", "stub": "unchanged baseline tariff path"},
+    {"port": "carbon_price", "stub": "exogenous scenario path"}
+  ],
+  "checks": ["benchmark replicated to tolerance", "results under two closures", "elasticity sensitivity range"]
+}

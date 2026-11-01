@@ -1,0 +1,12 @@
+---
+description: Restricted Data standards
+globs: data/restricted/**,data/confidential/**
+alwaysApply: false
+---
+<!-- Generated from .claude/rules/restricted-data.md by tools/sync_agents.py. Edit the source, then run the script. -->
+# Rules: Restricted Data
+
+- Do not read, summarize or quote contents to any external service or tool
+- Do not copy to unrestricted folders; do not include in prompts or logs
+- Only aggregated, approved outputs may leave this folder, after data-governance review
+- Ask the user before accessing any file in this folder

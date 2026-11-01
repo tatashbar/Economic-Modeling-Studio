@@ -1,0 +1,10 @@
+{
+  "id": "labor-search-matching",
+  "name": "Labor market: search and matching",
+  "kind": "sector",
+  "freq": "Q",
+  "summary": "Unemployment and wage dynamics responding to activity and inflation. An add-on: nothing in the core consumes it by default.",
+  "provides": ["unemployment_rate", "wage_inflation"],
+  "requires": ["output_gap", {"port": "inflation_cpi", "lag": 1}],
+  "checks": ["Okun and Beveridge relations are plausible", "flows data are consistent with the unemployment series"]
+}

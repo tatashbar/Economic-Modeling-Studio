@@ -1,0 +1,10 @@
+{
+  "id": "microsim-incidence",
+  "name": "Satellite: household incidence microsimulation",
+  "kind": "satellite",
+  "freq": "Q",
+  "summary": "Top-down household microsimulation: maps macro outcomes to poverty and inequality. One-way: it feeds nothing back into the model.",
+  "provides": ["poverty_rate", "gini"],
+  "requires": ["gdp_growth", "inflation_cpi", {"port": "unemployment_rate", "stub": "held at the survey-year value"}],
+  "checks": ["reproduces survey totals for the base year", "sampling uncertainty is reported"]
+}

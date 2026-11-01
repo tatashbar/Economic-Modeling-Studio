@@ -1,0 +1,10 @@
+{
+  "id": "commodity-resource-sector",
+  "name": "Commodity and resource sector",
+  "kind": "sector",
+  "freq": "Q",
+  "summary": "Resource output and government resource revenue driven by commodity prices and the exchange rate.",
+  "provides": ["resource_revenue"],
+  "requires": ["commodity_price", {"port": "real_exchange_rate", "lag": 1}],
+  "checks": ["revenue regime (royalties, taxes, state participation) is documented", "price scenarios link to documented projections"]
+}

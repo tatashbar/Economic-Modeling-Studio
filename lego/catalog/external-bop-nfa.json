@@ -1,0 +1,17 @@
+{
+  "id": "external-bop-nfa",
+  "name": "External sector: balance of payments and net foreign assets",
+  "kind": "external",
+  "freq": "Q",
+  "summary": "Current account, net foreign assets and a risk premium that responds to external debt and, in shallow FX markets, to the net FX positions intermediaries must absorb (moved by FX intervention and capital flow measures). Closes the external accounts.",
+  "provides": ["current_account", "net_foreign_assets", "risk_premium"],
+  "requires": [
+    {"port": "net_exports", "stub": "exogenous baseline path"},
+    "nominal_exchange_rate",
+    "foreign_rate",
+    {"port": "fx_intervention", "stub": "no FX intervention"},
+    {"port": "capital_flow_tax", "lag": 1, "stub": "no capital flow measures"}
+  ],
+  "identities": [{"name": "balance of payments", "ports": ["current_account", "net_exports", "net_foreign_assets"]}],
+  "checks": ["balance-of-payments identity closes (errors and omissions reported)", "NFA stationarity device is documented", "valuation effects are explicit"]
+}

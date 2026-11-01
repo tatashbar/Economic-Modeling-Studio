@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "defaultMode": "default",
+    "allow": [
+      "Bash(python -m pytest *)",
+      "Bash(python scripts/*)",
+      "Bash(python tools/validate_studio.py*)",
+      "Bash(python tools/test_studio.py*)",
+      "Bash(julia --project *)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)"
+    ],
+    "deny": [
+      "Read(**/.env*)",
+      "Edit(**/.env*)",
+      "Read(**/credentials*)",
+      "Read(**/*.pem)",
+      "Read(**/*.key)",
+      "Read(data/restricted/**)",
+      "Edit(data/raw/**)",
+      "Bash(rm -rf *)",
+      "Bash(rm -fr *)",
+      "Bash(git push --force*)",
+      "Bash(git push -f *)",
+      "Bash(git reset --hard*)",
+      "Bash(git clean -f*)",
+      "Bash(sudo *)",
+      "PowerShell(Remove-Item *-Recurse*)"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      { "hooks": [ { "type": "command", "command": "python -c \"import os,sys,runpy,pathlib;n=sys.argv[1];r=[pathlib.Path(x).resolve() for x in (os.environ.get('CLAUDE_PROJECT_DIR'),os.getcwd()) if x];p=next((y/'.claude'/'hooks'/n for c in r for y in [c,*c.parents] if (y/'.claude'/'hooks'/n).exists()),None);p and runpy.run_path(str(p),run_name='__main__')\" session-start.py" } ] }
+    ],
+    "PreCompact": [
+      { "hooks": [ { "type": "command", "command": "python -c \"import os,sys,runpy,pathlib;n=sys.argv[1];r=[pathlib.Path(x).resolve() for x in (os.environ.get('CLAUDE_PROJECT_DIR'),os.getcwd()) if x];p=next((y/'.claude'/'hooks'/n for c in r for y in [c,*c.parents] if (y/'.claude'/'hooks'/n).exists()),None);p and runpy.run_path(str(p),run_name='__main__')\" pre-compact.py" } ] }
+    ],
+    "PreToolUse": [
+      { "matcher": "Bash|PowerShell", "hooks": [ { "type": "command", "command": "python -c \"import os,sys,runpy,pathlib;n=sys.argv[1];r=[pathlib.Path(x).resolve() for x in (os.environ.get('CLAUDE_PROJECT_DIR'),os.getcwd()) if x];p=next((y/'.claude'/'hooks'/n for c in r for y in [c,*c.parents] if (y/'.claude'/'hooks'/n).exists()),None);p and runpy.run_path(str(p),run_name='__main__')\" guard-commands.py" } ] },
+      { "matcher": "Read|Write|Edit|Glob|Grep", "hooks": [ { "type": "command", "command": "python -c \"import os,sys,runpy,pathlib;n=sys.argv[1];r=[pathlib.Path(x).resolve() for x in (os.environ.get('CLAUDE_PROJECT_DIR'),os.getcwd()) if x];p=next((y/'.claude'/'hooks'/n for c in r for y in [c,*c.parents] if (y/'.claude'/'hooks'/n).exists()),None);p and runpy.run_path(str(p),run_name='__main__')\" guard-protected-paths.py" } ] }
+    ],
+    "PostToolUse": [
+      { "matcher": "Write|Edit", "hooks": [ { "type": "command", "command": "python -c \"import os,sys,runpy,pathlib;n=sys.argv[1];r=[pathlib.Path(x).resolve() for x in (os.environ.get('CLAUDE_PROJECT_DIR'),os.getcwd()) if x];p=next((y/'.claude'/'hooks'/n for c in r for y in [c,*c.parents] if (y/'.claude'/'hooks'/n).exists()),None);p and runpy.run_path(str(p),run_name='__main__')\" validate-model-docs.py" } ] }
+    ],
+    "SubagentStart": [
+      { "hooks": [ { "type": "command", "command": "python -c \"import os,sys,runpy,pathlib;n=sys.argv[1];r=[pathlib.Path(x).resolve() for x in (os.environ.get('CLAUDE_PROJECT_DIR'),os.getcwd()) if x];p=next((y/'.claude'/'hooks'/n for c in r for y in [c,*c.parents] if (y/'.claude'/'hooks'/n).exists()),None);p and runpy.run_path(str(p),run_name='__main__')\" log-agent.py" } ] }
+    ]
+  }
+}

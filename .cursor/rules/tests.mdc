@@ -1,0 +1,12 @@
+---
+description: Tests standards
+globs: tests/**,**/test_*.py,**/*_test.jl,**/test_*.m
+alwaysApply: false
+---
+<!-- Generated from .claude/rules/tests.md by tools/sync_agents.py. Edit the source, then run the script. -->
+# Rules: Tests
+
+- Tests verify identities, steady state, known analytical cases and regression baselines
+- Use tolerance-based comparisons for floating point; document tolerances
+- Tests must be deterministic: fixed seeds, no network access
+- Add a regression test for every bug fixed

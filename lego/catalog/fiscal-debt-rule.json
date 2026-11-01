@@ -1,0 +1,19 @@
+{
+  "id": "fiscal-debt-rule",
+  "name": "Fiscal block with debt-stabilizing rule",
+  "kind": "fiscal",
+  "freq": "Q",
+  "slot": "fiscal_rule",
+  "summary": "Primary balance follows a debt-feedback rule; debt evolves with the real interest rate and growth (inflation is needed to turn the policy rate into a real rate). Receives resource and carbon revenue from bricks that supply them.",
+  "provides": ["primary_balance", "gov_debt", "fiscal_impulse"],
+  "requires": [
+    {"port": "gdp_growth", "lag": 1},
+    {"port": "policy_rate", "lag": 1},
+    {"port": "inflation_cpi", "lag": 1},
+    {"port": "output_gap", "lag": 1},
+    {"port": "resource_revenue", "lag": 1, "stub": "zero resource revenue"},
+    {"port": "carbon_revenue", "lag": 1, "stub": "zero carbon revenue"}
+  ],
+  "identities": [{"name": "public debt dynamics", "ports": ["primary_balance", "gov_debt", "gdp_growth", "policy_rate", "inflation_cpi"]}],
+  "checks": ["debt dynamics identity closes exactly", "rule is stabilizing (debt-feedback coefficient)", "fiscal impulse sign convention matches the core"]
+}

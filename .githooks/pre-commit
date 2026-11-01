@@ -1,0 +1,10 @@
+#!/bin/sh
+# Studio pre-commit guard. Enable with: git config core.hooksPath .githooks
+# Uses the first Python that actually runs (python3 on macOS/Linux, python on Windows, where python3 may be a store stub).
+for py in python3 python py; do
+  if command -v "$py" >/dev/null 2>&1 && "$py" -c "import sys; sys.exit(0 if sys.version_info >= (3, 9) else 1)" >/dev/null 2>&1; then
+    exec "$py" tools/precommit_guard.py
+  fi
+done
+echo "studio pre-commit guard: no Python 3.9+ found; commit NOT checked for restricted data or secrets" >&2
+exit 0

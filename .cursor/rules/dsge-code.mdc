@@ -1,0 +1,13 @@
+---
+description: DSGE Code standards
+globs: models/dsge/**,models/multicountry/**
+alwaysApply: false
+---
+<!-- Generated from .claude/rules/dsge-code.md by tools/sync_agents.py. Edit the source, then run the script. -->
+# Rules: DSGE Code
+
+- Provide steady-state computation and report residuals before solving
+- Report determinacy (Blanchard-Kahn) and solution order
+- Report Euler-equation or other accuracy errors for non-linear solutions
+- Priors are documented with rationale; prior predictive checks are stored
+- Estimation scripts record chains, seeds and convergence diagnostics

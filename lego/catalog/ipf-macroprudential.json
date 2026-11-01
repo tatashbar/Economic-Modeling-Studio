@@ -1,0 +1,25 @@
+{
+  "id": "ipf-macroprudential",
+  "name": "IPF: macroprudential policy",
+  "kind": "financial",
+  "layer": 2,
+  "freq": "Q",
+  "summary": "Macroprudential stance (for example LTV or DSTI limits, taxes on domestic lending) that leans against credit booms to limit overborrowing and fire-sale risk.",
+  "provides": [
+    "macroprudential_stance"
+  ],
+  "requires": [
+    {
+      "port": "bank_credit",
+      "lag": 1
+    },
+    {
+      "port": "output_gap",
+      "lag": 1
+    }
+  ],
+  "checks": [
+    "stance responds to credit growth, not to the cycle alone",
+    "interaction with capital flow measures is stated (substitutes or complements)"
+  ]
+}

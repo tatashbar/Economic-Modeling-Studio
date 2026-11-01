@@ -1,0 +1,30 @@
+{
+  "id": "ipf-capital-flow-measures",
+  "name": "IPF: capital flow management measures",
+  "kind": "policy",
+  "layer": 3,
+  "freq": "Q",
+  "summary": "State-contingent tax on capital inflows: raised in inflow booms to curb foreign-currency debt build-up (prudential), relaxed in busts; leans on reserves and the premium.",
+  "provides": [
+    "capital_flow_tax"
+  ],
+  "requires": [
+    {
+      "port": "net_foreign_assets",
+      "lag": 1
+    },
+    {
+      "port": "risk_premium",
+      "lag": 1
+    },
+    {
+      "port": "fx_reserves",
+      "lag": 1
+    }
+  ],
+  "checks": [
+    "measure is countercyclical (tightened in booms, eased in busts)",
+    "distortion of efficient flows is reported",
+    "use is consistent with the stated policy framework for capital flows"
+  ]
+}

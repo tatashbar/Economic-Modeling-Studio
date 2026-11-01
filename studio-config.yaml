@@ -1,0 +1,41 @@
+# Economic Modeling Studio configuration.
+# Read by skills (/settings, /gate-check, /model-release) and by hooks.
+
+studio:
+  name: "Economic Modeling Studio"
+  version: "1.4.1"
+  default_language: "en"
+
+# How much process each model class needs. See .claude/docs/model-classes.md
+rigor:
+  small:   { validation: "peer-review",  independent_validator: false, replication_package: true, model_card: "short" }
+  medium:  { validation: "independent",  independent_validator: true,  replication_package: true, model_card: "full" }
+  large:   { validation: "independent",  independent_validator: true,  replication_package: true, model_card: "full", periodic_revalidation_months: 12 }
+  ai:      { validation: "independent+ai-audit", independent_validator: true, replication_package: true, model_card: "full", llm_eval_card: true }
+
+# Data classification levels and handling.
+data_classes:
+  public:       { path: "data/external",   external_services_allowed: true }
+  internal:     { path: "data/processed",  external_services_allowed: false }
+  restricted:   { path: "data/restricted", external_services_allowed: false, claude_read_allowed: false }
+  confidential: { path: "data/restricted", external_services_allowed: false, claude_read_allowed: false }
+
+toolchains:
+  approved: ["python", "julia", "matlab-dynare", "r", "gams"]   # edit to match what your IT policy approves
+
+ai_governance:
+  require_traditional_benchmark: true
+  require_ai_audit_before_release: true
+  llm_numeric_claims_require_source: true
+  human_review_required_for_policy_outputs: true
+
+forecast_rounds:
+  freeze_data_vintage: true
+  log_judgment_overlays: true
+
+# Lego view of models (see docs/lego.md)
+lego:
+  manifest_name: "model.lego.json"
+  require_manifest_for_new_models: true     # /build-* commands register a manifest
+  apply_changes_only_after_approval: true   # attach/detach/swap are shown as a plan first
+  stale_bricks_block_release: true

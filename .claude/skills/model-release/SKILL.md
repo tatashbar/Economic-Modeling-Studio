@@ -1,0 +1,49 @@
+---
+name: model-release
+description: "Releases a model version: checks approvals, tags code, data and parameters, updates the registry and writes release notes."
+argument-hint: "[model name] [version]"
+user-invocable: true
+allowed-tools: Read, Glob, Grep, Write, Edit, Bash, AskUserQuestion, Task
+---
+
+# /model-release — Model Release
+
+**Category:** Governance · **Primary agent:** `project-planning-specialist`
+
+Releases a model version: checks approvals, tags code, data and parameters, updates the registry and writes release notes.
+
+Arguments: `$ARGUMENTS`
+
+## Before you start
+1. **Check required inputs.** For each input below record `FOUND` or `ABSENT` (never 'assumed'):
+   - Validation report
+   - Model risk decision
+   - Model card
+   - Replication package
+   If a required input is `ABSENT`, that part is **`NOT ASSESSED — NO DATA`**: do not estimate or invent it; name what is missing and which skill produces it. If all required inputs are absent, stop and say so.
+2. **Check confidentiality.** Identify the data classification level of the inputs (`.claude/docs/confidentiality-and-ai-use.md`). Do not proceed with restricted or confidential data in a way the policy does not allow.
+3. **Collaboration.** Follow `.claude/docs/collaboration-protocol.md`: ask questions first, present options, get approval before writing files, and update `production/session-state/active.md` after each approved section.
+
+## Agents
+- `project-planning-specialist` — primary agent; coordinates the work and integrates results
+- `mlops-engineer` — Engineers MLOps for models
+- `reproducibility-engineer` — Guarantees reproducibility
+- `model-risk-governance-specialist` — Defines model risk levels and validation depth, enforces builder-validator independence, governs AI/LLM use and recommends release or block
+
+Run these agents as subagents (the `Task` tool), in parallel where the steps are independent. Subagents only write to the paths named in your instructions.
+
+## Workflow
+1. Verify approvals: validation, model risk decision, model card, replication
+2. Tag code, data vintage and parameter files; record hashes in the registry
+3. Write release notes with changes and known limitations
+4. Update `production/model-registry.md`; notify users per communication plan
+5. If the model has a lego manifest, require a passing `/lego-check`, no stale bricks, and record the manifest revision in the release notes
+
+## Output
+`production/releases/<model>-<version>.md`
+
+## Gate / verdict
+- No release without a model-risk approval and a reproducible package
+
+## Suggested next steps
+- `/retrospective`

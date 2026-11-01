@@ -1,0 +1,11 @@
+{
+  "id": "monetary-fx-managed",
+  "name": "Monetary policy: rule with exchange-rate response",
+  "kind": "policy",
+  "freq": "Q",
+  "slot": "monetary_policy_rule",
+  "summary": "Policy rate responds to inflation, the output gap and exchange-rate movements (managed float). Swap in for the Taylor-type rule.",
+  "provides": ["policy_rate"],
+  "requires": ["inflation_cpi", "output_gap", "nominal_exchange_rate"],
+  "checks": ["determinacy with the exchange-rate term", "reserve and intervention limits are not ignored"]
+}

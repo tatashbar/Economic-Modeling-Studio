@@ -1,0 +1,12 @@
+---
+description: Rl Code standards
+globs: models/ai/**/*drl*/**,models/ai/**/*rl*/**
+alwaysApply: false
+---
+<!-- Generated from .claude/rules/rl-code.md by tools/sync_agents.py. Edit the source, then run the script. -->
+# Rules: Rl Code
+
+- The reward must be the documented welfare criterion; changes need approval from economic-reasoning-specialist and the user
+- Verify the environment against known-optimal cases before training
+- Train with multiple seeds and report the distribution of outcomes
+- Compare with simple rules; run an out-of-distribution stress test

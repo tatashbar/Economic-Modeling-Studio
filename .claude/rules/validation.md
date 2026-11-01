@@ -1,0 +1,10 @@
+---
+paths:
+  - "validation/**"
+---
+# Rules: Validation
+
+- Validators must not be the model's builders
+- Every finding has severity, evidence, recommendation, owner and status
+- Ratings are PASS / PASS WITH CONDITIONS / FAIL / NOT ASSESSED; missing evidence yields NOT ASSESSED
+- Do not edit the model under validation; raise findings instead

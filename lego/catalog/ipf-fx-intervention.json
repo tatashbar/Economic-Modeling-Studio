@@ -1,0 +1,34 @@
+{
+  "id": "ipf-fx-intervention",
+  "name": "IPF: sterilized FX intervention rule",
+  "kind": "policy",
+  "layer": 2,
+  "freq": "Q",
+  "summary": "FX intervention that leans against inefficient swings in the UIP premium from portfolio flows and against spread spikes near the external debt limit; reserves accumulate from interventions.",
+  "provides": [
+    "fx_intervention",
+    "fx_reserves"
+  ],
+  "requires": [
+    "risk_premium",
+    {
+      "port": "net_foreign_assets",
+      "lag": 1
+    },
+    "nominal_exchange_rate"
+  ],
+  "identities": [
+    {
+      "name": "FX reserves accumulation",
+      "ports": [
+        "fx_reserves",
+        "fx_intervention"
+      ]
+    }
+  ],
+  "checks": [
+    "reserve path stays within stated adequacy bounds",
+    "intervention effect on the premium is separated from interest-rate effects",
+    "persistent (fundamental) shocks are not resisted indefinitely"
+  ]
+}

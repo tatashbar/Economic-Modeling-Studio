@@ -1,0 +1,13 @@
+{
+  "id": "core-io-leontief",
+  "name": "Core: input-output model (Leontief quantity and price)",
+  "kind": "baseplate",
+  "freq": "A",
+  "summary": "Baseplate for a stand-alone input-output or SAM model: demand-driven Leontief quantity model with a cost-push price model. Use it when there is no macro core; to add sectoral detail to a macro core, attach io-sectoral-annual instead.",
+  "provides": ["sectoral_output"],
+  "requires": [
+    {"port": "tariff_rate", "stub": "no change in tariffs"},
+    {"port": "carbon_price", "stub": "no carbon price"}
+  ],
+  "checks": ["table balances", "Hawkins-Simon condition", "benchmark output is reproduced", "fixed-coefficient limitation stated with results"]
+}

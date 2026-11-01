@@ -1,0 +1,2 @@
+# Generated example pages (python tools/lego.py show --html) are not source code
+lego/examples/*.html linguist-generated=true

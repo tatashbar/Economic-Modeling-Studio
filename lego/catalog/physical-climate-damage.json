@@ -1,0 +1,10 @@
+{
+  "id": "physical-climate-damage",
+  "name": "Climate: physical damage",
+  "kind": "climate",
+  "freq": "Q",
+  "summary": "Output losses from physical climate impacts under a chosen scenario pathway. Replaces the core's zero-damage stub.",
+  "provides": ["climate_damage"],
+  "requires": [{"port": "emissions", "lag": 1, "stub": "exogenous scenario pathway (documented, e.g. a published climate scenario)"}],
+  "checks": ["damage-function form and alternatives are shown", "deep uncertainty is reported as ranges"]
+}

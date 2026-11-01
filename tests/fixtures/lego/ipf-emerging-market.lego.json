@@ -1,0 +1,715 @@
+{
+  "lego_version": 1,
+  "name": "IPF emerging market",
+  "class": "medium",
+  "freq": "Q",
+  "revision": 5,
+  "ports": {
+    "output_gap": {
+      "unit": "% of potential output",
+      "desc": "Deviation of output from potential"
+    },
+    "gdp_growth": {
+      "unit": "% q/q",
+      "desc": "Real GDP growth"
+    },
+    "inflation_cpi": {
+      "unit": "% q/q annualized",
+      "desc": "Consumer price inflation"
+    },
+    "nominal_exchange_rate": {
+      "unit": "LCU per USD, index",
+      "desc": "Nominal exchange rate; up = depreciation"
+    },
+    "real_exchange_rate": {
+      "unit": "index, up = depreciation",
+      "desc": "Real effective exchange rate"
+    },
+    "policy_rate": {
+      "unit": "% p.a.",
+      "desc": "Monetary policy interest rate"
+    },
+    "foreign_demand": {
+      "unit": "index",
+      "desc": "Trading-partner demand"
+    },
+    "foreign_rate": {
+      "unit": "% p.a.",
+      "desc": "Foreign interest rate"
+    },
+    "world_inflation": {
+      "unit": "% q/q annualized",
+      "desc": "Foreign / world inflation"
+    },
+    "net_exports": {
+      "unit": "contribution to GDP growth, pp",
+      "desc": "Net exports contribution to demand"
+    },
+    "fiscal_impulse": {
+      "unit": "% of GDP",
+      "desc": "Change in the fiscal stance affecting demand"
+    },
+    "risk_premium": {
+      "unit": "pp",
+      "desc": "Country risk premium over the foreign rate"
+    },
+    "credit_spread": {
+      "unit": "pp",
+      "desc": "External finance premium / lending spread"
+    },
+    "energy_price": {
+      "unit": "index",
+      "desc": "Domestic energy price incl. carbon cost"
+    },
+    "climate_damage": {
+      "unit": "% of GDP",
+      "desc": "Output loss from physical climate impacts"
+    },
+    "commodity_price": {
+      "unit": "index",
+      "desc": "Relevant commodity price index"
+    },
+    "primary_balance": {
+      "unit": "% of GDP",
+      "desc": "General government primary balance"
+    },
+    "gov_debt": {
+      "unit": "% of GDP",
+      "desc": "General government debt"
+    },
+    "resource_revenue": {
+      "unit": "% of GDP",
+      "desc": "Government revenue from natural resources"
+    },
+    "carbon_revenue": {
+      "unit": "% of GDP",
+      "desc": "Government revenue from carbon pricing"
+    },
+    "current_account": {
+      "unit": "% of GDP",
+      "desc": "Current account balance"
+    },
+    "net_foreign_assets": {
+      "unit": "% of GDP",
+      "desc": "Net international investment position"
+    },
+    "fx_intervention": {
+      "unit": "% of GDP, net FX sales positive",
+      "desc": "Sterilized foreign exchange intervention"
+    },
+    "capital_flow_tax": {
+      "unit": "pp, tax-equivalent on capital inflows",
+      "desc": "Capital flow management measure"
+    },
+    "fx_reserves": {
+      "unit": "% of GDP",
+      "desc": "Official foreign exchange reserves"
+    },
+    "bank_credit": {
+      "unit": "% of GDP",
+      "desc": "Bank credit to the private sector"
+    },
+    "macroprudential_stance": {
+      "unit": "index, up = tighter",
+      "desc": "Macroprudential policy stance (for example LTV or DSTI limits)"
+    },
+    "exports_volume": {
+      "unit": "index, real",
+      "desc": "Export volume"
+    },
+    "imports_volume": {
+      "unit": "index, real",
+      "desc": "Import volume"
+    },
+    "terms_of_trade": {
+      "unit": "index",
+      "desc": "Export prices over import prices"
+    },
+    "tariff_rate": {
+      "unit": "% ad valorem",
+      "desc": "Average import tariff rate (scenario lever)"
+    },
+    "unemployment_rate": {
+      "unit": "% of labor force",
+      "desc": "Unemployment rate"
+    },
+    "wage_inflation": {
+      "unit": "% q/q annualized",
+      "desc": "Nominal wage growth"
+    },
+    "poverty_rate": {
+      "unit": "% of population",
+      "desc": "Headcount poverty rate"
+    },
+    "gini": {
+      "unit": "index 0-100",
+      "desc": "Income inequality"
+    }
+  },
+  "required_slots": [],
+  "identities": [
+    {
+      "name": "public debt dynamics",
+      "ports": [
+        "primary_balance",
+        "gov_debt",
+        "gdp_growth",
+        "policy_rate",
+        "inflation_cpi"
+      ],
+      "brick": "fiscal-debt-rule"
+    },
+    {
+      "name": "balance of payments",
+      "ports": [
+        "current_account",
+        "net_exports",
+        "net_foreign_assets"
+      ],
+      "brick": "external-bop-nfa"
+    },
+    {
+      "name": "FX reserves accumulation",
+      "ports": [
+        "fx_reserves",
+        "fx_intervention"
+      ],
+      "brick": "ipf-fx-intervention"
+    }
+  ],
+  "bricks": [
+    {
+      "id": "core-gap-open",
+      "name": "Core: small open-economy gap model",
+      "kind": "baseplate",
+      "freq": "Q",
+      "summary": "IS curve, Phillips curve and UIP for a small open economy. Every other brick plugs into it. Inputs from absent bricks fall back on the stubs below, so the core runs on its own.",
+      "provides": [
+        "output_gap",
+        "gdp_growth",
+        "inflation_cpi",
+        "nominal_exchange_rate",
+        "real_exchange_rate"
+      ],
+      "requires": [
+        "policy_rate",
+        "foreign_demand",
+        "foreign_rate",
+        "world_inflation",
+        {
+          "port": "net_exports",
+          "stub": "exogenous path; contributes zero to the output gap beyond baseline"
+        },
+        {
+          "port": "fiscal_impulse",
+          "lag": 1,
+          "stub": "zero fiscal impulse"
+        },
+        {
+          "port": "risk_premium",
+          "lag": 1,
+          "stub": "constant at the baseline value"
+        },
+        {
+          "port": "credit_spread",
+          "lag": 1,
+          "stub": "constant at the baseline value"
+        },
+        {
+          "port": "energy_price",
+          "lag": 1,
+          "stub": "constant relative price (no energy cost channel)"
+        },
+        {
+          "port": "climate_damage",
+          "lag": 1,
+          "stub": "zero damage"
+        }
+      ],
+      "checks": [
+        "steady state residuals are zero",
+        "IRF signs to demand, supply, UIP and foreign shocks",
+        "stubbed inputs reproduce the stand-alone baseline"
+      ],
+      "status": "attached",
+      "validation": "unvalidated",
+      "code": null
+    },
+    {
+      "id": "world-exogenous",
+      "name": "Rest of world (exogenous)",
+      "kind": "environment",
+      "freq": "Q",
+      "summary": "Exogenous foreign environment: partner demand, foreign rate, world inflation and commodity prices, as scenario inputs.",
+      "provides": [
+        "foreign_demand",
+        "foreign_rate",
+        "world_inflation",
+        "commodity_price"
+      ],
+      "requires": [],
+      "checks": [
+        "series come from a documented, dated vintage",
+        "scenario paths are internally consistent"
+      ],
+      "status": "attached",
+      "validation": "unvalidated",
+      "code": null,
+      "place": {
+        "x": 20,
+        "y": 6,
+        "rot": 0,
+        "level": 1
+      }
+    },
+    {
+      "id": "monetary-taylor",
+      "name": "Monetary policy: inflation-forecast / Taylor-type rule",
+      "kind": "policy",
+      "freq": "Q",
+      "slot": "monetary_policy_rule",
+      "summary": "Policy rate responds to inflation and the output gap. Alternative to the managed-FX rule: both fill the same slot.",
+      "provides": [
+        "policy_rate"
+      ],
+      "requires": [
+        "inflation_cpi",
+        "output_gap"
+      ],
+      "checks": [
+        "determinacy (Taylor principle holds)",
+        "rule coefficients are sourced",
+        "response to supply and demand shocks is plausible"
+      ],
+      "status": "attached",
+      "validation": "unvalidated",
+      "code": null,
+      "place": {
+        "x": 14,
+        "y": 6,
+        "rot": 0,
+        "level": 1
+      }
+    },
+    {
+      "id": "fiscal-debt-rule",
+      "name": "Fiscal block with debt-stabilizing rule",
+      "kind": "fiscal",
+      "freq": "Q",
+      "slot": "fiscal_rule",
+      "summary": "Primary balance follows a debt-feedback rule; debt evolves with the real interest rate and growth (inflation is needed to turn the policy rate into a real rate). Receives resource and carbon revenue from bricks that supply them.",
+      "provides": [
+        "primary_balance",
+        "gov_debt",
+        "fiscal_impulse"
+      ],
+      "requires": [
+        {
+          "port": "gdp_growth",
+          "lag": 1
+        },
+        {
+          "port": "policy_rate",
+          "lag": 1
+        },
+        {
+          "port": "inflation_cpi",
+          "lag": 1
+        },
+        {
+          "port": "output_gap",
+          "lag": 1
+        },
+        {
+          "port": "resource_revenue",
+          "lag": 1,
+          "stub": "zero resource revenue"
+        },
+        {
+          "port": "carbon_revenue",
+          "lag": 1,
+          "stub": "zero carbon revenue"
+        }
+      ],
+      "checks": [
+        "debt dynamics identity closes exactly",
+        "rule is stabilizing (debt-feedback coefficient)",
+        "fiscal impulse sign convention matches the core"
+      ],
+      "status": "attached",
+      "validation": "unvalidated",
+      "code": null,
+      "place": {
+        "x": 11,
+        "y": 4,
+        "rot": 0,
+        "level": 2
+      }
+    },
+    {
+      "id": "external-bop-nfa",
+      "name": "External sector: balance of payments and net foreign assets",
+      "kind": "external",
+      "freq": "Q",
+      "summary": "Current account, net foreign assets and a risk premium that responds to external debt and, in shallow FX markets, to the net FX positions intermediaries must absorb (moved by FX intervention and capital flow measures). Closes the external accounts.",
+      "provides": [
+        "current_account",
+        "net_foreign_assets",
+        "risk_premium"
+      ],
+      "requires": [
+        {
+          "port": "net_exports",
+          "stub": "exogenous baseline path"
+        },
+        "nominal_exchange_rate",
+        "foreign_rate",
+        {
+          "port": "fx_intervention",
+          "stub": "no FX intervention"
+        },
+        {
+          "port": "capital_flow_tax",
+          "lag": 1,
+          "stub": "no capital flow measures"
+        }
+      ],
+      "checks": [
+        "balance-of-payments identity closes (errors and omissions reported)",
+        "NFA stationarity device is documented",
+        "valuation effects are explicit"
+      ],
+      "status": "attached",
+      "validation": "unvalidated",
+      "code": null,
+      "place": {
+        "x": 8,
+        "y": 6,
+        "rot": 0,
+        "level": 1
+      }
+    },
+    {
+      "id": "ipf-fx-intervention",
+      "name": "IPF: sterilized FX intervention rule",
+      "kind": "policy",
+      "layer": 2,
+      "freq": "Q",
+      "summary": "FX intervention that leans against inefficient swings in the UIP premium from portfolio flows and against spread spikes near the external debt limit; reserves accumulate from interventions.",
+      "provides": [
+        "fx_intervention",
+        "fx_reserves"
+      ],
+      "requires": [
+        "risk_premium",
+        {
+          "port": "net_foreign_assets",
+          "lag": 1
+        },
+        "nominal_exchange_rate"
+      ],
+      "checks": [
+        "reserve path stays within stated adequacy bounds",
+        "intervention effect on the premium is separated from interest-rate effects",
+        "persistent (fundamental) shocks are not resisted indefinitely"
+      ],
+      "status": "attached",
+      "validation": "unvalidated",
+      "code": null,
+      "place": {
+        "x": 5,
+        "y": 4,
+        "rot": 0,
+        "level": 2
+      }
+    },
+    {
+      "id": "ipf-capital-flow-measures",
+      "name": "IPF: capital flow management measures",
+      "kind": "policy",
+      "layer": 3,
+      "freq": "Q",
+      "summary": "State-contingent tax on capital inflows: raised in inflow booms to curb foreign-currency debt build-up (prudential), relaxed in busts; leans on reserves and the premium.",
+      "provides": [
+        "capital_flow_tax"
+      ],
+      "requires": [
+        {
+          "port": "net_foreign_assets",
+          "lag": 1
+        },
+        {
+          "port": "risk_premium",
+          "lag": 1
+        },
+        {
+          "port": "fx_reserves",
+          "lag": 1
+        }
+      ],
+      "checks": [
+        "measure is countercyclical (tightened in booms, eased in busts)",
+        "distortion of efficient flows is reported",
+        "use is consistent with the stated policy framework for capital flows"
+      ],
+      "status": "attached",
+      "validation": "unvalidated",
+      "code": null,
+      "place": {
+        "x": 20,
+        "y": 2,
+        "rot": 0,
+        "level": 3
+      }
+    },
+    {
+      "id": "financial-accelerator",
+      "name": "Financial block: credit spread and accelerator",
+      "kind": "financial",
+      "freq": "Q",
+      "summary": "External finance premium that rises when activity weakens; amplifies shocks. Replaces the core's constant-spread stub.",
+      "provides": [
+        "credit_spread",
+        "bank_credit"
+      ],
+      "requires": [
+        "policy_rate",
+        "output_gap",
+        {
+          "port": "macroprudential_stance",
+          "lag": 1,
+          "stub": "neutral macroprudential stance"
+        }
+      ],
+      "checks": [
+        "spread and leverage moments match the data",
+        "amplification is quantified against the frictionless core"
+      ],
+      "status": "attached",
+      "validation": "unvalidated",
+      "code": null,
+      "place": {
+        "x": 2,
+        "y": 6,
+        "rot": 0,
+        "level": 1
+      }
+    },
+    {
+      "id": "ipf-macroprudential",
+      "name": "IPF: macroprudential policy",
+      "kind": "financial",
+      "layer": 2,
+      "freq": "Q",
+      "summary": "Macroprudential stance (for example LTV or DSTI limits, taxes on domestic lending) that leans against credit booms to limit overborrowing and fire-sale risk.",
+      "provides": [
+        "macroprudential_stance"
+      ],
+      "requires": [
+        {
+          "port": "bank_credit",
+          "lag": 1
+        },
+        {
+          "port": "output_gap",
+          "lag": 1
+        }
+      ],
+      "checks": [
+        "stance responds to credit growth, not to the cycle alone",
+        "interaction with capital flow measures is stated (substitutes or complements)"
+      ],
+      "status": "attached",
+      "validation": "unvalidated",
+      "code": null,
+      "place": {
+        "x": 23,
+        "y": 4,
+        "rot": 0,
+        "level": 2
+      }
+    },
+    {
+      "id": "trade-sector-armington",
+      "name": "Trade sector: Armington exports and imports",
+      "kind": "sector",
+      "freq": "Q",
+      "summary": "Export and import volumes respond to the real exchange rate, partner demand and domestic demand. Tariffs are a scenario lever. Replaces the core's exogenous net-exports stub.",
+      "provides": [
+        "exports_volume",
+        "imports_volume",
+        "net_exports",
+        "terms_of_trade"
+      ],
+      "requires": [
+        "real_exchange_rate",
+        "foreign_demand",
+        "output_gap",
+        {
+          "port": "tariff_rate",
+          "stub": "unchanged baseline tariff path"
+        }
+      ],
+      "checks": [
+        "elasticities are sourced and sensitivity-tested",
+        "net exports contribution reconciles with the national accounts identity",
+        "attaching with neutral settings reproduces the previous baseline"
+      ],
+      "status": "attached",
+      "validation": "unvalidated",
+      "code": null,
+      "place": {
+        "x": 17,
+        "y": 4,
+        "rot": 0,
+        "level": 2
+      }
+    },
+    {
+      "id": "labor-search-matching",
+      "name": "Labor market: search and matching",
+      "kind": "sector",
+      "freq": "Q",
+      "summary": "Unemployment and wage dynamics responding to activity and inflation. An add-on: nothing in the core consumes it by default.",
+      "provides": [
+        "unemployment_rate",
+        "wage_inflation"
+      ],
+      "requires": [
+        "output_gap",
+        {
+          "port": "inflation_cpi",
+          "lag": 1
+        }
+      ],
+      "checks": [
+        "Okun and Beveridge relations are plausible",
+        "flows data are consistent with the unemployment series"
+      ],
+      "status": "attached",
+      "validation": "unvalidated",
+      "code": null,
+      "place": {
+        "x": 26,
+        "y": 6,
+        "rot": 0,
+        "level": 1
+      }
+    },
+    {
+      "id": "microsim-incidence",
+      "name": "Satellite: household incidence microsimulation",
+      "kind": "satellite",
+      "freq": "Q",
+      "summary": "Top-down household microsimulation: maps macro outcomes to poverty and inequality. One-way: it feeds nothing back into the model.",
+      "provides": [
+        "poverty_rate",
+        "gini"
+      ],
+      "requires": [
+        "gdp_growth",
+        "inflation_cpi",
+        {
+          "port": "unemployment_rate",
+          "stub": "held at the survey-year value"
+        }
+      ],
+      "checks": [
+        "reproduces survey totals for the base year",
+        "sampling uncertainty is reported"
+      ],
+      "status": "attached",
+      "validation": "unvalidated",
+      "code": null,
+      "place": {
+        "x": 8,
+        "y": 2,
+        "rot": 0,
+        "level": 3
+      }
+    },
+    {
+      "id": "fan-chart-output",
+      "name": "Output: fan charts",
+      "kind": "output",
+      "freq": "Q",
+      "summary": "Density forecasts and fan charts for key variables. Reads from the model; feeds nothing back.",
+      "provides": [],
+      "requires": [
+        "output_gap",
+        "inflation_cpi",
+        "policy_rate"
+      ],
+      "checks": [
+        "historical coverage of the bands is checked",
+        "method is labelled on the chart"
+      ],
+      "status": "attached",
+      "validation": "unvalidated",
+      "code": null,
+      "place": {
+        "x": 14,
+        "y": 2,
+        "rot": 0,
+        "level": 3
+      }
+    },
+    {
+      "id": "commodity-resource-sector",
+      "name": "Commodity and resource sector",
+      "kind": "sector",
+      "freq": "Q",
+      "summary": "Resource output and government resource revenue driven by commodity prices and the exchange rate.",
+      "provides": [
+        "resource_revenue"
+      ],
+      "requires": [
+        "commodity_price",
+        {
+          "port": "real_exchange_rate",
+          "lag": 1
+        }
+      ],
+      "checks": [
+        "revenue regime (royalties, taxes, state participation) is documented",
+        "price scenarios link to documented projections"
+      ],
+      "status": "detached",
+      "validation": "unvalidated",
+      "code": null
+    }
+  ],
+  "history": [
+    {
+      "date": "2026-10-31",
+      "action": "create",
+      "brick": "core-gap-open,world-exogenous,monetary-taylor,fiscal-debt-rule,external-bop-nfa,ipf-fx-intervention,ipf-capital-flow-measures,financial-accelerator,ipf-macroprudential,trade-sector-armington,labor-search-matching,microsim-incidence,fan-chart-output,commodity-resource-sector",
+      "note": ""
+    },
+    {
+      "date": "2026-10-31",
+      "action": "detach",
+      "brick": "commodity-resource-sector",
+      "note": "parts-bin example"
+    },
+    {
+      "date": "2026-10-31",
+      "action": "arrange",
+      "brick": "house",
+      "note": ""
+    },
+    {
+      "date": "2026-10-31",
+      "action": "arrange",
+      "brick": "house",
+      "note": ""
+    },
+    {
+      "date": "2026-10-31",
+      "action": "arrange",
+      "brick": "pyramid",
+      "note": "README picture"
+    }
+  ],
+  "layout": "pyramid"
+}

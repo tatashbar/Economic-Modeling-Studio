@@ -1,0 +1,13 @@
+{
+  "id": "carbon-pricing-energy",
+  "name": "Climate: energy, emissions and carbon pricing",
+  "kind": "climate",
+  "freq": "Q",
+  "summary": "Energy prices including carbon cost, emissions and carbon revenue. The carbon price is a scenario lever.",
+  "provides": ["energy_price", "emissions", "carbon_revenue"],
+  "requires": [
+    {"port": "gdp_growth", "lag": 1},
+    {"port": "carbon_price", "stub": "exogenous scenario path"}
+  ],
+  "checks": ["emissions accounting convention (scope, gases, production vs consumption) is stated", "abatement cost assumptions are sourced"]
+}

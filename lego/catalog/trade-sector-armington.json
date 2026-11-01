@@ -1,0 +1,15 @@
+{
+  "id": "trade-sector-armington",
+  "name": "Trade sector: Armington exports and imports",
+  "kind": "sector",
+  "freq": "Q",
+  "summary": "Export and import volumes respond to the real exchange rate, partner demand and domestic demand. Tariffs are a scenario lever. Replaces the core's exogenous net-exports stub.",
+  "provides": ["exports_volume", "imports_volume", "net_exports", "terms_of_trade"],
+  "requires": [
+    "real_exchange_rate",
+    "foreign_demand",
+    "output_gap",
+    {"port": "tariff_rate", "stub": "unchanged baseline tariff path"}
+  ],
+  "checks": ["elasticities are sourced and sensitivity-tested", "net exports contribution reconciles with the national accounts identity", "attaching with neutral settings reproduces the previous baseline"]
+}

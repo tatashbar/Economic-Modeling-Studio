@@ -1,0 +1,14 @@
+---
+description: Sectoral Trade Climate Code standards
+globs: models/io-sam/**,models/cge/**,models/trade/**,models/climate/**
+alwaysApply: false
+---
+<!-- Generated from .claude/rules/sectoral-trade-climate-code.md by tools/sync_agents.py. Edit the source, then run the script. -->
+# Rules: Sectoral Trade Climate Code
+
+- Input-output tables, SAMs and CGE benchmarks must balance, and the balance check is automated in tests
+- A CGE or trade model must reproduce its benchmark data before any scenario is run
+- State closure rules, the numeraire and the trade-balance treatment; report results under at least two closures where they matter
+- Elasticities and damage-function parameters are sourced; scenario results include a sensitivity range
+- Document sector and region classifications and all concordances between data sources
+- Emissions accounting conventions (scope, gases, production vs. consumption basis) are stated with results

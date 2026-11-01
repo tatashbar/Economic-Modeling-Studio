@@ -1,0 +1,28 @@
+# Secrets and protected data
+.env
+.env.*
+*.pem
+*.key
+credentials*
+data/restricted/*
+!data/restricted/.gitkeep
+
+# Raw/processed data are versioned outside git by default; keep only structure
+data/raw/*
+data/processed/*
+data/external/*
+!data/*/.gitkeep
+
+# Runtime state
+production/session-state/*
+!production/session-state/.gitkeep
+
+# Python / Julia / MATLAB artifacts
+__pycache__/
+*.pyc
+.venv/
+.ipynb_checkpoints/
+Manifest.toml
+*.asv
+*.mexw64
+*.log

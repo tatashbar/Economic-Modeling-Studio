@@ -1,0 +1,10 @@
+{
+  "id": "financial-accelerator",
+  "name": "Financial block: credit spread and accelerator",
+  "kind": "financial",
+  "freq": "Q",
+  "summary": "External finance premium that rises when activity weakens; amplifies shocks. Replaces the core's constant-spread stub.",
+  "provides": ["credit_spread", "bank_credit"],
+  "requires": ["policy_rate", "output_gap", {"port": "macroprudential_stance", "lag": 1, "stub": "neutral macroprudential stance"}],
+  "checks": ["spread and leverage moments match the data", "amplification is quantified against the frictionless core"]
+}

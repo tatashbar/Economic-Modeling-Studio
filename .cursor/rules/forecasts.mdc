@@ -1,0 +1,12 @@
+---
+description: Forecasts standards
+globs: forecasts/**
+alwaysApply: false
+---
+<!-- Generated from .claude/rules/forecasts.md by tools/sync_agents.py. Edit the source, then run the script. -->
+# Rules: Forecasts
+
+- Every forecast is reproducible from a frozen data vintage
+- Log judgment overlays in the overlay log with owner and rationale
+- Show uncertainty with every forecast; label scenarios as conditional
+- Archive the round package and accuracy results
