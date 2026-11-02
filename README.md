@@ -27,8 +27,8 @@ Around this sits a governed workflow, scaled to the model's size and risk level:
 > The repository contains the studio (agents, commands, rules, templates and guardrails), not a library of finished models. Models are built in your own copy.
 
 ## Contents
-- [How it works](#how-it-works) · [Setup](#setup) · [Quick start](#quick-start) · [Demo](#demo-building-a-draft-model) · [Typical uses](#typical-uses) · [Works with your coding agent](#works-with-your-coding-agent) · [What it covers](#what-it-covers) · [Commands](#commands) · [Typical workflows](#typical-workflows)
-- [The agents](#the-agents) · [The skills](#the-skills) · [Models as lego sets](#models-as-lego-sets) · [Quality controls](#quality-controls) · [Repository layout](#repository-layout)
+- [How it works](#how-it-works) · [Setup](#setup) · [Quick start](#quick-start) · [Demo](#demo-building-a-draft-model) · [Typical uses](#typical-uses) · [Works with your coding agent](#works-with-your-coding-agent) · [What it covers](#what-it-covers)
+- [The agents](#the-agents) · [The skills](#the-skills) ([commands](#commands), [workflows](#typical-workflows)) · [Models as lego sets](#models-as-lego-sets) · [Quality controls](#quality-controls) · [Repository layout](#repository-layout)
 - [Intended use: public data only](#intended-use-public-data-only) · [Limitations](#limitations) · [Customizing](#customizing) · [Version history](#version-history)
 
 ## How it works
@@ -164,39 +164,6 @@ Tool conventions change quickly. If a tool moves its folders, update `tools/sync
 
 Models are classed **small, medium or large**, and effort scales with class (see [model classes](.claude/docs/model-classes.md)). A decision table there maps common questions to the right model family.
 
-## Commands
-Full list: [docs/skill-catalog.md](docs/skill-catalog.md).
-
-| Stage | Commands |
-|---|---|
-| Onboarding | `/start` `/help` `/project-stage-detect` `/setup-environment` `/adopt` `/settings` |
-| Scoping and design | `/scope-question` `/select-model-class` `/model-brief` `/literature-review` `/model-spec` `/calibration-plan` `/data-requirements` `/quick-model` |
-| Build: macro and structural | `/build-semi-structural` `/build-fpas` `/build-financial-programming` `/build-dsge` `/build-hank` `/build-multicountry` `/build-sfc` |
-| Build: sectoral, trade, climate | `/build-io-sam` `/build-cge` `/build-trade-model` `/build-climate-macro` |
-| Build: strategic and agent-based | `/build-game-model` `/build-abm` |
-| Build: AI | `/build-deep-forecaster` `/build-drl-policy` `/build-neural-solver` `/build-llm-pipeline` `/build-llm-agents` `/build-rag-kb` `/build-causal-ml` |
-| Estimation | `/estimate-var` `/estimate-bvar` `/estimate-dsge` `/calibrate-model` `/nowcast` `/local-projections` `/identify-shocks` |
-| Analysis | `/forecast-round` `/scenario-analysis` `/policy-simulation` `/fan-chart` `/debt-sustainability` `/stress-test` `/spillover-analysis` `/external-assessment` `/distributional-analysis` |
-| Analysis: sectoral, trade, climate | `/trade-policy-analysis` `/supply-chain-shock` `/carbon-pricing-analysis` `/climate-scenario` |
-| Validation and QA | `/validate-model` `/backtest` `/sensitivity-analysis` `/robustness-check` `/replicate` `/code-review` `/ai-audit` `/model-risk-review` |
-| Documentation | `/model-card` `/technical-note` `/policy-brief` `/chart-pack` |
-| Governance | `/gate-check` `/milestone-review` `/retrospective` `/model-release` |
-| Multi-agent teams | `/team-dsge` `/team-forecast` `/team-stress-test` `/team-ai-model` `/team-fiscal` `/team-country-analysis` |
-| Modular (lego) models | `/lego-map` `/lego-show` `/lego-add` `/lego-detach` `/lego-swap` `/lego-check` `/lego-brick` |
-| Capacity building | `/design-training` `/create-exercise` |
-
-## Typical workflows
-Commands are listed in the order they are run.
-
-- **Quick, small model:** `/scope-question`, `/quick-model`, `/validate-model`, `/model-card`
-- **Structural model:** `/select-model-class`, `/model-brief`, `/model-spec`, `/data-requirements`, `/calibration-plan`, `/team-dsge`, `/estimate-dsge`, `/validate-model`, `/model-release`
-- **Sectoral or trade analysis:** `/build-io-sam`, `/build-cge` (or `/build-trade-model`), `/trade-policy-analysis` or `/carbon-pricing-analysis`, `/robustness-check`, `/policy-brief`
-- **Forecast round:** `/nowcast`, `/team-forecast`, `/fan-chart`, `/policy-brief`, `/retrospective`
-- **Climate-economy analysis:** `/build-climate-macro`, `/climate-scenario`, `/carbon-pricing-analysis`, `/distributional-analysis`
-- **AI model:** `/select-model-class`, `/team-ai-model` (benchmark first), `/ai-audit`, `/model-risk-review`, `/model-release`
-- **Existing model:** `/adopt <path>`, `/lego-map`, `/validate-model`, `/model-card`
-- **Modular model:** `/lego-map`, `/lego-show`, `/lego-add` (for example the missing trade sector), neutral-attachment test, `/lego-check`, `/validate-model`
-
 ## The agents
 119 agents, grouped by area of expertise. They are peers: none manages another. Each lists the specialists it works most closely with, and five cross-cutting functions (economic reasoning, methodology, model-risk governance, policy relevance, project planning) are available for consultation by all. See [coordination rules](.claude/docs/coordination-rules.md) and the full [roster](docs/agent-roster.md).
 
@@ -222,7 +189,7 @@ Commands are listed in the order they are run.
 | Communication and capacity building | 5 | policy briefs, technical documentation, visualization, stakeholder liaison, training design |
 
 ## The skills
-85 skills, each a packaged workflow that you run as a slash command (`$name` in Codex). The [Commands](#commands) table lists them by stage, and the [skill catalog](docs/skill-catalog.md) gives each one's primary agent and purpose.
+85 skills, each a packaged workflow that you run as a slash command (`$name` in Codex). They are listed by stage below; the [skill catalog](docs/skill-catalog.md) gives each one's primary agent and purpose.
 
 Skills follow a common template, so each command behaves predictably:
 - **Purpose and prerequisites:** what the skill produces and what must exist first, such as a scope note, a model spec or data.
@@ -233,20 +200,37 @@ Skills follow a common template, so each command behaves predictably:
 - **Output and gate:** the files it writes, where they go, and the verdict that decides whether the work can move to the next stage.
 - **Next steps:** the commands that usually follow.
 
-| Group | Skills | Examples |
-|---|---|---|
-| Onboarding | 6 | start, help, project-stage-detect, adopt |
-| Scoping and design | 8 | scope-question, select-model-class, model-spec, calibration-plan |
-| Build | 13 | semi-structural, FPAS, DSGE, HANK, SFC, IO-SAM, CGE, trade, climate-macro, games, ABM |
-| Build: AI | 7 | deep forecaster, deep RL policy, neural solver, LLM pipeline, RAG knowledge base, causal ML |
-| Estimation | 7 | VAR, BVAR, DSGE estimation, calibration, nowcasting, local projections |
-| Analysis | 13 | forecast round, scenarios, policy simulation, debt sustainability, stress test, carbon pricing |
-| Validation and QA | 8 | validate-model, backtest, sensitivity, robustness, replication, AI audit |
-| Documentation | 4 | model card, technical note, policy brief, chart pack |
-| Governance | 4 | gate-check, milestone review, retrospective, model release |
-| Multi-agent teams | 6 | DSGE, forecast, stress test, AI model, fiscal, country analysis |
-| Modular (lego) models | 7 | lego-map, lego-show, lego-add, lego-check, lego-brick |
-| Capacity building | 2 | design-training, create-exercise |
+### Commands
+
+| Stage | Commands |
+|---|---|
+| Onboarding | `/start` `/help` `/project-stage-detect` `/setup-environment` `/adopt` `/settings` |
+| Scoping and design | `/scope-question` `/select-model-class` `/model-brief` `/literature-review` `/model-spec` `/calibration-plan` `/data-requirements` `/quick-model` |
+| Build: macro and structural | `/build-semi-structural` `/build-fpas` `/build-financial-programming` `/build-dsge` `/build-hank` `/build-multicountry` `/build-sfc` |
+| Build: sectoral, trade, climate | `/build-io-sam` `/build-cge` `/build-trade-model` `/build-climate-macro` |
+| Build: strategic and agent-based | `/build-game-model` `/build-abm` |
+| Build: AI | `/build-deep-forecaster` `/build-drl-policy` `/build-neural-solver` `/build-llm-pipeline` `/build-llm-agents` `/build-rag-kb` `/build-causal-ml` |
+| Estimation | `/estimate-var` `/estimate-bvar` `/estimate-dsge` `/calibrate-model` `/nowcast` `/local-projections` `/identify-shocks` |
+| Analysis | `/forecast-round` `/scenario-analysis` `/policy-simulation` `/fan-chart` `/debt-sustainability` `/stress-test` `/spillover-analysis` `/external-assessment` `/distributional-analysis` |
+| Analysis: sectoral, trade, climate | `/trade-policy-analysis` `/supply-chain-shock` `/carbon-pricing-analysis` `/climate-scenario` |
+| Validation and QA | `/validate-model` `/backtest` `/sensitivity-analysis` `/robustness-check` `/replicate` `/code-review` `/ai-audit` `/model-risk-review` |
+| Documentation | `/model-card` `/technical-note` `/policy-brief` `/chart-pack` |
+| Governance | `/gate-check` `/milestone-review` `/retrospective` `/model-release` |
+| Multi-agent teams | `/team-dsge` `/team-forecast` `/team-stress-test` `/team-ai-model` `/team-fiscal` `/team-country-analysis` |
+| Modular (lego) models | `/lego-map` `/lego-show` `/lego-add` `/lego-detach` `/lego-swap` `/lego-check` `/lego-brick` |
+| Capacity building | `/design-training` `/create-exercise` |
+
+### Typical workflows
+Commands are listed in the order they are run.
+
+- **Quick, small model:** `/scope-question`, `/quick-model`, `/validate-model`, `/model-card`
+- **Structural model:** `/select-model-class`, `/model-brief`, `/model-spec`, `/data-requirements`, `/calibration-plan`, `/team-dsge`, `/estimate-dsge`, `/validate-model`, `/model-release`
+- **Sectoral or trade analysis:** `/build-io-sam`, `/build-cge` (or `/build-trade-model`), `/trade-policy-analysis` or `/carbon-pricing-analysis`, `/robustness-check`, `/policy-brief`
+- **Forecast round:** `/nowcast`, `/team-forecast`, `/fan-chart`, `/policy-brief`, `/retrospective`
+- **Climate-economy analysis:** `/build-climate-macro`, `/climate-scenario`, `/carbon-pricing-analysis`, `/distributional-analysis`
+- **AI model:** `/select-model-class`, `/team-ai-model` (benchmark first), `/ai-audit`, `/model-risk-review`, `/model-release`
+- **Existing model:** `/adopt <path>`, `/lego-map`, `/validate-model`, `/model-card`
+- **Modular model:** `/lego-map`, `/lego-show`, `/lego-add` (for example the missing trade sector), neutral-attachment test, `/lego-check`, `/validate-model`
 
 ## Models as lego sets
 Any model can be represented as a set of bricks, so you can see what it is made of and change it without rebuilding it.
