@@ -34,13 +34,28 @@ Around this sits a governed workflow, scaled to the model's size and risk level:
 
 The lifecycle is **Concept → Design → Build → Estimate → Validate → Release / Operate**. Small models move through it quickly with light checks. Large ones add architecture decisions, staged integration and periodic revalidation.
 
-## Demo: building a draft model, unedited
+## Quick start
+1. Get your own copy with git, then move into the new folder (the git commands below only work inside it):
+   ```bash
+   git clone https://github.com/tatashbar/Economic-Modeling-Studio.git
+   cd Economic-Modeling-Studio
+   ```
+   If you downloaded the ZIP instead, `cd` into the unzipped folder and run `git init` there first, since the ZIP has no `.git` folder. A clone needs no `git init`.
+2. Start your coding agent **in** the studio folder, so that it is the session's working folder:
+   - The right folder directly contains `.claude`, `AGENTS.md` and `README.md`. If unzipping created a nested `Economic-Modeling-Studio-main` folder inside another one, use the inner one.
+   - **Claude desktop app:** start a new session and choose this folder in the folder picker next to the message box. Attaching the folder to a message is not enough, because commands load only from the working folder, when the session starts.
+   - **Terminal:** `cd` into the folder (or any subfolder) and start your agent there.
+3. In the studio folder, run `git config core.hooksPath .githooks` once to enable the commit guard, which blocks commits of restricted data, raw data and secrets.
+4. Type `/` and check that `start` appears in the list. If it does not, the session is in the wrong folder: go back to step 2. Then type `/start` (`$start` in Codex) and describe what you want to do, for example `/start build a simple small open economy model for Austria`. Alternatives: `/help` for what exists, `/project-stage-detect` to see where a project stands, `/adopt <path>` to bring in an existing model.
+5. Follow the suggested next command. A typical first step is `/scope-question`, then `/select-model-class`.
+
+## Demo: building a draft model
 
 *An actual test run of the studio, recorded in one take: no cuts, no editing, no speed-up. The clock in the corner of the screen shows real time, so all times are as shown: about 73 minutes from opening the repository to a saved, independently reviewed draft model and results report.*
 
-[![Demo video: building a draft oil-shock model for Norway, unedited, 73 minutes in real time](docs/images/demo-norway-oil.png)](https://youtu.be/gminFSzWHCo)
+[![Demo video: building a draft oil-shock model for Norway, 73 minutes in real time](docs/images/demo-norway-oil.png)](https://youtu.be/gminFSzWHCo)
 
-[Watch on YouTube](https://youtu.be/gminFSzWHCo) · [Download the original recording (MP4, 930 MB)](https://github.com/tatashbar/Economic-Modeling-Studio/releases/download/v1.7.1/codingstudio_test_recording.mp4)
+[Watch on YouTube](https://youtu.be/gminFSzWHCo)
 
 **The question:** what happens to Norway's budget, inflation and krone if oil prices fall 30%?
 
@@ -62,21 +77,6 @@ The lifecycle is **Concept → Design → Build → Estimate → Validate → Re
 10. **Saves the run to `forecasts/`** with full provenance (data vintage, parameter hash, code state, software versions), and combines the results into one HTML report with charts.
 
 The result is a **draft**: a working, documented starting point, not a finished or validated model. Taking it further means reviewing the validation findings, filling the missing data, and committing the code.
-
-## Quick start
-1. Get your own copy with git, then move into the new folder (the git commands below only work inside it):
-   ```bash
-   git clone https://github.com/tatashbar/Economic-Modeling-Studio.git
-   cd Economic-Modeling-Studio
-   ```
-   If you downloaded the ZIP instead, `cd` into the unzipped folder and run `git init` there first, since the ZIP has no `.git` folder. A clone needs no `git init`.
-2. Start your coding agent **in** the studio folder, so that it is the session's working folder:
-   - The right folder directly contains `.claude`, `AGENTS.md` and `README.md`. If unzipping created a nested `Economic-Modeling-Studio-main` folder inside another one, use the inner one.
-   - **Claude desktop app:** start a new session and choose this folder in the folder picker next to the message box. Attaching the folder to a message is not enough, because commands load only from the working folder, when the session starts.
-   - **Terminal:** `cd` into the folder (or any subfolder) and start your agent there.
-3. In the studio folder, run `git config core.hooksPath .githooks` once to enable the commit guard, which blocks commits of restricted data, raw data and secrets.
-4. Type `/` and check that `start` appears in the list. If it does not, the session is in the wrong folder: go back to step 2. Then type `/start` (`$start` in Codex) and describe what you want to do, for example `/start build a simple small open economy model for Austria`. Alternatives: `/help` for what exists, `/project-stage-detect` to see where a project stands, `/adopt <path>` to bring in an existing model.
-5. Follow the suggested next command. A typical first step is `/scope-question`, then `/select-model-class`.
 
 ## Typical uses
 
@@ -130,7 +130,7 @@ The studio is not tied to one assistant. Instructions, commands and rules are pl
 Tool conventions change quickly. If a tool moves its folders, update `tools/sync_agents.py` and regenerate.
 
 ## Contents
-- [How it works](#how-it-works) · [Demo](#demo-building-a-draft-model-unedited) · [Quick start](#quick-start) · [Typical uses](#typical-uses) · [Works with your coding agent](#works-with-your-coding-agent) · [What it covers](#what-it-covers) · [Models as lego sets](#models-as-lego-sets) · [Commands](#commands) · [Typical workflows](#typical-workflows)
+- [How it works](#how-it-works) · [Quick start](#quick-start) · [Demo](#demo-building-a-draft-model) · [Typical uses](#typical-uses) · [Works with your coding agent](#works-with-your-coding-agent) · [What it covers](#what-it-covers) · [Models as lego sets](#models-as-lego-sets) · [Commands](#commands) · [Typical workflows](#typical-workflows)
 - [Quality controls](#quality-controls) · [The agents](#the-agents) · [Repository layout](#repository-layout) · [Setup](#setup)
 - [Intended use: public data only](#intended-use-public-data-only) · [Limitations](#limitations) · [Customizing](#customizing) · [Version history](#version-history)
 
