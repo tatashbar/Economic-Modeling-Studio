@@ -27,8 +27,8 @@ Around this sits a governed workflow, scaled to the model's size and risk level:
 > The repository contains the studio (agents, commands, rules, templates and guardrails), not a library of finished models. Models are built in your own copy.
 
 ## Contents
-- [How it works](#how-it-works) · [Quick start](#quick-start) · [Demo](#demo-building-a-draft-model) · [Typical uses](#typical-uses) · [Works with your coding agent](#works-with-your-coding-agent) · [What it covers](#what-it-covers) · [Commands](#commands) · [Typical workflows](#typical-workflows)
-- [The agents](#the-agents) · [The skills](#the-skills) · [Models as lego sets](#models-as-lego-sets) · [Quality controls](#quality-controls) · [Repository layout](#repository-layout) · [Setup](#setup)
+- [How it works](#how-it-works) · [Setup](#setup) · [Quick start](#quick-start) · [Demo](#demo-building-a-draft-model) · [Typical uses](#typical-uses) · [Works with your coding agent](#works-with-your-coding-agent) · [What it covers](#what-it-covers) · [Commands](#commands) · [Typical workflows](#typical-workflows)
+- [The agents](#the-agents) · [The skills](#the-skills) · [Models as lego sets](#models-as-lego-sets) · [Quality controls](#quality-controls) · [Repository layout](#repository-layout)
 - [Intended use: public data only](#intended-use-public-data-only) · [Limitations](#limitations) · [Customizing](#customizing) · [Version history](#version-history)
 
 ## How it works
@@ -38,6 +38,15 @@ Around this sits a governed workflow, scaled to the model's size and risk level:
 4. **Gates check the work.** Each stage has written exit criteria, and independent validation is separate from building.
 
 The lifecycle has six stages: **Concept, Design, Build, Estimate, Validate, and Release / Operate**. Small models move through it quickly with light checks. Large ones add architecture decisions, staged integration and periodic revalidation.
+
+## Setup
+- **A coding agent:** Claude Code, Codex, Cursor, Grok Build, Gemini CLI or another that reads `AGENTS.md`.
+- **Git**, to clone the repository and enable the commit guard.
+- **Python 3.9 or later.** The hooks and tools use only the standard library, so nothing needs installing. The Claude Code and Cursor hooks call `python`, so that command must be on your PATH; on macOS and Linux, where it is often only `python3`, add an alias or install `python-is-python3`.
+- **Your modeling software, as needed:** Dynare (with MATLAB or Octave), Julia, Python, R or GAMS. List the ones you use under `toolchains` in `studio-config.yaml`; `/setup-environment` can guide the setup.
+- **Check the install** from the studio folder: `python tools/validate_studio.py` (integrity) and `python tools/test_studio.py` (hooks and consistency).
+
+The hooks find the project root on their own, so the agent can start in any subfolder, and a missing hook script does nothing rather than blocking your session.
 
 ## Quick start
 1. Get your own copy with git, then move into the new folder (the git commands below only work inside it):
@@ -325,13 +334,6 @@ tools/test_studio.py       tests for hooks, guards, lego engine, agent adapters 
 tools/sync_agents.py       regenerates the copies for other coding agents from .claude/
 tools/precommit_guard.py   git pre-commit guard for restricted data, raw data and secrets
 ```
-
-## Setup
-- A coding agent (Claude Code, Codex, Cursor, Grok Build, Gemini CLI or another that reads `AGENTS.md`), and Python 3.9 or later (hooks and tools use only the standard library).
-- Your modeling software as needed (Dynare/MATLAB, Julia, Python, R, GAMS), configured in `studio-config.yaml`; `/setup-environment` can guide this.
-- Verify the install: `python tools/validate_studio.py` (integrity) and `python tools/test_studio.py` (hooks and consistency).
-- Enable the commit guard once per copy: `git config core.hooksPath .githooks`. It needs a git repository: clone with git, or run `git init` first in a ZIP download.
-- Start your agent from the project folder or any subfolder; the hooks find the project root automatically. If a hook script is missing, it does nothing rather than blocking your session.
 
 ## Intended use: public data only
 This studio is a **template**, not an official product of any institution. It is intended for work with **public data** (published statistics, open datasets, published literature) and for development, learning and prototyping.
