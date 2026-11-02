@@ -2,7 +2,7 @@
 
 # Economic Modeling Studio
 
-**Version 1.7.0**
+**Version 1.7.1**
 
 A studio for building, estimating, validating and using economic models. **119 specialist agents** and **85 skills** (workflow commands such as `/build-dsge` or `/validate-model`) cover specification, building, estimation and independent validation for semi-structural projection and DSGE, input-output and CGE, trade and climate-economy models, deep learning, reinforcement learning, neural-network solvers, LLM-based tools, agent-based and game-theoretic models, and other econometric models. The studio also lets you work with every model as a **lego set**: a core model with plug-and-play components that can be added, swapped or removed, with explicit interfaces and the impact of every change checked first. It works with any coding agent that reads `AGENTS.md`: Claude Code, Codex, Cursor, Grok Build, Gemini CLI and others.
 
@@ -33,6 +33,35 @@ Around this sits a governed workflow, scaled to the model's size and risk level:
 4. **Gates check the work.** Each stage has written exit criteria, and independent validation is separate from building.
 
 The lifecycle is **Concept → Design → Build → Estimate → Validate → Release / Operate**. Small models move through it quickly with light checks. Large ones add architecture decisions, staged integration and periodic revalidation.
+
+## Demo: building a draft model, unedited
+
+*An actual test run of the studio, recorded in one take: no cuts, no editing, no speed-up. The clock in the corner of the screen shows real time, so all times are as shown: about 73 minutes from opening the repository to a saved, independently reviewed draft model and results report.*
+
+[![Demo video: building a draft oil-shock model for Norway, unedited, 73 minutes in real time](docs/images/demo-norway-oil.png)](https://youtu.be/gminFSzWHCo)
+
+[Watch on YouTube](https://youtu.be/gminFSzWHCo) · [Download the original recording (MP4, 930 MB)](https://github.com/tatashbar/Economic-Modeling-Studio/releases/download/v1.7.1/codingstudio_test_recording.mp4)
+
+**The question:** what happens to Norway's budget, inflation and krone if oil prices fall 30%?
+
+```
+/start what happens to Norway's budget, inflation and krone if oil prices fall 30%? Build a small open economy model with an oil sector and a fiscal rule.
+```
+
+**What happens in the video.** The user answers the studio's questions, mostly by accepting its recommendations, and the studio:
+
+1. **Scopes the question:** the scenarios, how the fiscal rule should react, and what is in and out of scope.
+2. **Chooses the model class:** it compares four options and recommends a small semi-structural gap model in Python, with an accounting benchmark. It writes a decision record and a model brief.
+3. **Adapts the lego set to Norway:** seven bricks, including new ones for the sovereign wealth fund and its spending rule, oil investment, and an oil-sensitive currency premium. A core variant reports mainland GDP.
+4. **Writes the model specification:** 20 equations and the closure, for approval.
+5. **Builds a data pipeline from public sources** (Statistics Norway, Norges Bank, the Ministry of Finance and the fund manager, NBIM), with offline tests. Some Ministry of Finance figures could not be fetched, so the user chose to calibrate without them.
+6. **Calibrates from published gap-model coefficients,** with weak and strong ranges. It then checks the model against the 2014–16 oil price fall. The check is not fitted, and the mismatches are reported, not hidden.
+7. **Runs the scenarios** (a lasting and a temporary 30% fall) against the accounting benchmark.
+8. **Sends the model to an independent validator** with no access to the build conversation. The validator proposes *pass with conditions*: one high-severity finding is still open, and no brick is marked validated until the user reviews it.
+9. **Redraws the lego picture** with studs colored by what each brick is made of.
+10. **Saves the run to `forecasts/`** with full provenance (data vintage, parameter hash, code state, software versions), and combines the results into one HTML report with charts.
+
+The result is a **draft**: a working, documented starting point, not a finished or validated model. Taking it further means reviewing the validation findings, filling the missing data, and committing the code.
 
 ## Quick start
 1. Get your own copy with git, then move into the new folder (the git commands below only work inside it):
@@ -101,7 +130,7 @@ The studio is not tied to one assistant. Instructions, commands and rules are pl
 Tool conventions change quickly. If a tool moves its folders, update `tools/sync_agents.py` and regenerate.
 
 ## Contents
-- [How it works](#how-it-works) · [Quick start](#quick-start) · [Typical uses](#typical-uses) · [Works with your coding agent](#works-with-your-coding-agent) · [What it covers](#what-it-covers) · [Models as lego sets](#models-as-lego-sets) · [Commands](#commands) · [Typical workflows](#typical-workflows)
+- [How it works](#how-it-works) · [Demo](#demo-building-a-draft-model-unedited) · [Quick start](#quick-start) · [Typical uses](#typical-uses) · [Works with your coding agent](#works-with-your-coding-agent) · [What it covers](#what-it-covers) · [Models as lego sets](#models-as-lego-sets) · [Commands](#commands) · [Typical workflows](#typical-workflows)
 - [Quality controls](#quality-controls) · [The agents](#the-agents) · [Repository layout](#repository-layout) · [Setup](#setup)
 - [Intended use: public data only](#intended-use-public-data-only) · [Limitations](#limitations) · [Customizing](#customizing) · [Version history](#version-history)
 
@@ -298,6 +327,7 @@ Adapt `studio-config.yaml` and `.claude/docs/confidentiality-and-ai-use.md` to t
 Agents and skills are Markdown files with YAML frontmatter; edit them freely. After changes run `python tools/validate_studio.py`. To add an agent, create `.claude/agents/<name>.md` and list it as a peer in the related agents. To add a command, create `.claude/skills/<name>/SKILL.md`. Path-scoped standards live in `.claude/rules/`. After changing commands or rules, run `python tools/sync_agents.py` to update the copies for other coding agents.
 
 ## Version history
+- **1.7.1** — README demo: an unedited, real-time recording of the studio building a draft oil-shock model for Norway, from `/start` to an independently reviewed model and results report.
 - **1.7.0** — Lego stacking follows the model's causal chains: a brick now stands on any brick whose outputs it reads, also within a layer, so world prices → oil sector → fiscal rule builds three levels on its own. Bricks that read each other stand side by side, and pyramid steps are sized to the bricks that belong on them. Example sets re-arranged and README lego images regenerated.
 - **1.6.2** — Fixes from an end-to-end test on a Dynare model: element counts ignore names repeated inside blocks such as `shocks`, follow `@#if` macro branches, and keep the modeler's judgments (assumed parameters, verified constraints, data vintage) on a recount; marking parameters as assumed no longer changes the parameter total.
 - **1.5.0** — Inside the bricks: bricks can declare their elements (variables, equations, parameters, shocks, data, constraints) with their status. Studs are colored by element, a new panel shows each brick's makeup, `check` flags non-square blocks, unsourced parameters and unverified constraints, and `lego.py elements` counts elements from Dynare files. README header and lego images updated.
