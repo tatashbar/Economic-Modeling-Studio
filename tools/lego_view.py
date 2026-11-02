@@ -1,8 +1,8 @@
 """Isometric 3D picture of a lego set (self-contained HTML + inline SVG, no scripts, no external files).
 
 Geometry: x runs to the lower right, y to the lower left, z up. Bricks are 6 x 3 studs and 1.2 studs high
-(real lego proportions). The core model is the baseplate; component bricks sit on it; bricks on higher layers
-stand on the bricks whose outputs they read, so towers can be several levels high. Dashed yellow sockets on a brick are open studs
+(real lego proportions). The core model is the baseplate; component bricks sit on it; a brick
+stands on the bricks whose outputs it reads, so towers can be several levels high. Dashed yellow sockets on a brick are open studs
 (inputs running on a stub); dashed ghost bricks are catalog bricks that would fill them; a parts-bin brick that would fill one says so on the shelf.
 """
 import heapq

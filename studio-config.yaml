@@ -3,7 +3,7 @@
 
 studio:
   name: "Economic Modeling Studio"
-  version: "1.6.2"
+  version: "1.7.0"
   default_language: "en"
 
 # How much process each model class needs. See .claude/docs/model-classes.md

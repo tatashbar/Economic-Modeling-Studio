@@ -3,7 +3,7 @@
   "name": "Small open economy (example)",
   "class": "medium",
   "freq": "Q",
-  "revision": 3,
+  "revision": 4,
   "ports": {
     "output_gap": {
       "unit": "% of potential output",
@@ -217,12 +217,6 @@
       "status": "attached",
       "validation": "unvalidated",
       "code": null,
-      "place": {
-        "x": 2,
-        "y": 4,
-        "rot": 0,
-        "level": 1
-      },
       "elements": {
         "variables": {
           "endogenous": 6
@@ -236,6 +230,12 @@
           "series": 6,
           "vintage": "2026Q2"
         }
+      },
+      "place": {
+        "x": 8,
+        "y": 6,
+        "rot": 0,
+        "level": 1
       }
     },
     {
@@ -260,12 +260,6 @@
       "status": "attached",
       "validation": "unvalidated",
       "code": null,
-      "place": {
-        "x": 8,
-        "y": 4,
-        "rot": 0,
-        "level": 1
-      },
       "elements": {
         "variables": {
           "endogenous": 2
@@ -279,6 +273,12 @@
         "constraints": {
           "verified": 1
         }
+      },
+      "place": {
+        "x": 2,
+        "y": 6,
+        "rot": 0,
+        "level": 1
       }
     },
     {
@@ -329,12 +329,6 @@
       "status": "attached",
       "validation": "unvalidated",
       "code": null,
-      "place": {
-        "x": 5,
-        "y": 2,
-        "rot": 0,
-        "level": 2
-      },
       "elements": {
         "variables": {
           "endogenous": 7
@@ -352,6 +346,12 @@
         "constraints": {
           "verified": 1
         }
+      },
+      "place": {
+        "x": 2,
+        "y": 4,
+        "rot": 0,
+        "level": 2
       }
     },
     {
@@ -381,12 +381,6 @@
       "status": "attached",
       "validation": "unvalidated",
       "code": null,
-      "place": {
-        "x": 14,
-        "y": 4,
-        "rot": 0,
-        "level": 1
-      },
       "elements": {
         "variables": {
           "endogenous": 8
@@ -405,6 +399,12 @@
           "verified": 1,
           "unverified": 1
         }
+      },
+      "place": {
+        "x": 8,
+        "y": 4,
+        "rot": 0,
+        "level": 2
       }
     },
     {
@@ -462,12 +462,6 @@
       "status": "attached",
       "validation": "unvalidated",
       "code": null,
-      "place": {
-        "x": 11,
-        "y": 2,
-        "rot": 0,
-        "level": 2
-      },
       "elements": {
         "variables": {
           "exogenous": 6
@@ -475,6 +469,12 @@
         "parameters": {
           "calibrated": 2
         }
+      },
+      "place": {
+        "x": 5,
+        "y": 2,
+        "rot": 0,
+        "level": 3
       }
     }
   ],
@@ -496,6 +496,12 @@
       "action": "arrange",
       "brick": "pyramid",
       "note": "README picture"
+    },
+    {
+      "date": "2026-11-01",
+      "action": "arrange",
+      "brick": "pyramid",
+      "note": "re-arranged: bricks stack on what they read within a layer"
     }
   ],
   "layout": "pyramid"

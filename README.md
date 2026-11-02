@@ -2,7 +2,7 @@
 
 # Economic Modeling Studio
 
-**Version 1.6.2**
+**Version 1.7.0**
 
 A studio for building, estimating, validating and using economic models. **119 specialist agents** and **85 skills** (workflow commands such as `/build-dsge` or `/validate-model`) cover specification, building, estimation and independent validation for semi-structural projection and DSGE, input-output and CGE, trade and climate-economy models, deep learning, reinforcement learning, neural-network solvers, LLM-based tools, agent-based and game-theoretic models, and other econometric models. The studio also lets you work with every model as a **lego set**: a core model with plug-and-play components that can be added, swapped or removed, with explicit interfaces and the impact of every change checked first. It works with any coding agent that reads `AGENTS.md`: Claude Code, Codex, Cursor, Grok Build, Gemini CLI and others.
 
@@ -147,11 +147,11 @@ Every change is shown as a **plan first**: new joints, inputs that become endoge
 
 See the [guide](docs/lego.md) and two worked examples (open the HTML files in a browser): [a six-brick set with one brick in the parts bin](lego/examples/small-open-economy.html) and [the full twelve-brick set](lego/examples/small-open-economy-full.html). The engine is `python tools/lego.py` (standard library only).
 
-**Building up.** Bricks stack vertically with no limit on the number of levels: a brick stands on the bricks whose outputs it reads. In the default grid the stacks stand side by side; `python tools/lego.py arrange <manifest> --apply` builds the whole set into a stepped pyramid. Positions are stored in the manifest, so any brick can be moved by hand, and they never change the wiring.
+**Building up.** Bricks stack vertically with no limit on the number of levels: a brick stands on the bricks whose outputs it reads, so a causal chain such as world prices → oil sector → fiscal rule builds up three levels. Bricks that read each other stand side by side. In the default grid the stacks stand side by side; `python tools/lego.py arrange <manifest> --apply` builds the whole set into a stepped pyramid. Positions are stored in the manifest, so any brick can be moved by hand, and they never change the wiring.
 
 **A starter set.** The core with five bricks, built as a small two-step pyramid. Dashed yellow sockets on the baseplate and on bricks are open studs running on stubs; the dashed ghost bricks in the front yard are catalog bricks that would fill them (trade, carbon pricing, physical climate damage, resource revenue). A detached brick waits in the parts bin and says which open stud it would fill.
 
-![A starter lego set: a baseplate with five bricks in a two-step pyramid, four dashed ghost bricks suggested for open studs, and a detached financial-accelerator brick in the parts bin that would fill credit_spread](docs/images/lego-starter-set.png)
+![A starter lego set: a baseplate with five bricks in a three-step pyramid, four dashed ghost bricks suggested for open studs, and a detached financial-accelerator brick in the parts bin that would fill credit_spread](docs/images/lego-starter-set.png)
 
 **Inside the bricks.** Each brick can declare its elements, each with its own color and symbol:
 
@@ -293,6 +293,7 @@ Adapt `studio-config.yaml` and `.claude/docs/confidentiality-and-ai-use.md` to t
 Agents and skills are Markdown files with YAML frontmatter; edit them freely. After changes run `python tools/validate_studio.py`. To add an agent, create `.claude/agents/<name>.md` and list it as a peer in the related agents. To add a command, create `.claude/skills/<name>/SKILL.md`. Path-scoped standards live in `.claude/rules/`. After changing commands or rules, run `python tools/sync_agents.py` to update the copies for other coding agents.
 
 ## Version history
+- **1.7.0** — Lego stacking follows the model's causal chains: a brick now stands on any brick whose outputs it reads, also within a layer, so world prices → oil sector → fiscal rule builds three levels on its own. Bricks that read each other stand side by side, and pyramid steps are sized to the bricks that belong on them. Example sets re-arranged and README lego images regenerated.
 - **1.6.2** — Fixes from an end-to-end test on a Dynare model: element counts ignore names repeated inside blocks such as `shocks`, follow `@#if` macro branches, and keep the modeler's judgments (assumed parameters, verified constraints, data vintage) on a recount; marking parameters as assumed no longer changes the parameter total.
 - **1.5.0** — Inside the bricks: bricks can declare their elements (variables, equations, parameters, shocks, data, constraints) with their status. Studs are colored by element, a new panel shows each brick's makeup, `check` flags non-square blocks, unsourced parameters and unverified constraints, and `lego.py elements` counts elements from Dynare files. README header and lego images updated.
 - **1.4.2** — Improved agents and skills: fuller, more professional guidance written from a modeler's perspective, with lego engine workflows unchanged.

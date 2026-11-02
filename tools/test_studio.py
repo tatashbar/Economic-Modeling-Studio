@@ -715,6 +715,28 @@ class TestLego(unittest.TestCase):
             widths = [len(levels[lv]) for lv in sorted(levels)]
             self.assertEqual(widths, sorted(widths, reverse=True), ex)  # a pyramid narrows going up
 
+    def test_bricks_stack_on_what_they_read_within_a_layer(self):
+        """World prices -> oil sector -> fiscal rule are all layer-1 kinds, yet each stands on the one it reads."""
+        p, _ = self.fresh("core-gap-open", "world-exogenous", "monetary-taylor", "commodity-resource-sector", "fiscal-debt-rule")
+        m = json.loads(read(p))
+        plan = self.lego.pyramid_plan(m)
+        self.assert_buildable(m, plan)
+        lv = {bid: q["level"] for bid, q in plan.items()}
+        self.assertEqual((lv["world-exogenous"], lv["commodity-resource-sector"], lv["fiscal-debt-rule"]), (1, 2, 3))
+        self.assertIn(["world-exogenous", "commodity-resource-sector", "fiscal-debt-rule"],
+                      [[b["id"] for b in t] for t in self.lego.stacks(m)])
+        # bricks that read each other (directly or round a loop) stand side by side, never on each other
+        loop = {"bricks": [{"id": "core", "kind": "baseplate", "provides": ["c"]}] +
+                [{"id": a, "kind": "sector", "provides": [a], "requires": [r]} for a, r in (("a", "c_"), ("b", "a"), ("c_", "b"))]}
+        sup = self.lego.supports([b for b in loop["bricks"] if b["kind"] != "baseplate"])
+        self.assertEqual(sup, {"a": set(), "b": set(), "c_": set()})
+        self.assertEqual({q["level"] for q in self.lego.pyramid_plan(loop).values()}, {1})
+        # a brick never stands on a brick from a higher layer, even one it reads
+        hi = {"bricks": [{"id": "core", "kind": "baseplate", "provides": ["c"]},
+                         {"id": "out", "kind": "output", "provides": ["o"], "requires": ["c"]},
+                         {"id": "sec", "kind": "sector", "provides": ["s"], "requires": ["o"]}]}
+        self.assertEqual(self.lego.supports(hi["bricks"][1:])["sec"], set())
+
     def test_arrange_plans_applies_and_clears(self):
         p, _ = self.fresh("core-gap-open", "world-exogenous", "monetary-taylor", "fiscal-debt-rule", "fan-chart-output")
         code, out = self.cli("arrange", p)
@@ -766,8 +788,8 @@ class TestLego(unittest.TestCase):
         m = json.loads(read(os.path.join(ROOT, "tests", "fixtures", "lego", "ipf-emerging-market.lego.json")))
         rep = self.lego.check(m)
         self.assertEqual(rep["errors"], [])
-        tower = next(t for t in self.lego.stacks(m) if t[0]["id"] == "external-bop-nfa")
-        self.assertEqual([b["id"] for b in tower], ["external-bop-nfa", "ipf-fx-intervention", "ipf-capital-flow-measures"])
+        tower = next(t for t in self.lego.stacks(m) if any(b["id"] == "external-bop-nfa" for b in t))
+        self.assertEqual([b["id"] for b in tower][-3:], ["external-bop-nfa", "ipf-fx-intervention", "ipf-capital-flow-measures"])
         self.assertIn("FX reserves accumulation", {i["name"] for i in rep["identities"]})
         self.assertIn(["external-bop-nfa", "ipf-fx-intervention"], rep["sim_blocks"])
         for a in ("ipf-general-specialist", "ipf-external-specialist", "ipf-micro-specialist", "ipf-low-income-specialist"):

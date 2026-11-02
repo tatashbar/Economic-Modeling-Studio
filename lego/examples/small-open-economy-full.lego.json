@@ -3,7 +3,7 @@
   "name": "Small open economy, full set (example)",
   "class": "medium",
   "freq": "Q",
-  "revision": 2,
+  "revision": 3,
   "ports": {
     "output_gap": {
       "unit": "% of potential output",
@@ -257,12 +257,6 @@
       "status": "attached",
       "validation": "unvalidated",
       "code": null,
-      "place": {
-        "x": 20,
-        "y": 6,
-        "rot": 0,
-        "level": 1
-      },
       "elements": {
         "variables": {
           "endogenous": 6
@@ -276,6 +270,12 @@
           "series": 6,
           "vintage": "2026Q2"
         }
+      },
+      "place": {
+        "x": 2,
+        "y": 6,
+        "rot": 0,
+        "level": 1
       }
     },
     {
@@ -300,12 +300,6 @@
       "status": "attached",
       "validation": "unvalidated",
       "code": null,
-      "place": {
-        "x": 14,
-        "y": 6,
-        "rot": 0,
-        "level": 1
-      },
       "elements": {
         "variables": {
           "endogenous": 2
@@ -319,6 +313,12 @@
         "constraints": {
           "verified": 1
         }
+      },
+      "place": {
+        "x": 8,
+        "y": 6,
+        "rot": 0,
+        "level": 1
       }
     },
     {
@@ -369,12 +369,6 @@
       "status": "attached",
       "validation": "unvalidated",
       "code": null,
-      "place": {
-        "x": 17,
-        "y": 4,
-        "rot": 0,
-        "level": 2
-      },
       "elements": {
         "variables": {
           "endogenous": 7
@@ -392,6 +386,12 @@
         "constraints": {
           "verified": 1
         }
+      },
+      "place": {
+        "x": 14,
+        "y": 4,
+        "rot": 0,
+        "level": 2
       }
     },
     {
@@ -421,12 +421,6 @@
       "status": "attached",
       "validation": "unvalidated",
       "code": null,
-      "place": {
-        "x": 23,
-        "y": 4,
-        "rot": 0,
-        "level": 2
-      },
       "elements": {
         "variables": {
           "endogenous": 8
@@ -445,6 +439,12 @@
           "verified": 1,
           "unverified": 1
         }
+      },
+      "place": {
+        "x": 17,
+        "y": 2,
+        "rot": 0,
+        "level": 3
       }
     },
     {
@@ -468,12 +468,6 @@
       "status": "attached",
       "validation": "unvalidated",
       "code": null,
-      "place": {
-        "x": 11,
-        "y": 4,
-        "rot": 0,
-        "level": 2
-      },
       "elements": {
         "variables": {
           "endogenous": 6
@@ -487,6 +481,12 @@
         "constraints": {
           "unverified": 1
         }
+      },
+      "place": {
+        "x": 8,
+        "y": 4,
+        "rot": 0,
+        "level": 2
       }
     },
     {
@@ -518,12 +518,6 @@
       "status": "attached",
       "validation": "unvalidated",
       "code": null,
-      "place": {
-        "x": 26,
-        "y": 6,
-        "rot": 0,
-        "level": 1
-      },
       "elements": {
         "variables": {
           "endogenous": 9
@@ -538,6 +532,12 @@
           "series": 4,
           "vintage": "2026Q2"
         }
+      },
+      "place": {
+        "x": 2,
+        "y": 4,
+        "rot": 0,
+        "level": 2
       }
     },
     {
@@ -564,12 +564,6 @@
       "status": "attached",
       "validation": "unvalidated",
       "code": null,
-      "place": {
-        "x": 2,
-        "y": 6,
-        "rot": 0,
-        "level": 1
-      },
       "elements": {
         "variables": {
           "endogenous": 7
@@ -583,6 +577,12 @@
           "series": 2,
           "vintage": "2026Q2"
         }
+      },
+      "place": {
+        "x": 20,
+        "y": 6,
+        "rot": 0,
+        "level": 1
       }
     },
     {
@@ -613,12 +613,6 @@
       "status": "attached",
       "validation": "unvalidated",
       "code": null,
-      "place": {
-        "x": 8,
-        "y": 6,
-        "rot": 0,
-        "level": 1
-      },
       "elements": {
         "variables": {
           "endogenous": 6
@@ -633,6 +627,12 @@
           "series": 3,
           "vintage": "2025"
         }
+      },
+      "place": {
+        "x": 14,
+        "y": 6,
+        "rot": 0,
+        "level": 1
       }
     },
     {
@@ -658,12 +658,6 @@
       "status": "attached",
       "validation": "unvalidated",
       "code": null,
-      "place": {
-        "x": 5,
-        "y": 4,
-        "rot": 0,
-        "level": 2
-      },
       "elements": {
         "variables": {
           "endogenous": 3
@@ -674,6 +668,12 @@
           "assumed": 2
         },
         "shocks": 1
+      },
+      "place": {
+        "x": 20,
+        "y": 4,
+        "rot": 0,
+        "level": 2
       }
     },
     {
@@ -701,12 +701,6 @@
       "status": "attached",
       "validation": "unvalidated",
       "code": null,
-      "place": {
-        "x": 17,
-        "y": 2,
-        "rot": 0,
-        "level": 3
-      },
       "elements": {
         "variables": {
           "endogenous": 10
@@ -719,6 +713,12 @@
           "series": 1,
           "vintage": "household survey 2024"
         }
+      },
+      "place": {
+        "x": 5,
+        "y": 2,
+        "rot": 0,
+        "level": 3
       }
     },
     {
@@ -740,12 +740,6 @@
       "status": "attached",
       "validation": "unvalidated",
       "code": null,
-      "place": {
-        "x": 11,
-        "y": 2,
-        "rot": 0,
-        "level": 3
-      },
       "elements": {
         "variables": {
           "exogenous": 6
@@ -753,6 +747,12 @@
         "parameters": {
           "calibrated": 2
         }
+      },
+      "place": {
+        "x": 11,
+        "y": 2,
+        "rot": 0,
+        "level": 3
       }
     }
   ],
@@ -768,6 +768,12 @@
       "action": "arrange",
       "brick": "pyramid",
       "note": "README picture"
+    },
+    {
+      "date": "2026-11-01",
+      "action": "arrange",
+      "brick": "pyramid",
+      "note": "re-arranged: bricks stack on what they read within a layer"
     }
   ],
   "layout": "pyramid"

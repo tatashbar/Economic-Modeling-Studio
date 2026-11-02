@@ -102,6 +102,43 @@ def layer_of(b):
     return b.get("layer", LAYER.get(b.get("kind"), 1))
 
 
+def supports(att):
+    """Which bricks each brick stands on: {id: set of ids}. A brick stands on every brick whose outputs it reads,
+    unless that brick sits on a higher layer. Between bricks on the same layer, reading is enough (the fiscal rule
+    stands on the oil sector whose revenue it reads), except inside a loop: bricks that read each other, directly or
+    round a cycle, stand side by side. The result has no cycles, so it can be built from the bottom up."""
+    ids = {b["id"]: b for b in att}
+    reads = {b["id"]: {o["id"] for o in att if o is not b and {q["port"] for q in reqs(b)} & set(provs(o))} for b in att}
+
+    def reach(a):  # bricks reachable from a along same-layer reads
+        seen, todo = set(), [a]
+        while todo:
+            for o in reads[todo.pop()]:
+                if o not in seen and layer_of(ids[o]) == layer_of(ids[a]):
+                    seen.add(o)
+                    todo.append(o)
+        return seen
+
+    loops = {a: reach(a) for a in ids}
+    return {a: {o for o in reads[a] if layer_of(ids[o]) < layer_of(ids[a])
+                or (layer_of(ids[o]) == layer_of(ids[a]) and a not in loops[o])} for a in ids}
+
+
+def depths(att):
+    """Height of each brick in the stacking order: 1 for a brick that stands on nothing, else one more than the
+    tallest brick it stands on."""
+    sup, d = supports(att), {}
+
+    def depth(a):
+        if a not in d:
+            d[a] = 1 + max((depth(o) for o in sup[a]), default=0)
+        return d[a]
+
+    for a in sup:
+        depth(a)
+    return d
+
+
 # ------------------------------------------------------------------ elements (what a brick is made of)
 # element -> the status breakdown it may carry; a plain whole number is also accepted
 ELEMENTS = {"variables": ("endogenous", "exogenous"), "equations": (), "parameters": ("estimated", "calibrated", "assumed"),
@@ -300,24 +337,27 @@ def elements_from_mod(text, notes=None):
 def stacks(m):
     """Arrange the attached bricks (except the baseplate) into towers standing on the baseplate.
 
-    Layer-1 bricks stand on the plate. A brick on layer 2 or higher goes on top of the tower that supplies its
-    inputs, preferring the tower whose top brick it reads most, so towers can be any height (for example
-    external sector -> FX intervention -> capital flow measures). A brick may name its host with "on": "<id>".
-    Layers only increase going up; a brick that reads no tower stands on the plate. Returns a list of towers,
-    each a list of bricks from the bottom up.
+    A brick that reads no other brick stands on the plate. Any other brick goes on top of the tower that supplies
+    its inputs, preferring the tower whose top brick it reads most (then the taller supplier), so towers can be any height (for example
+    world prices -> oil sector -> fiscal rule). Which bricks a brick may stand on is set by `supports`: never on a
+    higher layer, and never on a brick it shares a loop with. A brick may name its host with "on": "<id>".
+    Returns a list of towers, each a list of bricks from the bottom up.
     """
     att = [b for b in attached(m) if b.get("kind") != "baseplate"]
-    towers = [[b] for b in att if layer_of(b) < 2]
-    for b in sorted((b for b in att if layer_of(b) >= 2), key=lambda b: (layer_of(b), b["id"])):
+    sup, dep = supports(att), depths(att)
+    towers = []
+    for b in sorted(att, key=lambda b: (dep[b["id"]], layer_of(b), b["id"])):
         need = {q["port"] for q in reqs(b)}
+        below = lambda x: x["id"] in sup[b["id"]]
         best, best_key = None, None
         for t in towers:
-            if layer_of(t[-1]) >= layer_of(b):
+            if dep[t[-1]["id"]] >= dep[b["id"]] or layer_of(t[-1]) > layer_of(b):
                 continue
             if b.get("on"):
                 key = (int(any(x["id"] == b["on"] for x in t)),)
             else:
-                key = (len(need & set(provs(t[-1]))), len(need & {p for x in t for p in provs(x)}), -len(t))
+                key = (len(need & set(provs(t[-1]))) if below(t[-1]) else 0,
+                       len(need & {p for x in t if below(x) for p in provs(x)}), dep[t[-1]["id"]], -len(t))
             if key[0] > 0 or (len(key) > 1 and key[1] > 0):
                 if best_key is None or key > best_key:
                     best, best_key = t, key
@@ -347,20 +387,24 @@ def _overlap(a, b):
 def pyramid_plan(m, origin=2):
     """Build the bricks into a stepped pyramid (a terraced temple) on the baseplate. Each step is one level higher,
     narrower by half a brick on both sides and set back by two studs, so it rests on the step below while the front
-    face (and label) of every brick stays in view. Bricks on lower layers go lower; a brick on a higher layer is laid
-    above the bricks whose outputs it reads. There is no height limit: above the top step the pyramid continues as a
-    stair of single bricks as high as the model needs. Returns {brick id: place}."""
+    face (and label) of every brick stays in view. A brick is laid above the bricks it stands on (see `supports`):
+    the bricks whose outputs it reads, on its own layer or a lower one. There is no height limit: above the top step
+    the pyramid continues as a stair of single bricks as high as the model needs. Returns {brick id: place}."""
     att = [b for b in attached(m) if b.get("kind") != "baseplate"]
-    n = max(len(att), 1)
-    k = 1
-    while k * (k + 1) // 2 < n:
-        k += 1
-    widths, spare = list(range(k, 0, -1)), k * (k + 1) // 2 - n
-    while spare:  # a count that does not fill the pyramid takes bricks off the top
-        widths[-1] -= 1
-        spare -= 1
-        if not widths[-1]:
-            widths.pop()
+    sup, dep = supports(att), depths(att)
+    # each step is as wide as the bricks that belong on it; a step never outgrows the one below, so the surplus
+    # moves up a step (still above everything it stands on)
+    widths, carry = [], 0
+    for d in range(1, max(dep.values(), default=1) + 1):
+        avail = sum(1 for v in dep.values() if v == d) + carry
+        w = avail if not widths else min(avail, widths[-1])
+        widths.append(w)
+        carry = avail - w
+    while carry:
+        widths.append(min(carry, widths[-1]))
+        carry -= widths[-1]
+    widths = [w for w in widths if w] or [1]
+    k = widths[0]
     rows = []  # per step: list of (x, y)
     y_base = origin + 2 * (len(widths) - 1)
     for t, w in enumerate(widths):
@@ -373,10 +417,10 @@ def pyramid_plan(m, origin=2):
         return [dict(x=x, y=y, rot=0, level=c) for x, y in rows[c - 1]]
 
     occupied, level_of, plan = {}, {}, {}
-    order = sorted(att, key=lambda b: (layer_of(b), -sum(1 for o in att if {q["port"] for q in reqs(o)} & set(provs(b))), b["id"]))
+    order = sorted(att, key=lambda b: (dep[b["id"]], layer_of(b), -sum(1 for o in att if {q["port"] for q in reqs(o)} & set(provs(b))), b["id"]))
     for b in order:
         need = {q["port"] for q in reqs(b)}
-        hosts = [o for o in att if o["id"] in level_of and need & set(provs(o)) and layer_of(b) > layer_of(o)]
+        hosts = [o for o in att if o["id"] in level_of and o["id"] in sup[b["id"]]]
         c = max((level_of[o["id"]] for o in hosts), default=0) + 1
         best, relaxed = None, False
         while best is None:
