@@ -276,7 +276,7 @@ See the [guide](docs/lego.md) and two worked examples (open the HTML files in a 
 
 **Building up.** Bricks stack vertically with no limit on the number of levels: a brick stands on the bricks whose outputs it reads, so a causal chain in which world prices feed an oil sector that feeds the fiscal rule builds up three levels. Bricks that read each other stand side by side. In the default grid the stacks stand side by side; `python tools/lego.py arrange <manifest> --apply` builds the whole set into a stepped pyramid. Positions are stored in the manifest, so any brick can be moved by hand, and they never change the wiring.
 
-**A starter set.** The core with five bricks, built as a small two-step pyramid. Dashed yellow sockets on the baseplate and on bricks are open studs running on stubs; the dashed ghost bricks in the front yard are catalog bricks that would fill them (trade, carbon pricing, physical climate damage, resource revenue). A detached brick waits in the parts bin and says which open stud it would fill.
+**A starter set.** The core with five bricks, built as a small three-step pyramid. Dashed yellow sockets on the baseplate and on bricks are open studs running on stubs; the dashed ghost bricks in the front yard are catalog bricks that would fill them (trade, carbon pricing, physical climate damage, resource revenue). A detached brick waits in the parts bin and says which open stud it would fill.
 
 ![A starter lego set: a baseplate with five bricks in a three-step pyramid, four dashed ghost bricks suggested for open studs, and a detached financial-accelerator brick in the parts bin that would fill credit_spread](docs/images/lego-starter-set.png)
 
@@ -327,7 +327,7 @@ models/                    model code by family: semi-structural, fpas, financia
                            io-sam, cge, trade, climate, sfc, abm, games, ai, llm, econometrics
                            (each model with its model.lego.json; estimation-only econometric models need none)
 data/ forecasts/ validation/ production/ tests/ notebooks/ scripts/    working folders
-tools/lego.py              lego engine: catalog, new, show, check, attach, detach, swap
+tools/lego.py              lego engine: catalog, new, show, check, attach, detach, swap, arrange, validate, elements
 tools/lego_view.py         isometric 3D picture of a lego set (self-contained HTML)
 tools/validate_studio.py   integrity check (counts, references, hooks, settings, lego catalog and examples)
 tools/test_studio.py       tests for hooks, guards, lego engine, agent adapters and documentation consistency
