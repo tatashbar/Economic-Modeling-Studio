@@ -27,8 +27,8 @@ Around this sits a governed workflow, scaled to the model's size and risk level:
 > The repository contains the studio (agents, commands, rules, templates and guardrails), not a library of finished models. Models are built in your own copy.
 
 ## Contents
-- [How it works](#how-it-works) · [Quick start](#quick-start) · [Demo](#demo-building-a-draft-model) · [Typical uses](#typical-uses) · [Works with your coding agent](#works-with-your-coding-agent) · [What it covers](#what-it-covers) · [Models as lego sets](#models-as-lego-sets) · [Commands](#commands) · [Typical workflows](#typical-workflows)
-- [The agents](#the-agents) · [The skills](#the-skills) · [Quality controls](#quality-controls) · [Repository layout](#repository-layout) · [Setup](#setup)
+- [How it works](#how-it-works) · [Quick start](#quick-start) · [Demo](#demo-building-a-draft-model) · [Typical uses](#typical-uses) · [Works with your coding agent](#works-with-your-coding-agent) · [What it covers](#what-it-covers) · [Commands](#commands) · [Typical workflows](#typical-workflows)
+- [The agents](#the-agents) · [The skills](#the-skills) · [Models as lego sets](#models-as-lego-sets) · [Quality controls](#quality-controls) · [Repository layout](#repository-layout) · [Setup](#setup)
 - [Intended use: public data only](#intended-use-public-data-only) · [Limitations](#limitations) · [Customizing](#customizing) · [Version history](#version-history)
 
 ## How it works
@@ -155,57 +155,6 @@ Tool conventions change quickly. If a tool moves its folders, update `tools/sync
 
 Models are classed **small, medium or large**, and effort scales with class (see [model classes](.claude/docs/model-classes.md)). A decision table there maps common questions to the right model family.
 
-## Models as lego sets
-Any model can be represented as a set of bricks, so you can see what it is made of and change it without rebuilding it.
-
-- The **baseplate** is the core model (for example a gap model or a DSGE).
-- A **brick** is a component: a trade sector, a fiscal block, a financial accelerator, a carbon-pricing block, a CGE, a household microsimulation, a fan-chart tool.
-- **Studs** are the variables a brick provides and needs, each with a unit and a timing (same period or lagged).
-- **Inside each brick** are its elements: variables, equations, parameters, shocks, data series and constraints. They color the brick's studs, so the brick color tells you *which part of the economy* it is and the stud colors tell you *what it is made of*.
-- A needed variable that nothing provides is an **open stud**. The model keeps running on a documented **stub** (for example "exports follow an exogenous baseline path"), so a model without a trade sector still works.
-
-| You want to | Command |
-|---|---|
-| Turn a new or existing model into a lego set | `/lego-map` |
-| See the set (3D picture, text or diagram), its open studs and suggested bricks | `/lego-show` |
-| Add a brick that is missing, for example trade | `/lego-add` |
-| Take a brick off (it goes to a parts bin, and its stub takes over) | `/lego-detach` |
-| Swap a brick for an alternative, for example one monetary rule for another | `/lego-swap` |
-| Check that everything fits | `/lego-check` |
-| Build the picture as a stepped pyramid (positions only, never wiring) | `python tools/lego.py arrange` |
-| Record a brick's validation result (with the report as evidence) | `python tools/lego.py validate` |
-| Declare what a brick is made of (counted from a Dynare `.mod` file, or set by hand) | `python tools/lego.py elements` |
-| Create a brick that is not in the catalog | `/lego-brick` |
-
-Every change is shown as a **plan first**: new joints, inputs that become endogenous or exogenous, new simultaneous blocks, frequency mismatches, conflicts, and which neighbouring bricks must be re-validated. Nothing is written until you approve. The tool checks the wiring (units, timing, duplicate providers, accounting identities, bridges between frequencies); whether a brick is *economically* right stays with calibration and validation, including a neutral-attachment test (a new brick set to neutral values must reproduce the old baseline).
-
-See the [guide](docs/lego.md) and two worked examples (open the HTML files in a browser): [a six-brick set with one brick in the parts bin](lego/examples/small-open-economy.html) and [the full twelve-brick set](lego/examples/small-open-economy-full.html). The engine is `python tools/lego.py` (standard library only).
-
-**Building up.** Bricks stack vertically with no limit on the number of levels: a brick stands on the bricks whose outputs it reads, so a causal chain in which world prices feed an oil sector that feeds the fiscal rule builds up three levels. Bricks that read each other stand side by side. In the default grid the stacks stand side by side; `python tools/lego.py arrange <manifest> --apply` builds the whole set into a stepped pyramid. Positions are stored in the manifest, so any brick can be moved by hand, and they never change the wiring.
-
-**A starter set.** The core with five bricks, built as a small two-step pyramid. Dashed yellow sockets on the baseplate and on bricks are open studs running on stubs; the dashed ghost bricks in the front yard are catalog bricks that would fill them (trade, carbon pricing, physical climate damage, resource revenue). A detached brick waits in the parts bin and says which open stud it would fill.
-
-![A starter lego set: a baseplate with five bricks in a three-step pyramid, four dashed ghost bricks suggested for open studs, and a detached financial-accelerator brick in the parts bin that would fill credit_spread](docs/images/lego-starter-set.png)
-
-**Inside the bricks.** Each brick can declare its elements, each with its own color and symbol:
-
-| Element | Symbol | Color | Status shown |
-|---|---|---|---|
-| Variables | x | yellow | endogenous, exogenous |
-| Equations | = | blue | count checked against the endogenous variables |
-| Parameters | θ | red | estimated, calibrated, or an assumption without a source |
-| Shocks | ε | orange | count |
-| Data series | D | green | count and vintage |
-| Constraints | ≤ | purple | verified in a run, or not yet verified |
-
-The studs on each brick are shared among its elements in proportion to their counts, so a heavily parameterized block or a data-rich satellite stands out at a glance; a switch under the picture turns the studs back to the component color. The **Inside the bricks** panel lists every brick with a proportional bar, the counts with their status, and findings that matter for the model: a brick whose equations do not match its endogenous variables, parameters that are assumptions without a source (to be shown in sensitivity runs), and constraints not yet verified in a run (a warning if the brick is marked validated). These findings are warnings and notes, never errors. Elements are optional: a brick that does not declare them keeps plain studs. `python tools/lego.py elements <manifest> <brick> --from-mod model.mod` counts them from a Dynare file (estimated parameters come from `estimated_params`, shocks from `varexo`, data from `varobs`), and `--set parameters.assumed=3 data.vintage=2026Q2` adds what the code cannot tell. Symbols as well as colors identify each element, so the picture also reads in grayscale and for color-blind readers.
-
-![The Inside the bricks panel of the full example: for each brick a bar split by element and the counts by status, with flags for a non-square labor block, unsourced parameters and unverified constraints](docs/images/lego-inside-bricks.png)
-
-**Hover to see the wiring.** Hovering a brick fades everything it is not connected to. Here the fiscal rule is highlighted together with the core it feeds, the monetary rule it reads and the carbon-pricing block whose revenue it receives. The hover text also lists the brick's elements and findings.
-
-![Hovering the fiscal-debt-rule brick: it and the bricks it connects to stay lit while the rest fade](docs/images/lego-hover.png)
-
 ## Commands
 Full list: [docs/skill-catalog.md](docs/skill-catalog.md).
 
@@ -289,6 +238,57 @@ Skills follow a common template, so each command behaves predictably:
 | Multi-agent teams | 6 | DSGE, forecast, stress test, AI model, fiscal, country analysis |
 | Modular (lego) models | 7 | lego-map, lego-show, lego-add, lego-check, lego-brick |
 | Capacity building | 2 | design-training, create-exercise |
+
+## Models as lego sets
+Any model can be represented as a set of bricks, so you can see what it is made of and change it without rebuilding it.
+
+- The **baseplate** is the core model (for example a gap model or a DSGE).
+- A **brick** is a component: a trade sector, a fiscal block, a financial accelerator, a carbon-pricing block, a CGE, a household microsimulation, a fan-chart tool.
+- **Studs** are the variables a brick provides and needs, each with a unit and a timing (same period or lagged).
+- **Inside each brick** are its elements: variables, equations, parameters, shocks, data series and constraints. They color the brick's studs, so the brick color tells you *which part of the economy* it is and the stud colors tell you *what it is made of*.
+- A needed variable that nothing provides is an **open stud**. The model keeps running on a documented **stub** (for example "exports follow an exogenous baseline path"), so a model without a trade sector still works.
+
+| You want to | Command |
+|---|---|
+| Turn a new or existing model into a lego set | `/lego-map` |
+| See the set (3D picture, text or diagram), its open studs and suggested bricks | `/lego-show` |
+| Add a brick that is missing, for example trade | `/lego-add` |
+| Take a brick off (it goes to a parts bin, and its stub takes over) | `/lego-detach` |
+| Swap a brick for an alternative, for example one monetary rule for another | `/lego-swap` |
+| Check that everything fits | `/lego-check` |
+| Build the picture as a stepped pyramid (positions only, never wiring) | `python tools/lego.py arrange` |
+| Record a brick's validation result (with the report as evidence) | `python tools/lego.py validate` |
+| Declare what a brick is made of (counted from a Dynare `.mod` file, or set by hand) | `python tools/lego.py elements` |
+| Create a brick that is not in the catalog | `/lego-brick` |
+
+Every change is shown as a **plan first**: new joints, inputs that become endogenous or exogenous, new simultaneous blocks, frequency mismatches, conflicts, and which neighbouring bricks must be re-validated. Nothing is written until you approve. The tool checks the wiring (units, timing, duplicate providers, accounting identities, bridges between frequencies); whether a brick is *economically* right stays with calibration and validation, including a neutral-attachment test (a new brick set to neutral values must reproduce the old baseline).
+
+See the [guide](docs/lego.md) and two worked examples (open the HTML files in a browser): [a six-brick set with one brick in the parts bin](lego/examples/small-open-economy.html) and [the full twelve-brick set](lego/examples/small-open-economy-full.html). The engine is `python tools/lego.py` (standard library only).
+
+**Building up.** Bricks stack vertically with no limit on the number of levels: a brick stands on the bricks whose outputs it reads, so a causal chain in which world prices feed an oil sector that feeds the fiscal rule builds up three levels. Bricks that read each other stand side by side. In the default grid the stacks stand side by side; `python tools/lego.py arrange <manifest> --apply` builds the whole set into a stepped pyramid. Positions are stored in the manifest, so any brick can be moved by hand, and they never change the wiring.
+
+**A starter set.** The core with five bricks, built as a small two-step pyramid. Dashed yellow sockets on the baseplate and on bricks are open studs running on stubs; the dashed ghost bricks in the front yard are catalog bricks that would fill them (trade, carbon pricing, physical climate damage, resource revenue). A detached brick waits in the parts bin and says which open stud it would fill.
+
+![A starter lego set: a baseplate with five bricks in a three-step pyramid, four dashed ghost bricks suggested for open studs, and a detached financial-accelerator brick in the parts bin that would fill credit_spread](docs/images/lego-starter-set.png)
+
+**Inside the bricks.** Each brick can declare its elements, each with its own color and symbol:
+
+| Element | Symbol | Color | Status shown |
+|---|---|---|---|
+| Variables | x | yellow | endogenous, exogenous |
+| Equations | = | blue | count checked against the endogenous variables |
+| Parameters | θ | red | estimated, calibrated, or an assumption without a source |
+| Shocks | ε | orange | count |
+| Data series | D | green | count and vintage |
+| Constraints | ≤ | purple | verified in a run, or not yet verified |
+
+The studs on each brick are shared among its elements in proportion to their counts, so a heavily parameterized block or a data-rich satellite stands out at a glance; a switch under the picture turns the studs back to the component color. The **Inside the bricks** panel lists every brick with a proportional bar, the counts with their status, and findings that matter for the model: a brick whose equations do not match its endogenous variables, parameters that are assumptions without a source (to be shown in sensitivity runs), and constraints not yet verified in a run (a warning if the brick is marked validated). These findings are warnings and notes, never errors. Elements are optional: a brick that does not declare them keeps plain studs. `python tools/lego.py elements <manifest> <brick> --from-mod model.mod` counts them from a Dynare file (estimated parameters come from `estimated_params`, shocks from `varexo`, data from `varobs`), and `--set parameters.assumed=3 data.vintage=2026Q2` adds what the code cannot tell. Symbols as well as colors identify each element, so the picture also reads in grayscale and for color-blind readers.
+
+![The Inside the bricks panel of the full example: for each brick a bar split by element and the counts by status, with flags for a non-square labor block, unsourced parameters and unverified constraints](docs/images/lego-inside-bricks.png)
+
+**Hover to see the wiring.** Hovering a brick fades everything it is not connected to. Here the fiscal rule is highlighted together with the core it feeds, the monetary rule it reads and the carbon-pricing block whose revenue it receives. The hover text also lists the brick's elements and findings.
+
+![Hovering the fiscal-debt-rule brick: it and the bricks it connects to stay lit while the rest fade](docs/images/lego-hover.png)
 
 ## Quality controls
 - **You decide.** Agents advise; nothing is written without your approval.
