@@ -32,7 +32,7 @@ Around this sits a governed workflow, scaled to the model's size and risk level:
 3. **You stay in control.** Agents ask clarifying questions, present two to four options with trade-offs and a simple benchmark, draft section by section, and ask before writing files.
 4. **Gates check the work.** Each stage has written exit criteria, and independent validation is separate from building.
 
-The lifecycle is **Concept → Design → Build → Estimate → Validate → Release / Operate**. Small models move through it quickly with light checks. Large ones add architecture decisions, staged integration and periodic revalidation.
+The lifecycle has six stages: **Concept, Design, Build, Estimate, Validate, and Release / Operate**. Small models move through it quickly with light checks. Large ones add architecture decisions, staged integration and periodic revalidation.
 
 ## Quick start
 1. Get your own copy with git, then move into the new folder (the git commands below only work inside it):
@@ -55,7 +55,7 @@ The lifecycle is **Concept → Design → Build → Estimate → Validate → Re
 
 [![Demo video: building a draft oil-shock model for Norway, 73 minutes in real time](docs/images/demo-norway-oil.png)](https://youtu.be/gminFSzWHCo)
 
-[Watch on YouTube](https://youtu.be/gminFSzWHCo). To read the on-screen text, set the YouTube quality to 720p or 1080p (Settings ⚙ → Quality).
+[Watch on YouTube](https://youtu.be/gminFSzWHCo). To read the on-screen text, set the YouTube quality to 720p or 1080p (the ⚙ settings icon, then Quality).
 
 **The question:** what happens to Norway's budget, inflation and krone if oil prices fall 30%?
 
@@ -181,7 +181,7 @@ Every change is shown as a **plan first**: new joints, inputs that become endoge
 
 See the [guide](docs/lego.md) and two worked examples (open the HTML files in a browser): [a six-brick set with one brick in the parts bin](lego/examples/small-open-economy.html) and [the full twelve-brick set](lego/examples/small-open-economy-full.html). The engine is `python tools/lego.py` (standard library only).
 
-**Building up.** Bricks stack vertically with no limit on the number of levels: a brick stands on the bricks whose outputs it reads, so a causal chain such as world prices → oil sector → fiscal rule builds up three levels. Bricks that read each other stand side by side. In the default grid the stacks stand side by side; `python tools/lego.py arrange <manifest> --apply` builds the whole set into a stepped pyramid. Positions are stored in the manifest, so any brick can be moved by hand, and they never change the wiring.
+**Building up.** Bricks stack vertically with no limit on the number of levels: a brick stands on the bricks whose outputs it reads, so a causal chain in which world prices feed an oil sector that feeds the fiscal rule builds up three levels. Bricks that read each other stand side by side. In the default grid the stacks stand side by side; `python tools/lego.py arrange <manifest> --apply` builds the whole set into a stepped pyramid. Positions are stored in the manifest, so any brick can be moved by hand, and they never change the wiring.
 
 **A starter set.** The core with five bricks, built as a small two-step pyramid. Dashed yellow sockets on the baseplate and on bricks are open studs running on stubs; the dashed ghost bricks in the front yard are catalog bricks that would fill them (trade, carbon pricing, physical climate damage, resource revenue). A detached brick waits in the parts bin and says which open stud it would fill.
 
@@ -228,14 +228,16 @@ Full list: [docs/skill-catalog.md](docs/skill-catalog.md).
 | Capacity building | `/design-training` `/create-exercise` |
 
 ## Typical workflows
-- **Quick, small model:** `/scope-question` → `/quick-model` → `/validate-model` → `/model-card`
-- **Structural model:** `/select-model-class` → `/model-brief` → `/model-spec` → `/data-requirements` → `/calibration-plan` → `/team-dsge` → `/estimate-dsge` → `/validate-model` → `/model-release`
-- **Sectoral or trade analysis:** `/build-io-sam` → `/build-cge` (or `/build-trade-model`) → `/trade-policy-analysis` or `/carbon-pricing-analysis` → `/robustness-check` → `/policy-brief`
-- **Forecast round:** `/nowcast` → `/team-forecast` → `/fan-chart` → `/policy-brief` → `/retrospective`
-- **Climate-economy analysis:** `/build-climate-macro` → `/climate-scenario` → `/carbon-pricing-analysis` → `/distributional-analysis`
-- **AI model:** `/select-model-class` → `/team-ai-model` (benchmark first) → `/ai-audit` → `/model-risk-review` → `/model-release`
-- **Existing model:** `/adopt <path>` → `/lego-map` → `/validate-model` → `/model-card`
-- **Modular model:** `/lego-map` → `/lego-show` → `/lego-add` (for example the missing trade sector) → neutral-attachment test → `/lego-check` → `/validate-model`
+Commands are listed in the order they are run.
+
+- **Quick, small model:** `/scope-question`, `/quick-model`, `/validate-model`, `/model-card`
+- **Structural model:** `/select-model-class`, `/model-brief`, `/model-spec`, `/data-requirements`, `/calibration-plan`, `/team-dsge`, `/estimate-dsge`, `/validate-model`, `/model-release`
+- **Sectoral or trade analysis:** `/build-io-sam`, `/build-cge` (or `/build-trade-model`), `/trade-policy-analysis` or `/carbon-pricing-analysis`, `/robustness-check`, `/policy-brief`
+- **Forecast round:** `/nowcast`, `/team-forecast`, `/fan-chart`, `/policy-brief`, `/retrospective`
+- **Climate-economy analysis:** `/build-climate-macro`, `/climate-scenario`, `/carbon-pricing-analysis`, `/distributional-analysis`
+- **AI model:** `/select-model-class`, `/team-ai-model` (benchmark first), `/ai-audit`, `/model-risk-review`, `/model-release`
+- **Existing model:** `/adopt <path>`, `/lego-map`, `/validate-model`, `/model-card`
+- **Modular model:** `/lego-map`, `/lego-show`, `/lego-add` (for example the missing trade sector), neutral-attachment test, `/lego-check`, `/validate-model`
 
 ## Quality controls
 - **You decide.** Agents advise; nothing is written without your approval.
@@ -328,7 +330,7 @@ Agents and skills are Markdown files with YAML frontmatter; edit them freely. Af
 
 ## Version history
 - **1.7.1** — README demo: an unedited, real-time recording of the studio building a draft oil-shock model for Norway, from `/start` to an independently reviewed model and results report.
-- **1.7.0** — Lego stacking follows the model's causal chains: a brick now stands on any brick whose outputs it reads, also within a layer, so world prices → oil sector → fiscal rule builds three levels on its own. Bricks that read each other stand side by side, and pyramid steps are sized to the bricks that belong on them. Example sets re-arranged and README lego images regenerated.
+- **1.7.0** — Lego stacking follows the model's causal chains: a brick now stands on any brick whose outputs it reads, also within a layer, so a chain in which world prices feed an oil sector that feeds the fiscal rule builds three levels on its own. Bricks that read each other stand side by side, and pyramid steps are sized to the bricks that belong on them. Example sets re-arranged and README lego images regenerated.
 - **1.6.2** — Fixes from an end-to-end test on a Dynare model: element counts ignore names repeated inside blocks such as `shocks`, follow `@#if` macro branches, and keep the modeler's judgments (assumed parameters, verified constraints, data vintage) on a recount; marking parameters as assumed no longer changes the parameter total.
 - **1.5.0** — Inside the bricks: bricks can declare their elements (variables, equations, parameters, shocks, data, constraints) with their status. Studs are colored by element, a new panel shows each brick's makeup, `check` flags non-square blocks, unsourced parameters and unverified constraints, and `lego.py elements` counts elements from Dynare files. README header and lego images updated.
 - **1.4.2** — Improved agents and skills: fuller, more professional guidance written from a modeler's perspective, with lego engine workflows unchanged.
