@@ -54,7 +54,7 @@ The lifecycle is **Concept → Design → Build → Estimate → Validate → Re
 2. **Chooses the model class:** it compares four options and recommends a small semi-structural gap model in Python, with an accounting benchmark. It writes a decision record and a model brief.
 3. **Adapts the lego set to Norway:** seven bricks, including new ones for the sovereign wealth fund and its spending rule, oil investment, and an oil-sensitive currency premium. A core variant reports mainland GDP.
 4. **Writes the model specification:** 20 equations and the closure, for approval.
-5. **Builds a data pipeline from public sources** (Statistics Norway, Norges Bank, the Ministry of Finance and the fund manager, NBIM), with offline tests. Some Ministry of Finance figures could not be fetched, so the user chose to calibrate without them.
+5. **Builds a data pipeline from public sources** (Statistics Norway, Norges Bank, the Ministry of Finance and Norges Bank Investment Management), with offline tests. Some Ministry of Finance figures could not be fetched, so the user chose to calibrate without them.
 6. **Calibrates from published gap-model coefficients,** with weak and strong ranges. It then checks the model against the 2014–16 oil price fall. The check is not fitted, and the mismatches are reported, not hidden.
 7. **Runs the scenarios** (a lasting and a temporary 30% fall) against the accounting benchmark.
 8. **Sends the model to an independent validator** with no access to the build conversation. The validator proposes *pass with conditions*: one high-severity finding is still open, and no brick is marked validated until the user reviews it.
