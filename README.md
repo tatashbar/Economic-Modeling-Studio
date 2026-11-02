@@ -51,7 +51,7 @@ The lifecycle is **Concept → Design → Build → Estimate → Validate → Re
 
 ## Demo: building a draft model
 
-*An actual test run of the studio, recorded in one take: about 73 minutes from opening the repository to a saved, independently reviewed draft model and results report.*
+*An actual test run of the studio, recorded in one take with no sound or narration: about 73 minutes from opening the repository to a saved, independently reviewed draft model and results report.*
 
 [![Demo video: building a draft oil-shock model for Norway, 73 minutes in real time](docs/images/demo-norway-oil.png)](https://youtu.be/gminFSzWHCo)
 
