@@ -55,7 +55,7 @@ The lifecycle is **Concept → Design → Build → Estimate → Validate → Re
 
 [![Demo video: building a draft oil-shock model for Norway, 73 minutes in real time](docs/images/demo-norway-oil.png)](https://youtu.be/gminFSzWHCo)
 
-[Watch on YouTube](https://youtu.be/gminFSzWHCo)
+[Watch on YouTube](https://youtu.be/gminFSzWHCo). To read the on-screen text, set the YouTube quality to 720p or 1080p (Settings ⚙ → Quality).
 
 **The question:** what happens to Norway's budget, inflation and krone if oil prices fall 30%?
 
