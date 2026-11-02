@@ -35,12 +35,17 @@ Around this sits a governed workflow, scaled to the model's size and risk level:
 The lifecycle is **Concept → Design → Build → Estimate → Validate → Release / Operate**. Small models move through it quickly with light checks. Large ones add architecture decisions, staged integration and periodic revalidation.
 
 ## Quick start
-1. Get your own copy with git: `git clone https://github.com/tatashbar/Economic-Modeling-Studio.git`. If you downloaded the ZIP instead, run `git init` inside the folder first, since the ZIP has no `.git` folder.
+1. Get your own copy with git, then move into the new folder (the git commands below only work inside it):
+   ```bash
+   git clone https://github.com/tatashbar/Economic-Modeling-Studio.git
+   cd Economic-Modeling-Studio
+   ```
+   If you downloaded the ZIP instead, `cd` into the unzipped folder and run `git init` there first, since the ZIP has no `.git` folder. A clone needs no `git init`.
 2. Start your coding agent **in** the studio folder, so that it is the session's working folder:
    - The right folder directly contains `.claude`, `AGENTS.md` and `README.md`. If unzipping created a nested `Economic-Modeling-Studio-main` folder inside another one, use the inner one.
    - **Claude desktop app:** start a new session and choose this folder in the folder picker next to the message box. Attaching the folder to a message is not enough, because commands load only from the working folder, when the session starts.
    - **Terminal:** `cd` into the folder (or any subfolder) and start your agent there.
-3. Run `git config core.hooksPath .githooks` once to enable the commit guard, which blocks commits of restricted data, raw data and secrets.
+3. In the studio folder, run `git config core.hooksPath .githooks` once to enable the commit guard, which blocks commits of restricted data, raw data and secrets.
 4. Type `/` and check that `start` appears in the list. If it does not, the session is in the wrong folder: go back to step 2. Then type `/start` (`$start` in Codex) and describe what you want to do, for example `/start build a simple small open economy model for Austria`. Alternatives: `/help` for what exists, `/project-stage-detect` to see where a project stands, `/adopt <path>` to bring in an existing model.
 5. Follow the suggested next command. A typical first step is `/scope-question`, then `/select-model-class`.
 
