@@ -28,7 +28,7 @@ Around this sits a governed workflow, scaled to the model's size and risk level:
 
 ## Contents
 - [How it works](#how-it-works) · [Quick start](#quick-start) · [Demo](#demo-building-a-draft-model) · [Typical uses](#typical-uses) · [Works with your coding agent](#works-with-your-coding-agent) · [What it covers](#what-it-covers) · [Models as lego sets](#models-as-lego-sets) · [Commands](#commands) · [Typical workflows](#typical-workflows)
-- [Quality controls](#quality-controls) · [The agents](#the-agents) · [Repository layout](#repository-layout) · [Setup](#setup)
+- [The agents](#the-agents) · [The skills](#the-skills) · [Quality controls](#quality-controls) · [Repository layout](#repository-layout) · [Setup](#setup)
 - [Intended use: public data only](#intended-use-public-data-only) · [Limitations](#limitations) · [Customizing](#customizing) · [Version history](#version-history)
 
 ## How it works
@@ -239,17 +239,6 @@ Commands are listed in the order they are run.
 - **Existing model:** `/adopt <path>`, `/lego-map`, `/validate-model`, `/model-card`
 - **Modular model:** `/lego-map`, `/lego-show`, `/lego-add` (for example the missing trade sector), neutral-attachment test, `/lego-check`, `/validate-model`
 
-## Quality controls
-- **You decide.** Agents advise; nothing is written without your approval.
-- **Independent validation.** The agents or people who build a model do not validate it. Validation covers conceptual soundness, independent re-implementation of core outputs, benchmarks, sensitivity and stress cases, with a rating of PASS, PASS WITH CONDITIONS, FAIL or NOT ASSESSED.
-- **No fabrication.** Missing data, code or results yield `NOT ASSESSED — NO DATA` rather than invented numbers or citations.
-- **Benchmark first.** Complex and AI models are compared with a simple transparent benchmark on the same data and split.
-- **Uncertainty is part of the result.** Forecasts, scenarios and estimates carry ranges and stated assumptions. Elasticities, closures and damage functions are varied, not assumed.
-- **Model-specific checks.** Accounting identities and steady-state residuals for DSGE and macro models; balance and benchmark-replication tests for IO, SAM and CGE models; determinacy and accuracy diagnostics for solutions; look-ahead and leakage checks for forecasting and AI.
-- **Reproducibility.** Seeds, software versions, data vintages and a one-command replication path for released results.
-- **Modular integrity.** For lego models: every exchanged variable is declared with a unit and timing, every input has a source or a documented stub, bricks on a different frequency need a bridge, and a brick changed since validation is marked stale until it is re-validated.
-- **Data protection.** Data classification levels, protected folders, command guards and a ban on restricted data in prompts.
-
 ## The agents
 119 agents, grouped by area of expertise. They are peers: none manages another. Each lists the specialists it works most closely with, and five cross-cutting functions (economic reasoning, methodology, model-risk governance, policy relevance, project planning) are available for consultation by all. See [coordination rules](.claude/docs/coordination-rules.md) and the full [roster](docs/agent-roster.md).
 
@@ -273,6 +262,44 @@ Commands are listed in the order they are run.
 | Computation and engineering | 7 | Dynare/MATLAB, Python/Julia, HPC/GPU, MLOps, numerical methods, reproducibility, symbolic derivation |
 | Validation, risk and ethics | 6 | model validation, backtesting, sensitivity, replication audit, AI ethics, LLM red-teaming |
 | Communication and capacity building | 5 | policy briefs, technical documentation, visualization, stakeholder liaison, training design |
+
+## The skills
+85 skills, each a packaged workflow that you run as a slash command (`$name` in Codex). The [Commands](#commands) table lists them by stage, and the [skill catalog](docs/skill-catalog.md) gives each one's primary agent and purpose.
+
+Skills follow a common template, so each command behaves predictably:
+- **Purpose and prerequisites:** what the skill produces and what must exist first, such as a scope note, a model spec or data.
+- **Agents:** a primary agent that owns the work and the specialists it brings in.
+- **Design decisions:** where a skill involves modeling choices, the ones that matter, presented as two to four options with trade-offs for you to choose from.
+- **Workflow and checkpoints:** the steps, with stops for your approval before files are written.
+- **Common pitfalls:** the modeling mistakes the skill checks for.
+- **Output and gate:** the files it writes, where they go, and the verdict that decides whether the work can move to the next stage.
+- **Next steps:** the commands that usually follow.
+
+| Group | Skills | Examples |
+|---|---|---|
+| Onboarding | 6 | start, help, project-stage-detect, adopt |
+| Scoping and design | 8 | scope-question, select-model-class, model-spec, calibration-plan |
+| Build | 13 | semi-structural, FPAS, DSGE, HANK, SFC, IO-SAM, CGE, trade, climate-macro, games, ABM |
+| Build: AI | 7 | deep forecaster, deep RL policy, neural solver, LLM pipeline, RAG knowledge base, causal ML |
+| Estimation | 7 | VAR, BVAR, DSGE estimation, calibration, nowcasting, local projections |
+| Analysis | 13 | forecast round, scenarios, policy simulation, debt sustainability, stress test, carbon pricing |
+| Validation and QA | 8 | validate-model, backtest, sensitivity, robustness, replication, AI audit |
+| Documentation | 4 | model card, technical note, policy brief, chart pack |
+| Governance | 4 | gate-check, milestone review, retrospective, model release |
+| Multi-agent teams | 6 | DSGE, forecast, stress test, AI model, fiscal, country analysis |
+| Modular (lego) models | 7 | lego-map, lego-show, lego-add, lego-check, lego-brick |
+| Capacity building | 2 | design-training, create-exercise |
+
+## Quality controls
+- **You decide.** Agents advise; nothing is written without your approval.
+- **Independent validation.** The agents or people who build a model do not validate it. Validation covers conceptual soundness, independent re-implementation of core outputs, benchmarks, sensitivity and stress cases, with a rating of PASS, PASS WITH CONDITIONS, FAIL or NOT ASSESSED.
+- **No fabrication.** Missing data, code or results yield `NOT ASSESSED — NO DATA` rather than invented numbers or citations.
+- **Benchmark first.** Complex and AI models are compared with a simple transparent benchmark on the same data and split.
+- **Uncertainty is part of the result.** Forecasts, scenarios and estimates carry ranges and stated assumptions. Elasticities, closures and damage functions are varied, not assumed.
+- **Model-specific checks.** Accounting identities and steady-state residuals for DSGE and macro models; balance and benchmark-replication tests for IO, SAM and CGE models; determinacy and accuracy diagnostics for solutions; look-ahead and leakage checks for forecasting and AI.
+- **Reproducibility.** Seeds, software versions, data vintages and a one-command replication path for released results.
+- **Modular integrity.** For lego models: every exchanged variable is declared with a unit and timing, every input has a source or a documented stub, bricks on a different frequency need a bridge, and a brick changed since validation is marked stale until it is re-validated.
+- **Data protection.** Data classification levels, protected folders, command guards and a ban on restricted data in prompts.
 
 ## Repository layout
 ```
