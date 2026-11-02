@@ -26,6 +26,11 @@ Around this sits a governed workflow, scaled to the model's size and risk level:
 
 > The repository contains the studio (agents, commands, rules, templates and guardrails), not a library of finished models. Models are built in your own copy.
 
+## Contents
+- [How it works](#how-it-works) · [Quick start](#quick-start) · [Demo](#demo-building-a-draft-model) · [Typical uses](#typical-uses) · [Works with your coding agent](#works-with-your-coding-agent) · [What it covers](#what-it-covers) · [Models as lego sets](#models-as-lego-sets) · [Commands](#commands) · [Typical workflows](#typical-workflows)
+- [Quality controls](#quality-controls) · [The agents](#the-agents) · [Repository layout](#repository-layout) · [Setup](#setup)
+- [Intended use: public data only](#intended-use-public-data-only) · [Limitations](#limitations) · [Customizing](#customizing) · [Version history](#version-history)
+
 ## How it works
 1. **You state a question or a task.** For example: "what would a 10% tariff on imports from X do to the economy of country Y?", "build a small open-economy DSGE", "run this quarter's forecast round".
 2. **A command runs the workflow.** Each command (for example `/build-cge`) names a primary agent and the specialists who join it. They work in parallel where possible.
@@ -128,11 +133,6 @@ The studio is not tied to one assistant. Instructions, commands and rules are pl
 - **Guardrails everywhere.** The guard scripts (destructive commands, restricted data, secrets, immutable raw data) run as hooks in Claude Code and Cursor. For every tool, the git pre-commit guard stops restricted data, raw data and secrets from being committed: enable it with `git config core.hooksPath .githooks`.
 
 Tool conventions change quickly. If a tool moves its folders, update `tools/sync_agents.py` and regenerate.
-
-## Contents
-- [How it works](#how-it-works) · [Quick start](#quick-start) · [Demo](#demo-building-a-draft-model) · [Typical uses](#typical-uses) · [Works with your coding agent](#works-with-your-coding-agent) · [What it covers](#what-it-covers) · [Models as lego sets](#models-as-lego-sets) · [Commands](#commands) · [Typical workflows](#typical-workflows)
-- [Quality controls](#quality-controls) · [The agents](#the-agents) · [Repository layout](#repository-layout) · [Setup](#setup)
-- [Intended use: public data only](#intended-use-public-data-only) · [Limitations](#limitations) · [Customizing](#customizing) · [Version history](#version-history)
 
 ## What it covers
 
