@@ -67,7 +67,7 @@ Run these agents as subagents (the `Task` tool), in parallel where the steps are
 ## Output
 `docs/models/<name>/bvar-results.md`; code and settings in `models/econometrics/<name>/`
 
-The results document reports the prior and hyperparameters, diagnostics, forecasts and the out-of-sample comparison; code and settings allow exact rerun.
+The results document reports the prior and hyperparameters, diagnostics, forecasts and the out-of-sample comparison; code and settings allow exact rerun. Every run saves its results to `output/<run-id>/` in the model folder, with a run log (`.claude/rules/model-code.md`).
 
 ## Gate / verdict
 - Out-of-sample comparison with benchmarks present

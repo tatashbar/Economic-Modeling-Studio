@@ -69,7 +69,7 @@ Each agent is defined in `.claude/agents/<name>.md`. If your tool runs subagents
 ## Output
 `models/games/<name>/ (+ model.lego.json)`
 
-The folder holds the game specification, solution code, equilibrium list with verification, comparative statics, calibration files where used and the lego manifest.
+The folder holds the game specification, solution code, equilibrium list with verification, comparative statics, calibration files where used and the lego manifest. Every run saves its results to `output/<run-id>/` in the model folder, with a run log (`.claude/rules/model-code.md`).
 
 ## Gate / verdict
 - All equilibria found are reported

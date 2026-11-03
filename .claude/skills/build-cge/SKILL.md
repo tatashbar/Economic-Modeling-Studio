@@ -78,7 +78,7 @@ Run these agents as subagents (the `Task` tool), in parallel where the steps are
 ## Output
 `models/cge/<name>/ (+ model.lego.json)`
 
-The folder holds the SAM, calibration scripts, model code, the replication test, scenario and sensitivity scripts, the elasticity table with sources, the results pack with welfare decomposition and the lego manifest.
+The folder holds the SAM, calibration scripts, model code, the replication test, scenario and sensitivity scripts, the elasticity table with sources, the results pack with welfare decomposition and the lego manifest. Every run saves its results to `output/<run-id>/` in the model folder, with a run log (`.claude/rules/model-code.md`).
 
 ## Gate / verdict
 - Benchmark replicated to tolerance

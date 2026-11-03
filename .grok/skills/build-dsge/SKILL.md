@@ -84,7 +84,7 @@ Each agent is defined in `.claude/agents/<name>.md`. If your tool runs subagents
 ## Output
 `models/dsge/<name>/ (+ model.lego.json)`
 
-The folder holds the parameter, steady-state, model and run files, the test suite, the calibration sheet, the derivation note, the impulse-response pack and the lego manifest. Documentation goes to `docs/models/<name>/`.
+The folder holds the parameter, steady-state, model and run files, the test suite, the calibration sheet, the derivation note, the impulse-response pack and the lego manifest. Documentation goes to `docs/models/<name>/`. Every run saves its results to `output/<run-id>/` in the model folder, with a run log (`.claude/rules/model-code.md`).
 
 ## Gate / verdict
 - Determinacy verified

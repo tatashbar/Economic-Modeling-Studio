@@ -59,9 +59,9 @@ Run these agents as subagents (the `Task` tool), in parallel where the steps are
 - Scope creep beyond the time budget
 
 ## Output
-`docs/models/<name>/quick-note.md`
+`docs/models/<name>/quick-note.md`; code in `models/<family>/<name>/`
 
-The quick note states the question, model, inputs, checks, range of results, caveats and the promotion path.
+The quick note states the question, model, inputs, checks, range of results, caveats and the promotion path. Every run saves its results to `output/<run-id>/` in the model folder, with a run log (`.claude/rules/model-code.md`).
 
 ## Gate / verdict
 - Output is labelled exploratory; promotion requires `/model-brief` and `/validate-model`

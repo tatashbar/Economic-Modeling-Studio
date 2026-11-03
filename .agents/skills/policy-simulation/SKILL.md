@@ -66,7 +66,7 @@ Each agent is defined in `.claude/agents/<name>.md`. If your tool runs subagents
 ## Output
 `forecasts/policy-simulations/<name>.md`
 
-The report defines each option, presents outcomes by model, compares trade-offs and states which conclusions are robust.
+The report defines each option, presents outcomes by model, compares trade-offs and states which conclusions are robust. Every run saves its results to `output/<run-id>/` in the model folder, with a run log (`.claude/rules/model-code.md`).
 
 ## Gate / verdict
 - At least two models used

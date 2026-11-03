@@ -71,7 +71,7 @@ Each agent is defined in `.claude/agents/<name>.md`. If your tool runs subagents
 ## Output
 `models/financial-programming/<country>/ (+ model.lego.json)`
 
-The folder holds the accounts code with identity assertions, the behavioral-parameter table, baseline and scenario files, the consistency report and the lego manifest.
+The folder holds the accounts code with identity assertions, the behavioral-parameter table, baseline and scenario files, the consistency report and the lego manifest. Every run saves its results to `output/<run-id>/` in the model folder, with a run log (`.claude/rules/model-code.md`).
 
 ## Gate / verdict
 - All sectoral identities close

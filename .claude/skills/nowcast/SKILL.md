@@ -68,7 +68,7 @@ Run these agents as subagents (the `Task` tool), in parallel where the steps are
 ## Output
 `forecasts/nowcasts/<target>-<date>.md`; model code in `models/econometrics/<name>/`
 
-Each nowcast note reports the estimate, density, news since the last update and data used; model code supports scheduled updates.
+Each nowcast note reports the estimate, density, news since the last update and data used; model code supports scheduled updates. Every run saves its results to `output/<run-id>/` in the model folder, with a run log (`.claude/rules/model-code.md`).
 
 ## Gate / verdict
 - Pseudo-real-time evaluation performed

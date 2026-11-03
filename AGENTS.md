@@ -37,6 +37,7 @@ The files under `.agents/`, `.grok/` and `.cursor/rules/` are generated. Edit th
 | `models/ai/**/*drl*/**`, `models/ai/**/*rl*/**` | `.claude/rules/rl-code.md` |
 | `models/io-sam/**`, `models/cge/**`, `models/trade/**`, `models/climate/**` | `.claude/rules/sectoral-trade-climate-code.md` |
 | `models/semi-structural/**`, `models/fpas/**`, `models/financial-programming/**` | `.claude/rules/semi-structural-code.md` |
+| `**/*.do`, `**/*.ado` | `.claude/rules/stata-code.md` |
 | `tests/**`, `**/test_*.py`, `**/*_test.jl`, `**/test_*.m` | `.claude/rules/tests.md` |
 | `validation/**` | `.claude/rules/validation.md` |
 <!-- END GENERATED: rules -->
@@ -46,7 +47,7 @@ The files under `.agents/`, `.grok/` and `.cursor/rules/` are generated. Edit th
 2. **Independence.** The builder of a model never validates it.
 3. **No fabrication.** Never invent data, parameters, citations or results. Missing inputs → `NOT ASSESSED — NO DATA`.
 4. **Benchmark first.** Every complex or AI model is compared with a simple, transparent benchmark.
-5. **Reproducibility.** Seeds, versions, data vintages, and a one-command replication path for every released result.
+5. **Reproducibility.** Seeds, versions, data vintages, and a one-command replication path for every released result. Model code lives in files, and every run saves its results to the model's `output/<run-id>/` folder with a run log.
 6. **Uncertainty is part of the result.** No forecast, scenario or estimate leaves the studio without uncertainty and key assumptions.
 7. **Confidentiality.** Respect data classification levels. Never read `data/restricted/`. No restricted or confidential data in prompts, logs or external services without written authorization. See `.claude/docs/confidentiality-and-ai-use.md`.
 8. **Raw data is immutable.** Never change, move or delete a file in `data/raw/`; write a new vintage or a processed version.

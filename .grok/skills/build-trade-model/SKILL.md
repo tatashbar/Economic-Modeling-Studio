@@ -70,7 +70,7 @@ Each agent is defined in `.claude/agents/<name>.md`. If your tool runs subagents
 ## Output
 `models/trade/<name>/ (+ model.lego.json)`
 
-The folder holds data, estimation scripts and results, the GE model and counterfactual scripts, the elasticity table with sources, results with welfare decomposition and the lego manifest.
+The folder holds data, estimation scripts and results, the GE model and counterfactual scripts, the elasticity table with sources, results with welfare decomposition and the lego manifest. Every run saves its results to `output/<run-id>/` in the model folder, with a run log (`.claude/rules/model-code.md`).
 
 ## Gate / verdict
 - Baseline trade flows reproduced

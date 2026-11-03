@@ -1,7 +1,7 @@
 ---
 name: setup-environment
 description: "Sets up language toolchains, project folders, data classification levels and studio configuration for the chosen model stack."
-argument-hint: "[matlab-dynare|python|julia|r|mixed]"
+argument-hint: "[matlab-dynare|python|julia|r|gams|stata|mixed]"
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Write, Edit, Bash, AskUserQuestion, Task
 ---
@@ -40,7 +40,7 @@ Run these agents as subagents (the `Task` tool), in parallel where the steps are
 ## Key design decisions (present options, let the user choose)
 | Decision | Typical options | What it changes |
 |---|---|---|
-| Languages | Python, Julia, R, MATLAB/Dynare | Toolchains and skills used |
+| Languages | Python, Julia, R, MATLAB/Dynare, GAMS, Stata | Toolchains and skills used |
 | Environments | lock files, containers | Reproducibility |
 | Data classes | public, internal, restricted, confidential | Handling rules |
 
@@ -50,6 +50,7 @@ Run these agents as subagents (the `Task` tool), in parallel where the steps are
 3. Propose environment files (lock files, containers) and ask before creating them
 4. Record decisions in `studio-config.yaml` and a stack ADR
 5. Verify by running a minimal smoke test in each chosen language
+   - For Stata, find the executable (`stata-mp`, `stata-se` or `stata`, or `StataMP-64.exe` on Windows) and run a one-line do-file in batch mode (`-b do`); if it is not callable from the terminal, record that runs are done by the user and the agents write the do-files only
    - Include `python tools/lego.py` on a sample manifest to confirm the lego engine runs
 
 ## Checkpoints with the user
@@ -59,6 +60,7 @@ Run these agents as subagents (the `Task` tool), in parallel where the steps are
 ## Common pitfalls
 - Tools not approved by institutional IT
 - Unpinned environments
+- Stata user-written packages not recorded
 - Data added before classification is configured
 
 ## Output

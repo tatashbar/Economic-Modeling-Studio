@@ -71,7 +71,7 @@ Run these agents as subagents (the `Task` tool), in parallel where the steps are
 ## Output
 `models/multicountry/<name>/ (+ model.lego.json)`
 
-The folder holds regional blocks, bilateral matrices, calibration files, global scenario scripts, the benchmark comparison, runtime profile and the lego manifest.
+The folder holds regional blocks, bilateral matrices, calibration files, global scenario scripts, the benchmark comparison, runtime profile and the lego manifest. Every run saves its results to `output/<run-id>/` in the model folder, with a run log (`.claude/rules/model-code.md`).
 
 ## Gate / verdict
 - Global accounting closes

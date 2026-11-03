@@ -27,5 +27,9 @@ If an input needed for a section does not exist, the answer is **`NOT ASSESSED â
 - Subagents write only to paths named in their instructions and report back; the main session integrates and presents to the user.
 - Never delegate validation of a model to anyone who built it.
 
+## Saving work
+- Model code is written to files in the model folder, never left only in the chat.
+- Results shown in a session (tables, charts, numbers) are saved to the model's `output/<run-id>/` folder with a run log, so they can be found and reproduced later. Ask once before the first save in a task.
+
 ## Session state
 `production/session-state/active.md` holds: current task, completed sections, key decisions, open questions, next step. Read it on resume.

@@ -66,7 +66,7 @@ Each agent is defined in `.claude/agents/<name>.md`. If your tool runs subagents
 ## Output
 `models/sfc/<name>/ (+ model.lego.json)`
 
-The folder holds the transaction-flow and balance-sheet matrices, model code, calibration files, scenario scripts, the benchmark comparison and the lego manifest.
+The folder holds the transaction-flow and balance-sheet matrices, model code, calibration files, scenario scripts, the benchmark comparison and the lego manifest. Every run saves its results to `output/<run-id>/` in the model folder, with a run log (`.claude/rules/model-code.md`).
 
 ## Gate / verdict
 - Matrices balance

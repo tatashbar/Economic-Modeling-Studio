@@ -2,7 +2,7 @@
 
 # Economic Modeling Studio
 
-**Version 1.7.1**
+**Version 1.8.0**
 
 A studio for building, estimating, validating and using economic models. **119 specialist agents** and **85 skills** (workflow commands such as `/build-dsge` or `/validate-model`) cover specification, building, estimation and independent validation for semi-structural projection and DSGE, input-output and CGE, trade and climate-economy models, deep learning, reinforcement learning, neural-network solvers, LLM-based tools, agent-based and game-theoretic models, and other econometric models. The studio also lets you work with every model as a **lego set**: a core model with plug-and-play components that can be added, swapped or removed, with explicit interfaces and the impact of every change checked first. It works with any coding agent that reads `AGENTS.md`: Claude Code, Codex, Cursor, Grok Build, Gemini CLI and others.
 
@@ -43,7 +43,7 @@ The lifecycle has six stages: **Concept, Design, Build, Estimate, Validate, and 
 - **A coding agent:** Claude Code, Codex, Cursor, Grok Build, Gemini CLI or another that reads `AGENTS.md`.
 - **Git**, to clone the repository and enable the commit guard.
 - **Python 3.9 or later.** The hooks and tools use only the standard library, so nothing needs installing. The Claude Code and Cursor hooks call `python`, so that command must be on your PATH; on macOS and Linux, where it is often only `python3`, add an alias or install `python-is-python3`.
-- **Your modeling software, as needed:** Dynare (with MATLAB or Octave), Julia, Python, R or GAMS. List the ones you use under `toolchains` in `studio-config.yaml`; `/setup-environment` can guide the setup.
+- **Your modeling software, as needed:** Dynare (with MATLAB or Octave), Julia, Python, R, GAMS or Stata. List the ones you use under `toolchains` in `studio-config.yaml`; `/setup-environment` can guide the setup.
 - **Check the install** from the studio folder: `python tools/validate_studio.py` (integrity) and `python tools/test_studio.py` (hooks and consistency).
 
 The hooks find the project root on their own, so the agent can start in any subfolder, and a missing hook script does nothing rather than blocking your session.
@@ -300,7 +300,7 @@ AGENTS.md                  project instructions for every coding agent (CLAUDE.m
 studio-config.yaml         rigor by model class, data classes, approved toolchains, AI governance
 .claude/agents/            119 agent definitions
 .claude/skills/            85 commands (one SKILL.md each)
-.claude/rules/             path-scoped standards (models, DSGE, sectoral/trade/climate, econometrics, lego manifests, AI/ML, RL, LLM, data, forecasts, validation, ...)
+.claude/rules/             path-scoped standards (models, DSGE, sectoral/trade/climate, econometrics, Stata, lego manifests, AI/ML, RL, LLM, data, forecasts, validation, ...)
 .claude/hooks/             Python guard scripts: session context, command guard, protected paths, document checks, audit log
 .agents/ .grok/ .cursor/   generated copies of commands and rules for other coding agents; Cursor hooks
 .githooks/                 git pre-commit guard (any tool)
@@ -309,7 +309,8 @@ docs/                      templates (22), lego guide, screenshots (docs/images)
 lego/                      brick catalog (20 reusable bricks), shared port definitions, two worked examples
 models/                    model code by family: semi-structural, fpas, financial-programming, dsge, multicountry,
                            io-sam, cge, trade, climate, sfc, abm, games, ai, llm, econometrics
-                           (each model with its model.lego.json; estimation-only econometric models need none)
+                           (each model with its code, its model.lego.json and an output/ folder with one subfolder per run;
+                           estimation-only econometric models need no manifest)
 data/ forecasts/ validation/ production/ tests/ notebooks/ scripts/    working folders
 tools/lego.py              lego engine: catalog, new, show, check, attach, detach, swap, arrange, validate, elements
 tools/lego_view.py         isometric 3D picture of a lego set (self-contained HTML)
@@ -342,6 +343,7 @@ Adapt `studio-config.yaml` and `.claude/docs/confidentiality-and-ai-use.md` to t
 Agents and skills are Markdown files with YAML frontmatter; edit them freely. After changes run `python tools/validate_studio.py`. To add an agent, create `.claude/agents/<name>.md` and list it as a peer in the related agents. To add a command, create `.claude/skills/<name>/SKILL.md`. Path-scoped standards live in `.claude/rules/`. After changing commands or rules, run `python tools/sync_agents.py` to update the copies for other coding agents.
 
 ## Version history
+- **1.8.0** — Saved results and Stata support. Model code always lives in files in the model folder, and every run saves its results (tables, charts, simulated paths, forecasts) to `output/<run-id>/` with a run log, including results first shown in a chat. Stata is an approved toolchain, with rules for do-files (master `run.do`, pinned version, logged seed, text logs, batch mode) and a Stata check in `/setup-environment`.
 - **1.7.1** — README demo: an unedited, real-time recording of the studio building a draft oil-shock model for Norway, from `/start` to an independently reviewed model and results report.
 - **1.7.0** — Lego stacking follows the model's causal chains: a brick now stands on any brick whose outputs it reads, also within a layer, so a chain in which world prices feed an oil sector that feeds the fiscal rule builds three levels on its own. Bricks that read each other stand side by side, and pyramid steps are sized to the bricks that belong on them. Example sets re-arranged and README lego images regenerated.
 - **1.6.2** — Fixes from an end-to-end test on a Dynare model: element counts ignore names repeated inside blocks such as `shocks`, follow `@#if` macro branches, and keep the modeler's judgments (assumed parameters, verified constraints, data vintage) on a recount; marking parameters as assumed no longer changes the parameter total.

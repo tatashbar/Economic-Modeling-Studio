@@ -1036,6 +1036,27 @@ end;
         for s in ("estimate-var", "estimate-bvar", "local-projections", "nowcast"):
             self.assertIn("models/econometrics/", read(os.path.join(ROOT, ".claude", "skills", s, "SKILL.md")), s)
 
+    def test_model_code_and_run_results_are_saved(self):
+        rule = read(os.path.join(ROOT, ".claude", "rules", "model-code.md"))
+        self.assertIn("output/<run-id>/", rule)
+        self.assertIn("run-log.md", rule)
+        self.assertIn("output/<run-id>/", read(os.path.join(ROOT, ".claude", "docs", "collaboration-protocol.md")))
+        self.assertIn("output/<run-id>/", read(os.path.join(ROOT, "AGENTS.md")))
+        runs = [os.path.basename(os.path.dirname(p)) for p in glob.glob(os.path.join(ROOT, ".claude", "skills", "*", "SKILL.md"))
+                if os.path.basename(os.path.dirname(p)).startswith(("build-", "estimate-"))]
+        self.assertGreater(len(runs), 20)
+        for s in runs + ["policy-simulation", "quick-model", "calibrate-model", "local-projections", "nowcast", "adopt"]:
+            self.assertIn("output/<run-id>/", read(os.path.join(ROOT, ".claude", "skills", s, "SKILL.md")), s)
+
+    def test_stata_is_an_approved_toolchain_with_rules(self):
+        self.assertRegex(read(os.path.join(ROOT, "studio-config.yaml")), r'approved: \[[^\]]*"stata"')
+        rule = read(os.path.join(ROOT, ".claude", "rules", "stata-code.md"))
+        for s in ('"**/*.do"', "run.do", "set seed", "output/<run-id>/", "-b do"):
+            self.assertIn(s, rule)
+        self.assertIn("stata", read(os.path.join(ROOT, ".claude", "skills", "setup-environment", "SKILL.md")))
+        self.assertIn(".claude/rules/stata-code.md", read(os.path.join(ROOT, "AGENTS.md")))
+        self.assertTrue(os.path.exists(os.path.join(ROOT, ".cursor", "rules", "stata-code.mdc")))
+
     def test_lego_commands_and_build_integration(self):
         for s in ("lego-map", "lego-show", "lego-add", "lego-detach", "lego-swap", "lego-check", "lego-brick"):
             t = read(os.path.join(ROOT, ".claude", "skills", s, "SKILL.md"))

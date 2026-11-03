@@ -67,7 +67,7 @@ Each agent is defined in `.claude/agents/<name>.md`. If your tool runs subagents
 ## Output
 `models/llm/<name>-agents/`
 
-The folder holds persona and protocol definitions, prompts, run scripts, raw outputs, sensitivity analysis, the human-data comparison and a reproducibility record.
+The folder holds persona and protocol definitions, prompts, run scripts, raw outputs, sensitivity analysis, the human-data comparison and a reproducibility record. Every run saves its results to `output/<run-id>/` in the model folder, with a run log (`.claude/rules/model-code.md`).
 
 ## Gate / verdict
 - Sensitivity across prompts and models reported

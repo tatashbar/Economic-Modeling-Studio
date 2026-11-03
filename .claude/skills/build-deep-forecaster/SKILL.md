@@ -73,7 +73,7 @@ Run these agents as subagents (the `Task` tool), in parallel where the steps are
 ## Output
 `models/ai/<name>/ and docs/models/<name>/experiment-log.md (+ model.lego.json)`
 
-The model folder holds code, benchmark scripts, training logs and evaluation results; the experiment log records every run with seeds, data vintages and scores; the lego manifest registers the forecaster as a satellite brick.
+The model folder holds code, benchmark scripts, training logs and evaluation results; the experiment log records every run with seeds, data vintages and scores; the lego manifest registers the forecaster as a satellite brick. Every run saves its results to `output/<run-id>/` in the model folder, with a run log (`.claude/rules/model-code.md`).
 
 ## Gate / verdict
 - Benchmarks were built first

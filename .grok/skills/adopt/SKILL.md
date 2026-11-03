@@ -56,7 +56,7 @@ Each agent is defined in `.claude/agents/<name>.md`. If your tool runs subagents
 ## Output
 `docs/models/<model>/adoption-report.md`
 
-The adoption report holds the inventory, reverse documentation, reference outputs and environment, risk rating, gap list, plan and the draft lego manifest.
+The adoption report holds the inventory, reverse documentation, reference outputs and environment, risk rating, gap list, plan and the draft lego manifest. Every run saves its results to `output/<run-id>/` in the model folder, with a run log (`.claude/rules/model-code.md`).
 
 ## Gate / verdict
 - Baseline outputs are captured before any code is changed

@@ -64,7 +64,7 @@ Each agent is defined in `.claude/agents/<name>.md`. If your tool runs subagents
 ## Output
 `docs/models/<name>/var-results.md`; code and settings in `models/econometrics/<name>/`
 
-The results document reports specification tests, diagnostics, identification, IRFs and FEVD with bands, and robustness; code and settings allow exact rerun.
+The results document reports specification tests, diagnostics, identification, IRFs and FEVD with bands, and robustness; code and settings allow exact rerun. Every run saves its results to `output/<run-id>/` in the model folder, with a run log (`.claude/rules/model-code.md`).
 
 ## Gate / verdict
 - Stability and residual tests reported

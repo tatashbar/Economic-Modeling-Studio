@@ -71,7 +71,7 @@ Each agent is defined in `.claude/agents/<name>.md`. If your tool runs subagents
 ## Output
 `models/fpas/<name>/ and docs/models/<name>/fpas-design.md (+ model.lego.json)`
 
-The model folder holds the core model, nowcast tools, templates and run scripts; the design document covers the calendar, roles, overlay rules and the mock-round review; the lego manifest registers the model and its satellites.
+The model folder holds the core model, nowcast tools, templates and run scripts; the design document covers the calendar, roles, overlay rules and the mock-round review; the lego manifest registers the model and its satellites. Every run saves its results to `output/<run-id>/` in the model folder, with a run log (`.claude/rules/model-code.md`).
 
 ## Gate / verdict
 - A full mock round runs end-to-end from a frozen data vintage

@@ -69,7 +69,7 @@ Run these agents as subagents (the `Task` tool), in parallel where the steps are
 ## Output
 `models/llm/<name>-rag/`
 
-The folder holds the ingestion and indexing code, access rules, the question set, evaluation results, red-team findings and the monitoring plan.
+The folder holds the ingestion and indexing code, access rules, the question set, evaluation results, red-team findings and the monitoring plan. Every run saves its results to `output/<run-id>/` in the model folder, with a run log (`.claude/rules/model-code.md`).
 
 ## Gate / verdict
 - Access control enforced at retrieval time

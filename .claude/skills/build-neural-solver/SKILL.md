@@ -71,7 +71,7 @@ Run these agents as subagents (the `Task` tool), in parallel where the steps are
 ## Output
 `models/ai/<name>-solver/ (+ model.lego.json)`
 
-The folder holds the solver code, certification results, residual statistics, the surrogate and its accuracy report, and the lego manifest.
+The folder holds the solver code, certification results, residual statistics, the surrogate and its accuracy report, and the lego manifest. Every run saves its results to `output/<run-id>/` in the model folder, with a run log (`.claude/rules/model-code.md`).
 
 ## Gate / verdict
 - Matches classical solution on the test case

@@ -70,7 +70,7 @@ Run these agents as subagents (the `Task` tool), in parallel where the steps are
 ## Output
 `models/llm/<name>/ and docs/models/<name>/llm-eval-card.md`
 
-The pipeline folder holds prompts, schemas, code, the evaluation set and results; the evaluation card documents accuracy, failure modes, human review and monitoring.
+The pipeline folder holds prompts, schemas, code, the evaluation set and results; the evaluation card documents accuracy, failure modes, human review and monitoring. Every run saves its results to `output/<run-id>/` in the model folder, with a run log (`.claude/rules/model-code.md`).
 
 ## Gate / verdict
 - Confidentiality approved

@@ -72,7 +72,7 @@ Run these agents as subagents (the `Task` tool), in parallel where the steps are
 ## Output
 `models/ai/<name>-drl/ and docs/models/<name>/experiment-log.md (+ model.lego.json)`
 
-The model folder holds the environment, agent code, training logs across seeds, benchmark comparisons and robustness results; the experiment log records every run; the lego manifest registers the policy brick.
+The model folder holds the environment, agent code, training logs across seeds, benchmark comparisons and robustness results; the experiment log records every run; the lego manifest registers the policy brick. Every run saves its results to `output/<run-id>/` in the model folder, with a run log (`.claude/rules/model-code.md`).
 
 ## Gate / verdict
 - Reward is welfare-based and approved

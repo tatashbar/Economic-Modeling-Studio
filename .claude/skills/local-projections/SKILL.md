@@ -66,7 +66,7 @@ Run these agents as subagents (the `Task` tool), in parallel where the steps are
 ## Output
 `docs/models/<name>/lp-results.md`; code and settings in `models/econometrics/<name>/`
 
-The results document reports specifications, responses with bands, state-dependent results and the VAR comparison; code and settings allow exact rerun.
+The results document reports specifications, responses with bands, state-dependent results and the VAR comparison; code and settings allow exact rerun. Every run saves its results to `output/<run-id>/` in the model folder, with a run log (`.claude/rules/model-code.md`).
 
 ## Gate / verdict
 - Inference accounts for overlapping horizons

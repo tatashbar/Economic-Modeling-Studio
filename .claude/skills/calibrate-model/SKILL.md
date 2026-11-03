@@ -65,9 +65,9 @@ Run these agents as subagents (the `Task` tool), in parallel where the steps are
 - Many parameters loosely pinned by few targets
 
 ## Output
-`docs/models/<name>/calibration-sheet.md`
+`docs/models/<name>/calibration-sheet.md`; calibration code in `models/<family>/<name>/`
 
-The calibration sheet lists every parameter with value, source, target and sensitivity, and reports targeted and untargeted fit.
+The calibration sheet lists every parameter with value, source, target and sensitivity, and reports targeted and untargeted fit. Every run saves its results to `output/<run-id>/` in the model folder, with a run log (`.claude/rules/model-code.md`).
 
 ## Gate / verdict
 - Untargeted moments reported

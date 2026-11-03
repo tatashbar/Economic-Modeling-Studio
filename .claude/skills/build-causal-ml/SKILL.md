@@ -70,7 +70,7 @@ Run these agents as subagents (the `Task` tool), in parallel where the steps are
 ## Output
 `models/ai/<name>-causal/ (+ model.lego.json)`
 
-The folder holds the identification note, estimation code with cross-fitting, overlap diagnostics, heterogeneity analysis, sensitivity results and the lego manifest.
+The folder holds the identification note, estimation code with cross-fitting, overlap diagnostics, heterogeneity analysis, sensitivity results and the lego manifest. Every run saves its results to `output/<run-id>/` in the model folder, with a run log (`.claude/rules/model-code.md`).
 
 ## Gate / verdict
 - Identification assumptions stated

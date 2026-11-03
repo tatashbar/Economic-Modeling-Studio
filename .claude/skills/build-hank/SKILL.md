@@ -73,7 +73,7 @@ Run these agents as subagents (the `Task` tool), in parallel where the steps are
 ## Output
 `models/dsge/<name>-hank/ (+ model.lego.json)`
 
-The folder holds the household block and tests, steady-state and Jacobian code, the GE assembly, calibration files, the aggregate and distributional IRF pack and the lego manifest.
+The folder holds the household block and tests, steady-state and Jacobian code, the GE assembly, calibration files, the aggregate and distributional IRF pack and the lego manifest. Every run saves its results to `output/<run-id>/` in the model folder, with a run log (`.claude/rules/model-code.md`).
 
 ## Gate / verdict
 - Market clearing and aggregation checks pass

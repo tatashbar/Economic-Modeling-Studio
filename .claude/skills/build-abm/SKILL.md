@@ -76,7 +76,7 @@ Run these agents as subagents (the `Task` tool), in parallel where the steps are
 ## Output
 `models/abm/<name>/ (+ model.lego.json)`
 
-The folder holds the ODD document, code, unit tests, calibration scripts and results, experiment scripts with seeds, the sensitivity report and the lego manifest.
+The folder holds the ODD document, code, unit tests, calibration scripts and results, experiment scripts with seeds, the sensitivity report and the lego manifest. Every run saves its results to `output/<run-id>/` in the model folder, with a run log (`.claude/rules/model-code.md`).
 
 ## Gate / verdict
 - ODD complete

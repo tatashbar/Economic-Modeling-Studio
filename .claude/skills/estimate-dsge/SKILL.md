@@ -70,7 +70,7 @@ Run these agents as subagents (the `Task` tool), in parallel where the steps are
 ## Output
 `docs/models/<name>/estimation-report.md`
 
-The estimation report covers priors, identification, convergence, prior–posterior comparisons, fit and shock decompositions; draws and configuration are archived with the model.
+The estimation report covers priors, identification, convergence, prior–posterior comparisons, fit and shock decompositions; draws and configuration are archived with the model. Every run saves its results to `output/<run-id>/` in the model folder, with a run log (`.claude/rules/model-code.md`).
 
 ## Gate / verdict
 - Convergence diagnostics pass

@@ -73,7 +73,7 @@ Each agent is defined in `.claude/agents/<name>.md`. If your tool runs subagents
 ## Output
 `models/climate/<name>/ (+ model.lego.json)`
 
-The folder holds model code, calibration and emissions-baseline files, scenario scripts, the sensitivity pack across damages, discounting and technology costs, the limitations note and the lego manifest.
+The folder holds model code, calibration and emissions-baseline files, scenario scripts, the sensitivity pack across damages, discounting and technology costs, the limitations note and the lego manifest. Every run saves its results to `output/<run-id>/` in the model folder, with a run log (`.claude/rules/model-code.md`).
 
 ## Gate / verdict
 - Damage-function and discount-rate alternatives shown

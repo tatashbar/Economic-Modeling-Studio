@@ -74,7 +74,7 @@ Run these agents as subagents (the `Task` tool), in parallel where the steps are
 ## Output
 `models/io-sam/<name>/ (+ model.lego.json)`
 
-The folder holds source data, construction and balancing scripts, the balanced table, multiplier and linkage tables, impact-analysis scripts and results, the documentation note and the lego manifest.
+The folder holds source data, construction and balancing scripts, the balanced table, multiplier and linkage tables, impact-analysis scripts and results, the documentation note and the lego manifest. Every run saves its results to `output/<run-id>/` in the model folder, with a run log (`.claude/rules/model-code.md`).
 
 ## Gate / verdict
 - Row and column totals balance to tolerance

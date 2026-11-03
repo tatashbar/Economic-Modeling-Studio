@@ -72,7 +72,7 @@ Run these agents as subagents (the `Task` tool), in parallel where the steps are
 ## Output
 `models/trade/<name>/ (+ model.lego.json)`
 
-The folder holds data, estimation scripts and results, the GE model and counterfactual scripts, the elasticity table with sources, results with welfare decomposition and the lego manifest.
+The folder holds data, estimation scripts and results, the GE model and counterfactual scripts, the elasticity table with sources, results with welfare decomposition and the lego manifest. Every run saves its results to `output/<run-id>/` in the model folder, with a run log (`.claude/rules/model-code.md`).
 
 ## Gate / verdict
 - Baseline trade flows reproduced
