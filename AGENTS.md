@@ -28,6 +28,7 @@ The files under `.agents/`, `.grok/` and `.cursor/rules/` are generated. Edit th
 | `docs/**` | `.claude/rules/documentation.md` |
 | `models/dsge/**`, `models/multicountry/**` | `.claude/rules/dsge-code.md` |
 | `models/econometrics/**` | `.claude/rules/econometrics-code.md` |
+| `**/*.prg`, `**/*.wf1` | `.claude/rules/eviews-code.md` |
 | `forecasts/**` | `.claude/rules/forecasts.md` |
 | `models/**/model.lego.json`, `lego/**` | `.claude/rules/lego-manifests.md` |
 | `models/llm/**` | `.claude/rules/llm-code.md` |

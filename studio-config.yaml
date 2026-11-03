@@ -3,7 +3,7 @@
 
 studio:
   name: "Economic Modeling Studio"
-  version: "1.8.1"
+  version: "1.8.2"
   default_language: "en"
 
 # How much process each model class needs. See .claude/docs/model-classes.md
@@ -21,7 +21,7 @@ data_classes:
   confidential: { path: "data/restricted", external_services_allowed: false, claude_read_allowed: false }
 
 toolchains:
-  approved: ["python", "julia", "matlab-dynare", "r", "gams", "stata"]   # edit to match what your IT policy approves
+  approved: ["python", "julia", "matlab-dynare", "r", "gams", "stata", "eviews"]   # edit to match what your IT policy approves
 
 ai_governance:
   require_traditional_benchmark: true

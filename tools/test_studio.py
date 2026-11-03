@@ -1067,6 +1067,15 @@ end;
         self.assertIn(".claude/rules/r-code.md", read(os.path.join(ROOT, "AGENTS.md")))
         self.assertTrue(os.path.exists(os.path.join(ROOT, ".cursor", "rules", "r-code.mdc")))
 
+    def test_eviews_is_an_approved_toolchain_with_rules(self):
+        self.assertRegex(read(os.path.join(ROOT, "studio-config.yaml")), r'approved: \[[^\]]*"eviews"')
+        rule = read(os.path.join(ROOT, ".claude", "rules", "eviews-code.md"))
+        for s in ('"**/*.prg"', "run.prg", "wfcreate", "rndseed", "output/<run-id>/", "pyeviews", "exit"):
+            self.assertIn(s, rule)
+        self.assertIn("EViews", read(os.path.join(ROOT, ".claude", "skills", "setup-environment", "SKILL.md")))
+        self.assertIn(".claude/rules/eviews-code.md", read(os.path.join(ROOT, "AGENTS.md")))
+        self.assertTrue(os.path.exists(os.path.join(ROOT, ".cursor", "rules", "eviews-code.mdc")))
+
     def test_lego_commands_and_build_integration(self):
         for s in ("lego-map", "lego-show", "lego-add", "lego-detach", "lego-swap", "lego-check", "lego-brick"):
             t = read(os.path.join(ROOT, ".claude", "skills", s, "SKILL.md"))
