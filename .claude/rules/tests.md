@@ -4,6 +4,8 @@ paths:
   - "**/test_*.py"
   - "**/*_test.jl"
   - "**/test_*.m"
+  - "**/tests/testthat/**"
+  - "**/test-*.R"
 ---
 # Rules: Tests
 

@@ -48,6 +48,7 @@ Each agent is defined in `.claude/agents/<name>.md`. If your tool runs subagents
 3. Propose environment files (lock files, containers) and ask before creating them
 4. Record decisions in `studio-config.yaml` and a stack ADR
 5. Verify by running a minimal smoke test in each chosen language
+   - For R, check that `Rscript` is on the PATH, record the R version, and initialise `renv` so `renv.lock` pins the packages
    - For Stata, find the executable (`stata-mp`, `stata-se` or `stata`, or `StataMP-64.exe` on Windows) and run a one-line do-file in batch mode (`-b do`); if it is not callable from the terminal, record that runs are done by the user and the agents write the do-files only
    - Include `python tools/lego.py` on a sample manifest to confirm the lego engine runs
 
@@ -59,6 +60,7 @@ Each agent is defined in `.claude/agents/<name>.md`. If your tool runs subagents
 - Tools not approved by institutional IT
 - Unpinned environments
 - Stata user-written packages not recorded
+- R packages installed without `renv`, so versions drift
 - Data added before classification is configured
 
 ## Output

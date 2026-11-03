@@ -2,7 +2,7 @@
 
 # Economic Modeling Studio
 
-**Version 1.8.0**
+**Version 1.8.1**
 
 A studio for building, estimating, validating and using economic models. **119 specialist agents** and **85 skills** (workflow commands such as `/build-dsge` or `/validate-model`) cover specification, building, estimation and independent validation for semi-structural projection and DSGE, input-output and CGE, trade and climate-economy models, deep learning, reinforcement learning, neural-network solvers, LLM-based tools, agent-based and game-theoretic models, and other econometric models. The studio also lets you work with every model as a **lego set**: a core model with plug-and-play components that can be added, swapped or removed, with explicit interfaces and the impact of every change checked first. It works with any coding agent that reads `AGENTS.md`: Claude Code, Codex, Cursor, Grok Build, Gemini CLI and others.
 
@@ -300,7 +300,7 @@ AGENTS.md                  project instructions for every coding agent (CLAUDE.m
 studio-config.yaml         rigor by model class, data classes, approved toolchains, AI governance
 .claude/agents/            119 agent definitions
 .claude/skills/            85 commands (one SKILL.md each)
-.claude/rules/             path-scoped standards (models, DSGE, sectoral/trade/climate, econometrics, Stata, lego manifests, AI/ML, RL, LLM, data, forecasts, validation, ...)
+.claude/rules/             path-scoped standards (models, DSGE, sectoral/trade/climate, econometrics, R, Stata, lego manifests, AI/ML, RL, LLM, data, forecasts, validation, ...)
 .claude/hooks/             Python guard scripts: session context, command guard, protected paths, document checks, audit log
 .agents/ .grok/ .cursor/   generated copies of commands and rules for other coding agents; Cursor hooks
 .githooks/                 git pre-commit guard (any tool)
@@ -343,6 +343,7 @@ Adapt `studio-config.yaml` and `.claude/docs/confidentiality-and-ai-use.md` to t
 Agents and skills are Markdown files with YAML frontmatter; edit them freely. After changes run `python tools/validate_studio.py`. To add an agent, create `.claude/agents/<name>.md` and list it as a peer in the related agents. To add a command, create `.claude/skills/<name>/SKILL.md`. Path-scoped standards live in `.claude/rules/`. After changing commands or rules, run `python tools/sync_agents.py` to update the copies for other coding agents.
 
 ## Version history
+- **1.8.1** — R rules on the same pattern as Stata: a master `run.R` run with `Rscript`, packages pinned with `renv`, relative paths, logged seed, outputs and session details saved to `output/<run-id>/`, and `testthat` tests. `/setup-environment` checks R and sets up `renv`.
 - **1.8.0** — Saved results and Stata support. Model code always lives in files in the model folder, and every run saves its results (tables, charts, simulated paths, forecasts) to `output/<run-id>/` with a run log, including results first shown in a chat. Stata is an approved toolchain, with rules for do-files (master `run.do`, pinned version, logged seed, text logs, batch mode) and a Stata check in `/setup-environment`.
 - **1.7.1** — README demo: an unedited, real-time recording of the studio building a draft oil-shock model for Norway, from `/start` to an independently reviewed model and results report.
 - **1.7.0** — Lego stacking follows the model's causal chains: a brick now stands on any brick whose outputs it reads, also within a layer, so a chain in which world prices feed an oil sector that feeds the fiscal rule builds three levels on its own. Bricks that read each other stand side by side, and pyramid steps are sized to the bricks that belong on them. Example sets re-arranged and README lego images regenerated.

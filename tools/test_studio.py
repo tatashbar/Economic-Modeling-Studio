@@ -1057,6 +1057,16 @@ end;
         self.assertIn(".claude/rules/stata-code.md", read(os.path.join(ROOT, "AGENTS.md")))
         self.assertTrue(os.path.exists(os.path.join(ROOT, ".cursor", "rules", "stata-code.mdc")))
 
+    def test_r_has_rules_tests_and_a_setup_check(self):
+        self.assertRegex(read(os.path.join(ROOT, "studio-config.yaml")), r'approved: \[[^\]]*"r"')
+        rule = read(os.path.join(ROOT, ".claude", "rules", "r-code.md"))
+        for s in ('"**/*.R"', "run.R", "Rscript", "renv", "set.seed", "output/<run-id>/", "testthat"):
+            self.assertIn(s, rule)
+        self.assertIn("**/tests/testthat/**", read(os.path.join(ROOT, ".claude", "rules", "tests.md")))
+        self.assertIn("Rscript", read(os.path.join(ROOT, ".claude", "skills", "setup-environment", "SKILL.md")))
+        self.assertIn(".claude/rules/r-code.md", read(os.path.join(ROOT, "AGENTS.md")))
+        self.assertTrue(os.path.exists(os.path.join(ROOT, ".cursor", "rules", "r-code.mdc")))
+
     def test_lego_commands_and_build_integration(self):
         for s in ("lego-map", "lego-show", "lego-add", "lego-detach", "lego-swap", "lego-check", "lego-brick"):
             t = read(os.path.join(ROOT, ".claude", "skills", s, "SKILL.md"))

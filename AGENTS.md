@@ -33,12 +33,13 @@ The files under `.agents/`, `.grok/` and `.cursor/rules/` are generated. Edit th
 | `models/llm/**` | `.claude/rules/llm-code.md` |
 | `models/**` | `.claude/rules/model-code.md` |
 | `notebooks/**`, `scripts/**` | `.claude/rules/notebooks-and-scripts.md` |
+| `**/*.R`, `**/*.Rmd`, `**/*.qmd` | `.claude/rules/r-code.md` |
 | `data/restricted/**`, `data/confidential/**` | `.claude/rules/restricted-data.md` |
 | `models/ai/**/*drl*/**`, `models/ai/**/*rl*/**` | `.claude/rules/rl-code.md` |
 | `models/io-sam/**`, `models/cge/**`, `models/trade/**`, `models/climate/**` | `.claude/rules/sectoral-trade-climate-code.md` |
 | `models/semi-structural/**`, `models/fpas/**`, `models/financial-programming/**` | `.claude/rules/semi-structural-code.md` |
 | `**/*.do`, `**/*.ado` | `.claude/rules/stata-code.md` |
-| `tests/**`, `**/test_*.py`, `**/*_test.jl`, `**/test_*.m` | `.claude/rules/tests.md` |
+| `tests/**`, `**/test_*.py`, `**/*_test.jl`, `**/test_*.m`, `**/tests/testthat/**`, `**/test-*.R` | `.claude/rules/tests.md` |
 | `validation/**` | `.claude/rules/validation.md` |
 <!-- END GENERATED: rules -->
 
