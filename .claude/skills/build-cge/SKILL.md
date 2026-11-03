@@ -48,6 +48,7 @@ Run these agents as subagents (the `Task` tool), in parallel where the steps are
 | Trade | Armington with CET exports; small or large country | Import and export responses; terms of trade |
 | Households | one or many groups from the SAM; LES or other demand systems | Distributional detail |
 | Closures | savings–investment, government, external, factor markets, numeraire | Results can change sign across closures |
+| GTAP route (multi-region) | GEMPACK with the standard GTAP model, GAMS (for example GTAPinGAMS) | Solution method, decompositions, license needs |
 
 ## Workflow
 1. Agree the structure: regions, sectors, factors, production nests, trade treatment and closures
@@ -56,6 +57,7 @@ Run these agents as subagents (the `Task` tool), in parallel where the steps are
 2. Calibrate to the SAM; implement as a complementarity problem; replicate the benchmark exactly
    - Check SAM balance first (`/build-io-sam` if the SAM must be built)
    - Source every elasticity with its sector definition and horizon
+   - For a GTAP model: keep the aggregation mapping, record the database version and license, keep the database out of git, and follow `.claude/rules/gempack-code.md` for GEMPACK
 3. Test homogeneity, Walras' law and numeraire invariance
 4. Run policy scenarios under at least two closures; run systematic sensitivity on key elasticities
    - Use quadrature or Monte Carlo over elasticity ranges; report the spread
@@ -74,6 +76,7 @@ Run these agents as subagents (the `Task` tool), in parallel where the steps are
 - Elasticities borrowed from different aggregations or horizons
 - Reporting GDP as welfare
 - Treating static results as an adjustment path
+- Committing or sharing a licensed global database (GTAP)
 
 ## Output
 `models/cge/<name>/ (+ model.lego.json)`

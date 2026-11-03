@@ -18,6 +18,7 @@ This studio is intended for **public data**. Institutional work often involves r
 5. LLM outputs are unverified claims. Numbers need a source and an automated cross-check; citations must be verified to exist; code must pass tests.
 6. Outputs leaving the studio need human review; policy-facing outputs need review by `economic-reasoning-specialist` and `policy-relevance-specialist` and sign-off by the user.
 7. Training and capacity-development materials use public or synthetic data only.
+8. Licensed databases (for example GTAP) are used only under their license: keep them in `data/raw/` outside git, never commit, share or upload them at full detail, and record the license holder; aggregated results may be shared.
 
 ## AI model governance
 - Traditional benchmark first; AI must demonstrate value out-of-sample.

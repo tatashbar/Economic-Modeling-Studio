@@ -1,7 +1,7 @@
 ---
 name: setup-environment
 description: "Sets up language toolchains, project folders, data classification levels and studio configuration for the chosen model stack."
-argument-hint: "[matlab-dynare|python|julia|r|gams|stata|eviews|mixed]"
+argument-hint: "[matlab-dynare|python|julia|r|gams|stata|eviews|gempack|mixed]"
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Write, Edit, Bash, AskUserQuestion, Task
 ---
@@ -40,7 +40,7 @@ Run these agents as subagents (the `Task` tool), in parallel where the steps are
 ## Key design decisions (present options, let the user choose)
 | Decision | Typical options | What it changes |
 |---|---|---|
-| Languages | Python, Julia, R, MATLAB/Dynare, GAMS, Stata, EViews | Toolchains and skills used |
+| Languages | Python, Julia, R, MATLAB/Dynare, GAMS, Stata, EViews, GEMPACK | Toolchains and skills used |
 | Environments | lock files, containers | Reproducibility |
 | Data classes | public, internal, restricted, confidential | Handling rules |
 
@@ -52,6 +52,7 @@ Run these agents as subagents (the `Task` tool), in parallel where the steps are
 5. Verify by running a minimal smoke test in each chosen language
    - For R, check that `Rscript` is on the PATH, record the R version, and initialise `renv` so `renv.lock` pins the packages
    - For EViews (Windows only), find the executable (for example `EViews13.exe`) and run a one-line program in batch (`/run` with `exit`), or check that `pyeviews` can start it; if it cannot be started from the terminal, record that runs are done by the user and the agents write the programs only
+   - For GEMPACK, check the license level (source-code or executable-image), that `tablo` or `gemsim` and `sltoht` are on the PATH, and run a zero-shock test of a small model; if RunGTAP is the only interface, record that runs are done by the user and the agents write the `.tab` and `.cmf` files only
    - For Stata, find the executable (`stata-mp`, `stata-se` or `stata`, or `StataMP-64.exe` on Windows) and run a one-line do-file in batch mode (`-b do`); if it is not callable from the terminal, record that runs are done by the user and the agents write the do-files only
    - Include `python tools/lego.py` on a sample manifest to confirm the lego engine runs
 
@@ -65,6 +66,7 @@ Run these agents as subagents (the `Task` tool), in parallel where the steps are
 - Stata user-written packages not recorded
 - R packages installed without `renv`, so versions drift
 - EViews workfiles edited by hand and treated as the source
+- Licensed databases (for example GTAP) committed to git or shared
 - Data added before classification is configured
 
 ## Output

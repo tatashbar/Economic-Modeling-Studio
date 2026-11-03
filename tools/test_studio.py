@@ -1076,6 +1076,18 @@ end;
         self.assertIn(".claude/rules/eviews-code.md", read(os.path.join(ROOT, "AGENTS.md")))
         self.assertTrue(os.path.exists(os.path.join(ROOT, ".cursor", "rules", "eviews-code.mdc")))
 
+    def test_gtap_runs_in_gempack_with_licensed_data_kept_out_of_git(self):
+        self.assertRegex(read(os.path.join(ROOT, "studio-config.yaml")), r'approved: \[[^\]]*"gempack"')
+        rule = read(os.path.join(ROOT, ".claude", "rules", "gempack-code.md"))
+        for s in ('"**/*.tab"', '"**/*.cmf"', "closure", "Gragg", "zero-shock", "aggregation", "subtotals",
+                  "output/<run-id>/", "licensed", "data/raw/gtap/"):
+            self.assertIn(s, rule)
+        self.assertIn("gempack-code.md", read(os.path.join(ROOT, ".claude", "skills", "build-cge", "SKILL.md")))
+        self.assertIn("GEMPACK", read(os.path.join(ROOT, ".claude", "skills", "setup-environment", "SKILL.md")))
+        self.assertIn("GTAP", read(os.path.join(ROOT, ".claude", "docs", "confidentiality-and-ai-use.md")))
+        self.assertIn(".claude/rules/gempack-code.md", read(os.path.join(ROOT, "AGENTS.md")))
+        self.assertTrue(os.path.exists(os.path.join(ROOT, ".cursor", "rules", "gempack-code.mdc")))
+
     def test_lego_commands_and_build_integration(self):
         for s in ("lego-map", "lego-show", "lego-add", "lego-detach", "lego-swap", "lego-check", "lego-brick"):
             t = read(os.path.join(ROOT, ".claude", "skills", s, "SKILL.md"))

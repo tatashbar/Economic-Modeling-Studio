@@ -30,6 +30,7 @@ The files under `.agents/`, `.grok/` and `.cursor/rules/` are generated. Edit th
 | `models/econometrics/**` | `.claude/rules/econometrics-code.md` |
 | `**/*.prg`, `**/*.wf1` | `.claude/rules/eviews-code.md` |
 | `forecasts/**` | `.claude/rules/forecasts.md` |
+| `**/*.tab`, `**/*.cmf`, `models/**/gtap*/**` | `.claude/rules/gempack-code.md` |
 | `models/**/model.lego.json`, `lego/**` | `.claude/rules/lego-manifests.md` |
 | `models/llm/**` | `.claude/rules/llm-code.md` |
 | `models/**` | `.claude/rules/model-code.md` |
