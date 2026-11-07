@@ -107,7 +107,7 @@ The result is a **draft**: a working, documented starting point, not a finished 
 ```
 /research-plan data/raw/my-project/note.docx data/raw/my-project/data.xlsx "answer the questions in the note, with charts by region"
 ```
-Without a file, type the objective instead: `/research-plan "how would a 20% oil price fall affect public debt in Gulf economies? use public data"`.
+Without a file, type the objective instead: `/research-plan "how would a 20% rise in food prices affect inflation in East African economies? use public data"`.
 
 **Example: change-impact report.** Attaching a fiscal block with a debt-feedback rule to a small open-economy gap model (output of `python tools/lego.py attach`, before approval):
 
