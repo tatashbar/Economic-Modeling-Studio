@@ -59,7 +59,7 @@ Run these agents as subagents (the `Task` tool), in parallel where the steps are
 - Unverified citations
 
 ## Output
-`docs/notes/<name>.md`
+`docs/notes/<name>.md`; a Word version on request (`python tools/report.py docx <file.md> --out <file.docx>`, charts embedded)
 
 The note includes motivation, method, data, results, robustness, limitations and references, with a notation table and links to model runs.
 

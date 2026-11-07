@@ -57,7 +57,7 @@ Each agent is defined in `.claude/agents/<name>.md`. If your tool runs subagents
 - Hand-edited charts that cannot be updated
 
 ## Output
-`docs/briefs/<name>-charts/`
+`docs/briefs/<name>-charts/`; a Word file with the charts and their captions on request (`python tools/report.py docx <index.md> --out <file.docx>`)
 
 The folder holds the scripts, the data behind each chart and the rendered charts.
 

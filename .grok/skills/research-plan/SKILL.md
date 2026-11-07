@@ -13,7 +13,7 @@ Turns a research note, plan or objective (any form, with or without data) into m
 Arguments: whatever the user wrote after the command name.
 
 ## Purpose
-Start from whatever the user has: a research note, a work plan, terms of reference, a list of questions, an email, slides, a chart narrative, or a few lines of objectives typed in the chat, in any format (DOCX, PDF, Markdown, text) and with or without data files. The skill reads it, works out what it asks for, splits it into analytical tasks, maps the data, proposes how the studio would do each task, and after approval runs the tasks through the studio's existing skills and reports the results organized by the note's own questions or sections.
+Start from whatever the user has: a research note, a work plan, terms of reference, a list of questions, an email, slides, a chart narrative, or a few lines of objectives typed in the chat, in any format (DOCX, PDF, Markdown, text) and with or without data files. The skill reads it, works out what it asks for, splits it into analytical tasks, maps the data, proposes how the studio would do each task, and after approval runs the tasks through the studio's existing skills and reports the results organized by the note's own questions or sections. It ends with a Word report that answers each question or objective with its charts and tables.
 
 Notes differ. Some only state questions; some describe a method, assumptions or existing results; some come with spreadsheets. The skill adapts:
 - **Questions only:** the studio proposes and runs its own approach.
@@ -49,7 +49,7 @@ Bring in the specialists each task needs (for example `cross-country-indicators-
 | Replication | none; reproduce supplied results before building on them | Whether existing numbers are checked first |
 | Scope | all tasks, priority tasks first | Effort and order |
 | Freedom | same data, same data with any method, new data allowed | How far the studio may depart from the note |
-| Outputs | charts and tables for the note, technical annex, policy brief, model | Effort and audience |
+| Outputs | Word report by question (always); technical annex, policy brief, model | Effort and audience |
 
 ## Workflow
 1. Confirm what the user wants back, the audience and the deadline
@@ -67,12 +67,13 @@ Bring in the specialists each task needs (for example `cross-country-indicators-
    - Estimation: `/estimate-var`, `/local-projections`, `/build-causal-ml`
    - Communication: `/chart-pack`, `/policy-brief`, `/technical-note`
 6. Where replication was agreed, reproduce the supplied results within tolerance first; where both the note's method and the studio's are run, explain each difference and the assumption behind it
-7. Assemble the results pack by the note's questions or sections, with the charts and tables asked for, the findings and the caveats
+7. Write the results report (`docs/templates/results-report.md`): a short summary with one answer per question, then one section per question or objective with the answer, the charts and tables that support it (charts embedded as `![caption](path/to/chart.png)` from the run folders), the method and data, and the caveats; tasks that could not be done are listed with the reason
+8. Produce the Word report: `python tools/report.py docx <results-report.md> --out <project>-results.docx`. Charts and tables are numbered, and any chart that cannot be found is reported. Check that every question has its section and that no chart is missing, then give the user the path of the Word file
 
 ## Checkpoints with the user
 - After the note is read: confirm the tasks, the stated assumptions and the open questions
 - After the research brief: approve the approach per task, scope and priorities
-- Before the results pack: review findings and caveats
+- Before the Word report: review findings and caveats
 
 ## Common pitfalls
 - Assuming every note asks for replication, or ignoring a method the author asked to keep
@@ -84,12 +85,13 @@ Bring in the specialists each task needs (for example `cross-country-indicators-
 - Copying internal note content or data into committed files or external services
 
 ## Output
-`docs/briefs/<project>/research-brief.md`; results pack in `docs/briefs/<project>/results/`
+`docs/briefs/<project>/research-brief.md`; results in `docs/briefs/<project>/results/`: `results-report.md` and the Word report `<project>-results.docx`
 
-The research brief holds the tasks with their source in the note, the approach per task, the data map, routing and plan. The results pack holds the charts and tables by question or section, the findings and the caveats; model code and runs live in the model folders named by the routed skills. Every run saves its results to `output/<run-id>/` in the model folder, with a run log (`.claude/rules/model-code.md`).
+The research brief holds the tasks with their source in the note, the approach per task, the data map, routing and plan. The results report answers each question or objective with its charts and tables, the method, the findings and the caveats, and the Word report is made from it with the charts embedded. When the note or data are not public, write the brief and the results to `data/processed/<project>/` instead, which stays outside git; model code and runs live in the model folders named by the routed skills. Every run saves its results to `output/<run-id>/` in the model folder, with a run log (`.claude/rules/model-code.md`).
 
 ## Gate / verdict
 - Every task points to the part of the note it serves, and every question in the note has a task or a stated reason why not
+- The Word report has a section for every question or objective, with its answer and supporting charts and tables, and no chart is reported missing
 - Any agreed replication matches the supplied numbers within tolerance, or the discrepancies are explained
 - Differences from the note's method are explained
 - Inputs were classified and are stored where their class allows

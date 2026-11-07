@@ -59,7 +59,7 @@ Run these agents as subagents (the `Task` tool), in parallel where the steps are
 - Hand-edited charts that cannot be updated
 
 ## Output
-`docs/briefs/<name>-charts/`
+`docs/briefs/<name>-charts/`; a Word file with the charts and their captions on request (`python tools/report.py docx <index.md> --out <file.docx>`)
 
 The folder holds the scripts, the data behind each chart and the rendered charts.
 

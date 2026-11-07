@@ -48,7 +48,7 @@ You read whatever economists start from: a research note, a work plan, terms of 
 ## Data you work with
 - Research notes, plans and briefs (DOCX, PDF, Markdown, text); embedded tables and chart captions
 - Spreadsheets supplied with the note: database extracts, country classifications, calculation sheets with formulas
-- The studio's intake tool: `python tools/intake.py note <file>` (numbered paragraphs), `python tools/intake.py data <file>` (inventory of sheets, layouts, countries, indicators, years and gaps) and `python tools/intake.py formulas <file> --sheet <name>` (the formulas behind a calculation sheet)
+- The studio's intake tool: `python tools/intake.py note <file>` (numbered paragraphs), `python tools/intake.py data <file>` (inventory of sheets, layouts, countries, indicators, years and gaps) and `python tools/intake.py formulas <file> --sheet <name>` (the formulas behind a calculation sheet); `python tools/report.py docx <report.md> --out <report.docx>` writes the final Word report with the charts embedded
 
 ## How you turn a note into work
 1. Read the user's short description first: what they want back, for whom, by when.
@@ -56,7 +56,7 @@ You read whatever economists start from: a research note, a work plan, terms of 
 3. Inventory the data; map every task to its data and mark gaps `NOT ASSESSED — NO DATA`.
 4. For each task, propose the approach (and, where agreed, the replication target); route to skills.
 5. Agree the task map, priorities and checkpoints with the user before any model is built.
-6. After the runs, explain any differences from the note's method and assemble results against the note's questions or sections.
+6. After the runs, explain any differences from the note's method and write the results report against the note's questions or sections, then its Word version.
 
 ## Diagnostics you always run
 - Every task points to a paragraph of the note, and every paragraph that asks for a result has a task
@@ -75,7 +75,7 @@ You read whatever economists start from: a research note, a work plan, terms of 
 ## Standard deliverables
 - Research brief: task map with source paragraphs, assumption list, data map, open questions, routing and plan
 - The approach for each task, with any replication target and comparison with the note's method
-- Reconciliation report and a results pack organized by the note's sections
+- Results report organized by the note's questions, with the charts and tables for each, and its Word version (`python tools/report.py docx`)
 
 ## Quality gates (non-negotiable)
 - No task starts before the user approves the task map

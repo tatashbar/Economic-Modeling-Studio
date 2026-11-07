@@ -1096,12 +1096,14 @@ end;
         plan = read(os.path.join(ROOT, ".claude", "skills", "research-plan", "SKILL.md"))
         for s in ("any form", "with or without data", "only when the note or the user asks", "tools/intake.py note",
                   "tools/intake.py data", "NOT ASSESSED", "docs/templates/research-brief.md", "/select-model-class",
-                  "/debt-decomposition", "/vulnerability-dashboard", "/country-typology"):
+                  "/debt-decomposition", "/vulnerability-dashboard", "/country-typology", "tools/report.py docx",
+                  "docs/templates/results-report.md", "Word report"):
             self.assertIn(s, plan)
         self.assertIn("/research-plan", read(os.path.join(ROOT, ".claude", "skills", "start", "SKILL.md")))
         self.assertIn("research-plan", read(os.path.join(ROOT, "AGENTS.md")))
         self.assertIn("probability-weighted", read(os.path.join(ROOT, ".claude", "skills", "scenario-analysis", "SKILL.md")))
         self.assertTrue(os.path.exists(os.path.join(ROOT, "docs", "templates", "research-brief.md")))
+        self.assertTrue(os.path.exists(os.path.join(ROOT, "docs", "templates", "results-report.md")))
 
     def test_lego_commands_and_build_integration(self):
         for s in ("lego-map", "lego-show", "lego-add", "lego-detach", "lego-swap", "lego-check", "lego-brick"):
@@ -1214,6 +1216,61 @@ class TestIntake(unittest.TestCase):
         self.assertEqual(p.returncode, 0, p.stderr)
         self.assertIn("wide panel", p.stdout)
         self.assertEqual(os.path.getmtime(self.xlsx), before)
+
+
+class TestReport(unittest.TestCase):
+    """tools/report.py writes a valid Word file with charts and tables, standard library only."""
+
+    def setUp(self):
+        import struct
+        import zlib
+        self.dir = tempfile.mkdtemp()
+        sys.path.insert(0, os.path.join(ROOT, "tools"))
+        import report
+        self.report = report
+        os.makedirs(os.path.join(self.dir, "run"))
+        raw = b"".join(b"\x00" + b"\xff\x00\x00" * 40 for _ in range(20))
+        chunk = lambda t, d: struct.pack(">I", len(d)) + t + d + struct.pack(">I", zlib.crc32(t + d) & 0xFFFFFFFF)
+        png = (b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", struct.pack(">IIBBBBB", 40, 20, 8, 2, 0, 0, 0))
+               + chunk(b"IDAT", zlib.compress(raw)) + chunk(b"IEND", b""))
+        with open(os.path.join(self.dir, "run", "chart.png"), "wb") as f:
+            f.write(png)
+        self.md = os.path.join(self.dir, "results.md")
+        with open(self.md, "w", encoding="utf-8") as f:
+            f.write("# Results: test\n\n## Summary\n1. **Q1.** Debt rises.\n2. **Q2.** Not assessed.\n\n"
+                    "## 1. Does debt rise?\n\n**Answer.** Yes, by *12.5* pp.\n\n"
+                    "![Debt change by region](run/chart.png)\n\n**Change in debt, pp of GDP**\n\n"
+                    "| Group | n | Change |\n|---|---|---|\n| All | 42 | 12.5 |\n| AFR | 4 | -2.5 |\n\n"
+                    "- Chart again: `run/chart.png`\n- Missing: ![gone](run/none.png)\n\n"
+                    "![Missing chart](run/none.png)\n")
+
+    def test_docx_has_text_charts_and_tables(self):
+        import zipfile
+        import xml.etree.ElementTree as ET
+        out = os.path.join(self.dir, "out", "results.docx")
+        res = self.report.to_docx(self.md, out)
+        self.assertEqual((res["figures"], res["tables"]), (1, 1))
+        self.assertEqual(res["missing"], ["run/none.png"])
+        with zipfile.ZipFile(out) as z:
+            names = z.namelist()
+            for n in names:
+                if n.endswith(".xml") or n.endswith(".rels"):
+                    ET.fromstring(z.read(n))
+            doc = z.read("word/document.xml").decode("utf-8")
+        self.assertIn("word/media/image1.png", names)
+        self.assertEqual(sum(n.startswith("word/media/") for n in names), 1)
+        for s in ("Results: test", "Does debt rise?", "Figure 1. ", "Debt change by region", "Table 1. ",
+                  "Change in debt, pp of GDP", "Chart not found: run/none.png", "<w:tbl>", "<w:numId"):
+            self.assertIn(s, doc)
+
+    def test_cli(self):
+        out = os.path.join(self.dir, "cli.docx")
+        p = subprocess.run([sys.executable, os.path.join(ROOT, "tools", "report.py"), "docx", self.md, "--out", out],
+                           capture_output=True, text=True)
+        self.assertEqual(p.returncode, 0, p.stderr)
+        self.assertIn("1 figures, 1 tables", p.stdout)
+        self.assertIn("missing chart: run/none.png", p.stdout)
+        self.assertTrue(os.path.getsize(out) > 0)
 
 
 if __name__ == "__main__":
