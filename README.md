@@ -97,7 +97,7 @@ The result is a **draft**: a working, documented starting point, not a finished 
 | Task | Commands | What you get |
 |---|---|---|
 | Specify and build a new model | `/scope-question`, `/model-spec`, then the build command for the family (e.g. `/build-semi-structural`, `/build-cge`) | A specification with a simple benchmark, then code, tests (steady state, identities, impulse-response signs) and the manifest |
-| Work from a research note or plan | `/research-plan` with the note, a short description and the data files | The note split into tasks tied to its paragraphs, the stated assumptions listed, the data inventoried and mapped, each task run twice (as the author specified, and with the method the studio proposes), and results by section with a reconciliation of the two |
+| Work from a research note, plan or objective | `/research-plan` with the note (any form), a short description and any data files | The note turned into modeling tasks with a proposed approach for each, the data mapped, the tasks run with the studio's skills, and results organized by the note's questions |
 | Bring in an existing model | `/adopt`, `/lego-map` | An inventory, reverse-documented equations and parameters, baseline outputs captured before any change, and a proposed decomposition into components for your approval |
 | Extend or modify a model | `/lego-add`, `/lego-swap`, `/lego-detach` | A change-impact report first (example below), then the change, with neighbouring components flagged for revalidation |
 | Review structure | `/lego-show`, `/lego-check` | 3D HTML view, text or Mermaid diagram; wiring, closure and identity checks |
@@ -170,7 +170,7 @@ Models are classed **small, medium or large**, and effort scales with class (see
 
 | Area of expertise | Agents | Examples |
 |---|---|---|
-| Framing, methods and governance | 6 | economic reasoning, modeling methodology, model-risk governance, research notes |
+| Framing, methods and governance | 6 | economic reasoning, modeling methodology, model-risk governance, research notes and plans |
 | Macro models: small, medium, traditional | 6 | semi-structural gap, FPAS, financial programming, three-gap, SFC, macroeconometric |
 | Structural macro | 10 | open-economy DSGE, multi-country, financial frictions, HANK, perturbation and global solution, Bayesian estimation, ZLB, optimal policy |
 | Econometrics and time series | 8 | VAR/VECM, BVAR, DFM nowcasting, local projections, state space, panel and causal inference |
@@ -225,7 +225,7 @@ Skills follow a common template, so each command behaves predictably:
 ### Typical workflows
 Commands are listed in the order they are run.
 
-- **From a research note or plan:** `/research-plan` (reads the note and the data, proposes tasks), then the skills it routes to, for example `/debt-decomposition`, `/vulnerability-dashboard`, `/scenario-analysis`, `/country-typology`, `/policy-brief`
+- **From a research note, plan or objective:** `/research-plan` (reads the note and any data, proposes tasks and approaches), then the skills it routes to, for example `/select-model-class`, `/scenario-analysis`, `/debt-decomposition`, `/vulnerability-dashboard`, `/policy-brief`
 - **Quick, small model:** `/scope-question`, `/quick-model`, `/validate-model`, `/model-card`
 - **Structural model:** `/select-model-class`, `/model-brief`, `/model-spec`, `/data-requirements`, `/calibration-plan`, `/team-dsge`, `/estimate-dsge`, `/validate-model`, `/model-release`
 - **Sectoral or trade analysis:** `/build-io-sam`, `/build-cge` (or `/build-trade-model`), `/trade-policy-analysis` or `/carbon-pricing-analysis`, `/robustness-check`, `/policy-brief`
@@ -347,7 +347,7 @@ Adapt `studio-config.yaml` and `.claude/docs/confidentiality-and-ai-use.md` to t
 Agents and skills are Markdown files with YAML frontmatter; edit them freely. After changes run `python tools/validate_studio.py`. To add an agent, create `.claude/agents/<name>.md` and list it as a peer in the related agents. To add a command, create `.claude/skills/<name>/SKILL.md`. Path-scoped standards live in `.claude/rules/`. After changing commands or rules, run `python tools/sync_agents.py` to update the copies for other coding agents.
 
 ## Version history
-- **1.9.0** — Research notes and plans as input. `/research-plan` takes a note or plan, a short description and data files, splits the note into tasks tied to its paragraphs, lists the stated assumptions, inventories the data, and runs each task twice: as the author specified (replication track) and with the method the studio proposes (open track), then reconciles them and reports results section by section. New skills for common cross-country tasks: `/debt-decomposition`, `/vulnerability-dashboard` and `/country-typology`; `/scenario-analysis` adds probability-weighted scenario mixtures. New agents: research-note analyst and cross-country indicators specialist. New tool `tools/intake.py` reads DOCX, Markdown and text notes, inventories Excel and CSV data (layouts, countries, indicators, years, gaps), reshapes panels to long form and shows the formulas behind calculation sheets, using the standard library only. Tested end to end on a research note with two calculation workbooks: both replication tracks matched the supplied numbers exactly, and the open tracks found three differences between the note and its spreadsheets.
+- **1.9.0** — Research notes, plans and objectives as input: `/research-plan` turns a note in any form, with or without data, into modeling tasks and results. New cross-country skills (`/debt-decomposition`, `/vulnerability-dashboard`, `/country-typology`), probability-weighted scenarios, two new agents, and `tools/intake.py` for reading notes and data files.
 - **1.8.3** — GTAP and GEMPACK support: GEMPACK is an approved toolchain, with rules for TABLO and command files (one `.cmf` per experiment with closure and shocks, multi-step solutions with accuracy reported, zero-shock benchmark check, aggregation mapping and database version kept, welfare decomposition and subtotals, results exported to `output/<run-id>/`). The GTAP database is treated as licensed data and never committed or shared. `/build-cge` offers the GEMPACK or GAMS route for GTAP models and `/setup-environment` checks GEMPACK.
 - **1.8.2** — EViews support: EViews is an approved toolchain, with rules for programs (a master `run.prg`, workfiles rebuilt by the program and never edited by hand, model objects and scenarios written in code, logged seed, outputs saved to `output/<run-id>/`, batch runs) and an EViews check in `/setup-environment`.
 - **1.8.1** — R rules on the same pattern as Stata: a master `run.R` run with `Rscript`, packages pinned with `renv`, relative paths, logged seed, outputs and session details saved to `output/<run-id>/`, and `testthat` tests. `/setup-environment` checks R and sets up `renv`.

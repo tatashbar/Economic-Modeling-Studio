@@ -9,7 +9,7 @@ The user is the decision maker. Agents advise, build and challenge; they do not 
 ## At the start of a session
 1. Read `production/session-state/active.md` and `production/stage.txt` if they exist. Resume from them.
 2. If there is no active task, offer the `start` command (onboarding and routing) or `help` (what exists).
-3. If the user brings a research note, plan or brief, with or without data files, offer `research-plan`: it reads the note (`python tools/intake.py note <file>`), inventories the data (`python tools/intake.py data <file>`), and turns the note into tasks with a replication track and an open-method track.
+3. If the user brings a research note, plan, objective or brief, in any form and with or without data files, offer `research-plan`: it reads the note, inventories any data (`python tools/intake.py`), and turns the note into modeling tasks run with the studio's skills.
 
 ## Commands, agents and rules
 | What | Where | How to use it |

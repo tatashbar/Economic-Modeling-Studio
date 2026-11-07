@@ -2,27 +2,26 @@
 
 ## Request
 - **From the user:** what they want back, for whom, by when
-- **Documents:** note or plan (file, version, date); data files (file, sheets, vintage)
+- **Inputs:** the note, plan or objective (file or text, version, date); data files (file, sheets, vintage), if any
 - **Classification:** level of each input and where it is stored
 
-## Sections and tasks
-| Task | Note paragraph(s) | Result asked for | Task type | Routed to |
+## Tasks
+| Task | Source in the note | Result asked for | Task type | Routed to |
 |---|---|---|---|---|
-| T1 | [P3]-[P12] | chart: drivers of the change in debt by region | decomposition | `/debt-decomposition` |
 
-## Stated methods and assumptions
-| # | Task | Assumption as stated | Paragraph | Implemented in replication track? |
+## Stated methods, assumptions and existing results (if any)
+| # | Task | As stated in the note | Source | Followed, changed or not applicable |
 |---|---|---|---|---|
 
 ## Data map
-| Task | Series | Sheet / source | Countries | Years | Gaps |
-|---|---|---|---|---|---|
+| Task | Series | Source | Coverage | Gaps |
+|---|---|---|---|---|
 
-## Tracks per task
+## Approach per task
 ### T1
-- **Replication track:** method and assumptions exactly as stated; replication target (numbers, charts) and tolerance
-- **Open track:** method the studio proposes, with trade-offs against the author's approach and a simple benchmark
-- **Freedom agreed:** same data and sample / any method on the same data / new data allowed
+- **Approach:** the method proposed, its trade-offs and a simple benchmark
+- **Relation to the note:** follows the note's method / the studio's method / both, compared
+- **Replication (only if agreed):** results to reproduce and tolerance
 
 ## Open questions for the author
 
@@ -30,9 +29,9 @@
 | Step | Task(s) | Skill | Checkpoint |
 |---|---|---|---|
 
-## Reconciliation (after the runs)
-| Task | Replication matches supplied numbers? | Open track agrees (sign, ranking, size)? | Main source of difference |
-|---|---|---|---|
+## Findings (after the runs)
+| Task | Main result | Differences from the note's method or results, and why |
+|---|---|---|
 
 ## Results pack
-By section of the note: charts and tables, caveats, and where the code and runs are saved.
+By question or section of the note: charts and tables, caveats, and where the code and runs are saved.

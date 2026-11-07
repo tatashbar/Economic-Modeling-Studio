@@ -1094,8 +1094,9 @@ end;
         for a in ("research-note-analyst", "cross-country-indicators-specialist"):
             self.assertTrue(os.path.exists(os.path.join(ROOT, ".claude", "agents", a + ".md")), a)
         plan = read(os.path.join(ROOT, ".claude", "skills", "research-plan", "SKILL.md"))
-        for s in ("replication track", "open track", "tools/intake.py note", "tools/intake.py data", "NOT ASSESSED",
-                  "docs/templates/research-brief.md", "/debt-decomposition", "/vulnerability-dashboard", "/country-typology"):
+        for s in ("any form", "with or without data", "only when the note or the user asks", "tools/intake.py note",
+                  "tools/intake.py data", "NOT ASSESSED", "docs/templates/research-brief.md", "/select-model-class",
+                  "/debt-decomposition", "/vulnerability-dashboard", "/country-typology"):
             self.assertIn(s, plan)
         self.assertIn("/research-plan", read(os.path.join(ROOT, ".claude", "skills", "start", "SKILL.md")))
         self.assertIn("research-plan", read(os.path.join(ROOT, "AGENTS.md")))

@@ -24,7 +24,7 @@
 | `/model-spec` [model name] | `modeling-methodology-specialist` | Writes the model specification: equations, timing, closures, steady state, shocks, observables and known limitations. |
 | `/calibration-plan` [model name] | `bayesian-dsge-estimation-specialist` | Plans calibration and estimation: parameter sources, priors, moments, targets, identification checks. |
 | `/data-requirements` [model name] | `data-engineer` | Defines data requirements and checks availability, vintages, confidentiality classification and quality for a model. |
-| `/research-plan` [note path] [data paths] [short description] | `research-note-analyst` | Takes a research note or plan, a short description and data files, turns them into modeling tasks with replication and open-method tracks, runs them and reports results section by section. |
+| `/research-plan` [note or objective] [data paths] [short description] | `research-note-analyst` | Turns a research note, plan or objective (any form, with or without data) into modeling tasks, runs them with the studio's skills and reports results against the note. |
 | `/quick-model` [question] | `semi-structural-gap-modeler` | Fast path for a small model or back-of-envelope analysis: minimal spec, minimal checks, clear 'not for publication' label. |
 
 ## Build

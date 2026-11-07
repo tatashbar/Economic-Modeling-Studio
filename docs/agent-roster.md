@@ -32,7 +32,7 @@
 | [`model-risk-governance-specialist`](../.claude/agents/model-risk-governance-specialist.md) | Defines model risk levels and validation depth, enforces builder-validator independence, governs AI/LLM use and recommends release or block. |
 | [`policy-relevance-specialist`](../.claude/agents/policy-relevance-specialist.md) | Clarifies the decision, audience and deadline, and reviews outputs for decision-relevance, honest uncertainty and appropriate caveats. |
 | [`project-planning-specialist`](../.claude/agents/project-planning-specialist.md) | Plans and sequences modeling work: scope, milestones sized to model class, dependencies, phase gates and calendars. |
-| [`research-note-analyst`](../.claude/agents/research-note-analyst.md) | Turns research notes, plans and briefs into modeling work: questions, stated methods and assumptions, data mapping, replication and open-method tracks. |
+| [`research-note-analyst`](../.claude/agents/research-note-analyst.md) | Turns research notes, plans and objectives into modeling work: questions, stated methods and assumptions, data mapping, approach per task and results against the note. |
 
 ## Macro Models: Small, Medium & Traditional (6)
 
