@@ -1,10 +1,10 @@
 # Agent Roster
 
-119 agents, grouped by area of expertise. Source of truth: `.claude/agents/`.
+121 agents, grouped by area of expertise. Source of truth: `.claude/agents/`.
 
 | Area | Agents |
 |---|---|
-| Framing, Methods & Governance | 5 |
+| Framing, Methods & Governance | 6 |
 | Macro Models: Small, Medium & Traditional | 6 |
 | Structural Macro: DSGE, HANK & Solution Methods | 10 |
 | Econometrics & Time Series | 8 |
@@ -18,12 +18,12 @@
 | Growth, Labor, Distribution & Development | 5 |
 | AI & Machine Learning | 16 |
 | Games, Agents & Strategic Behavior | 6 |
-| Data & Statistics | 6 |
+| Data & Statistics | 7 |
 | Computation & Engineering | 7 |
 | Validation, Risk & Ethics | 6 |
 | Communication & Capacity Building | 5 |
 
-## Framing, Methods & Governance (5)
+## Framing, Methods & Governance (6)
 
 | Agent | Role |
 |---|---|
@@ -32,6 +32,7 @@
 | [`model-risk-governance-specialist`](../.claude/agents/model-risk-governance-specialist.md) | Defines model risk levels and validation depth, enforces builder-validator independence, governs AI/LLM use and recommends release or block. |
 | [`policy-relevance-specialist`](../.claude/agents/policy-relevance-specialist.md) | Clarifies the decision, audience and deadline, and reviews outputs for decision-relevance, honest uncertainty and appropriate caveats. |
 | [`project-planning-specialist`](../.claude/agents/project-planning-specialist.md) | Plans and sequences modeling work: scope, milestones sized to model class, dependencies, phase gates and calendars. |
+| [`research-note-analyst`](../.claude/agents/research-note-analyst.md) | Turns research notes, plans and briefs into modeling work: questions, stated methods and assumptions, data mapping, replication and open-method tracks. |
 
 ## Macro Models: Small, Medium & Traditional (6)
 
@@ -188,7 +189,7 @@
 | [`sovereign-crisis-games-specialist`](../.claude/agents/sovereign-crisis-games-specialist.md) | Models sovereign debt, default and currency crises: Eaton-Gersovitz, bargaining, global games, bank runs, restructuring. |
 | [`policy-wargame-facilitator`](../.claude/agents/policy-wargame-facilitator.md) | Designs and runs policy wargames, tabletop exercises and serious games for crisis preparedness and training. |
 
-## Data & Statistics (6)
+## Data & Statistics (7)
 
 | Agent | Role |
 |---|---|
@@ -197,6 +198,7 @@
 | [`national-accounts-specialist`](../.claude/agents/national-accounts-specialist.md) | Specializes in national accounts and macro statistics: GDP, sectoral accounts, fiscal, monetary and BoP statistics, methodology and revisions. |
 | [`high-frequency-data-specialist`](../.claude/agents/high-frequency-data-specialist.md) | Handles high-frequency and alternative data: daily/weekly indicators, financial, payments, mobility, satellite, web-scraped data. |
 | [`data-quality-seasonal-specialist`](../.claude/agents/data-quality-seasonal-specialist.md) | Ensures data quality: outliers, revisions, seasonality, calendar effects, structural breaks, missing data, filtering. |
+| [`cross-country-indicators-specialist`](../.claude/agents/cross-country-indicators-specialist.md) | Builds cross-country indicator analyses from panel databases: country groups, constant samples, aggregation, vulnerability thresholds, heatmaps and typologies. |
 | [`data-governance-metadata-specialist`](../.claude/agents/data-governance-metadata-specialist.md) | Owns data governance and metadata: confidentiality classes, licensing, SDMX metadata, catalogues, access control, privacy. |
 
 ## Computation & Engineering (7)

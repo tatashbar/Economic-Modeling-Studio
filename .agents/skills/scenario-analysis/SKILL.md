@@ -41,7 +41,7 @@ Each agent is defined in `.claude/agents/<name>.md`. If your tool runs subagents
 | Severity | plausible, severe, reverse-engineered to breaking points | Use of results |
 | Models | core model, satellites, multi-country | Channel coverage |
 | Policy response | endogenous, fixed, alternative responses | Interpretation |
-| Probability | none, model-based, expert-elicited | Likelihood language |
+| Probability | none, model-based, expert-elicited, probability-weighted mixture of scenarios | Likelihood language; whether scenarios combine into one density |
 
 ## Workflow
 1. Define the scenario narrative, shocks and what is held constant
@@ -49,6 +49,8 @@ Each agent is defined in `.claude/agents/<name>.md`. If your tool runs subagents
 2. Translate to model inputs in each relevant model; ensure consistency
 3. Run scenarios; compare to baseline with transmission explanation
 4. Assign likelihood language only if a method supports it
+   - For a probability-weighted mixture, state how the weights are set (model, market prices, elicitation), combine the scenario paths into one density, and show it next to the baseline density (`/fan-chart`); a weighted mix of single-path scenarios is a discrete distribution, so add uncertainty within each scenario before reading percentiles
+   - Across many countries, apply the same shocks to every country and report results by group with the buffers each group starts from (`/vulnerability-dashboard`)
 
 ## Checkpoints with the user
 - After the narrative: confirm shocks and assumptions

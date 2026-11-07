@@ -190,7 +190,7 @@ class TestIntegrity(unittest.TestCase):
         skills = len(glob.glob(os.path.join(ROOT, ".claude", "skills", "*", "SKILL.md")))
         readme = read(os.path.join(ROOT, "README.md"))
         claude = read(os.path.join(ROOT, "CLAUDE.md"))
-        self.assertEqual(agents, 119)
+        self.assertEqual(agents, 121)
         self.assertIn(f"{agents} specialist agents", readme)
         self.assertIn(f"{skills} skills", readme)
         self.assertIn(f"{agents} specialized agents", claude)
@@ -202,7 +202,7 @@ class TestIntegrity(unittest.TestCase):
         roster_counts = [int(n) for _, n in re.findall(r"^## (.+?) \((\d+)\)$", roster, re.M)]
         table = readme.split("## The agents", 1)[1].split("\n## ", 1)[0]
         readme_counts = [int(n) for n in re.findall(r"^\| [^|]+ \| (\d+) \|", table, re.M)]
-        self.assertEqual(sum(roster_counts), 119)
+        self.assertEqual(sum(roster_counts), 121)
         self.assertEqual(readme_counts, roster_counts)
 
     def test_no_hierarchy_in_agents(self):
@@ -1088,6 +1088,20 @@ end;
         self.assertIn(".claude/rules/gempack-code.md", read(os.path.join(ROOT, "AGENTS.md")))
         self.assertTrue(os.path.exists(os.path.join(ROOT, ".cursor", "rules", "gempack-code.mdc")))
 
+    def test_research_notes_are_an_entry_point(self):
+        for s in ("research-plan", "debt-decomposition", "vulnerability-dashboard", "country-typology"):
+            self.assertTrue(os.path.exists(os.path.join(ROOT, ".claude", "skills", s, "SKILL.md")), s)
+        for a in ("research-note-analyst", "cross-country-indicators-specialist"):
+            self.assertTrue(os.path.exists(os.path.join(ROOT, ".claude", "agents", a + ".md")), a)
+        plan = read(os.path.join(ROOT, ".claude", "skills", "research-plan", "SKILL.md"))
+        for s in ("replication track", "open track", "tools/intake.py note", "tools/intake.py data", "NOT ASSESSED",
+                  "docs/templates/research-brief.md", "/debt-decomposition", "/vulnerability-dashboard", "/country-typology"):
+            self.assertIn(s, plan)
+        self.assertIn("/research-plan", read(os.path.join(ROOT, ".claude", "skills", "start", "SKILL.md")))
+        self.assertIn("research-plan", read(os.path.join(ROOT, "AGENTS.md")))
+        self.assertIn("probability-weighted", read(os.path.join(ROOT, ".claude", "skills", "scenario-analysis", "SKILL.md")))
+        self.assertTrue(os.path.exists(os.path.join(ROOT, "docs", "templates", "research-brief.md")))
+
     def test_lego_commands_and_build_integration(self):
         for s in ("lego-map", "lego-show", "lego-add", "lego-detach", "lego-swap", "lego-check", "lego-brick"):
             t = read(os.path.join(ROOT, ".claude", "skills", s, "SKILL.md"))
@@ -1103,6 +1117,102 @@ def find_status(m, bid):
     for b in m["bricks"]:
         if b["id"] == bid:
             return b["status"]
+
+
+class TestIntake(unittest.TestCase):
+    """tools/intake.py reads notes and inventories workbooks with the standard library only."""
+
+    def setUp(self):
+        import zipfile
+        self.dir = tempfile.mkdtemp()
+        sys.path.insert(0, os.path.join(ROOT, "tools"))
+        import intake
+        self.intake = intake
+        ns = 'xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"'
+        cell = lambda ref, v: (f'<c r="{ref}"><v>{v}</v></c>' if isinstance(v, (int, float))
+                               else f'<c r="{ref}" t="inlineStr"><is><t>{v}</t></is></c>')
+        rows = [["Panel extract"],
+                ["COUNTRY", "SERIES_CODE", "INDICATOR", 2019, 2020, 2021, 2022, 2023, 2024],
+                ["Alpha", "AAA.D", "Gross debt, percent of GDP", 40, 45, 47.5, 46, 44, 43],
+                ["Beta", "BBB.D", "Gross debt, percent of GDP", 60, 66, 65, 63, 62, 61],
+                ["COUNTRY", "SERIES_CODE", "INDICATOR", "Average"]]
+        xml = "".join(f'<row r="{i}">' + "".join(cell(chr(65 + j) + str(i), v) for j, v in enumerate(r)) + "</row>"
+                      for i, r in enumerate(rows, 1))
+        xml += '<row r="6"><c r="A6" t="e"><v>#N/A</v></c><c r="B6"><f>A6+1</f><v>2</v></c></row>'
+        self.xlsx = os.path.join(self.dir, "data.xlsx")
+        with zipfile.ZipFile(self.xlsx, "w") as z:
+            z.writestr("[Content_Types].xml", '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"/>')
+            z.writestr("xl/workbook.xml", f'<workbook {ns} xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
+                       '<sheets><sheet name="Debt % GDP" sheetId="1" r:id="rId1"/></sheets></workbook>')
+            z.writestr("xl/_rels/workbook.xml.rels", '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+                       '<Relationship Id="rId1" Target="worksheets/sheet1.xml" Type="worksheet"/></Relationships>')
+            z.writestr("xl/worksheets/sheet1.xml", f"<worksheet {ns}><sheetData>{xml}</sheetData></worksheet>")
+        w = 'xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"'
+        doc = (f'<w:document {w}><w:body>'
+               '<w:p><w:pPr><w:pStyle w:val="Heading1"/></w:pPr><w:r><w:t>1. Debt has increased</w:t></w:r></w:p>'
+               '<w:p><w:r><w:t>Interest costs are inferred from the overall and </w:t></w:r><w:r><w:t>primary balance.</w:t></w:r></w:p>'
+               '<w:tbl><w:tr><w:tc><w:p><w:r><w:t>Region</w:t></w:r></w:p></w:tc><w:tc><w:p><w:r><w:t>Count</w:t></w:r></w:p></w:tc></w:tr></w:tbl>'
+               '</w:body></w:document>')
+        self.docx = os.path.join(self.dir, "note.docx")
+        with zipfile.ZipFile(self.docx, "w") as z:
+            z.writestr("word/document.xml", doc)
+
+    def tearDown(self):
+        shutil.rmtree(self.dir, ignore_errors=True)
+
+    def test_note_paragraphs_keep_headings_runs_and_tables(self):
+        paras = self.intake.note_paragraphs(self.docx)
+        self.assertEqual(paras, ["# 1. Debt has increased",
+                                 "Interest costs are inferred from the overall and primary balance.", "Region | Count"])
+
+    def test_workbook_inventory_finds_panel_layout_years_and_blocks(self):
+        info = self.intake.inventory(self.xlsx)["Debt % GDP"]
+        self.assertEqual(info["layout"], "wide panel (years in columns)")
+        self.assertEqual(info["header_row"], 2)
+        self.assertEqual(info["years"], "2019-2024")
+        self.assertEqual(info["entities"], 2)
+        self.assertEqual(info["indicators"], 1)
+        self.assertEqual(info["code_column"], "SERIES_CODE")
+        self.assertEqual(info["error_cells"], 1)
+        self.assertEqual(info["formulas"], 1)
+        self.assertIn("blocks", info)
+
+    def test_tidy_reshapes_the_first_block_to_long_form(self):
+        out = os.path.join(self.dir, "long.csv")
+        n = self.intake.tidy(self.xlsx, "Debt % GDP", out)
+        self.assertEqual(n, 12)
+        with open(out, encoding="utf-8") as f:
+            lines = f.read().splitlines()
+        self.assertEqual(lines[0], "entity,code,indicator,year,value")
+        self.assertIn("Alpha,AAA.D,\"Gross debt, percent of GDP\",2021,47.5", lines)
+
+    def test_formulas_show_titles_headers_and_translate_shared_formulas(self):
+        import zipfile
+        ns = 'xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"'
+        sheet = (f'<worksheet {ns}><sheetData>'
+                 '<row r="1"><c r="B1" t="inlineStr"><is><t>Debt in USD</t></is></c></row>'
+                 '<row r="2"><c r="A2" t="inlineStr"><is><t>Code</t></is></c><c r="B2"><v>2024</v></c><c r="C2"><v>2025</v></c></row>'
+                 '<row r="3"><c r="A3" t="inlineStr"><is><t>AAA</t></is></c>'
+                 '<c r="B3"><f t="shared" ref="B3:C3" si="0">E3*$F$1/100</f><v>1</v></c>'
+                 '<c r="C3"><f t="shared" si="0"/><v>2</v></c></row></sheetData></worksheet>')
+        path = os.path.join(self.dir, "calc.xlsx")
+        with zipfile.ZipFile(path, "w") as z:
+            z.writestr("xl/workbook.xml", f'<workbook {ns} xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
+                       '<sheets><sheet name="Calc" sheetId="1" r:id="rId1"/></sheets></workbook>')
+            z.writestr("xl/_rels/workbook.xml.rels", '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+                       '<Relationship Id="rId1" Target="worksheets/sheet1.xml" Type="worksheet"/></Relationships>')
+            z.writestr("xl/worksheets/sheet1.xml", sheet)
+        row, cells = self.intake.formulas(path, "Calc")
+        self.assertEqual(row, 3)
+        self.assertEqual(cells, [("B", "Debt in USD", "2024", "=E3*$F$1/100"), ("C", "Debt in USD", "2025", "=F3*$F$1/100")])
+
+    def test_cli_runs_and_reads_only(self):
+        before = os.path.getmtime(self.xlsx)
+        p = subprocess.run([sys.executable, os.path.join(ROOT, "tools", "intake.py"), "data", self.xlsx],
+                           capture_output=True, text=True)
+        self.assertEqual(p.returncode, 0, p.stderr)
+        self.assertIn("wide panel", p.stdout)
+        self.assertEqual(os.path.getmtime(self.xlsx), before)
 
 
 if __name__ == "__main__":

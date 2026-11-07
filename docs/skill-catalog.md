@@ -1,6 +1,6 @@
 # Skill Catalog
 
-85 slash commands. Source of truth: `.claude/skills/`.
+89 slash commands. Source of truth: `.claude/skills/`.
 
 ## Onboarding
 
@@ -24,6 +24,7 @@
 | `/model-spec` [model name] | `modeling-methodology-specialist` | Writes the model specification: equations, timing, closures, steady state, shocks, observables and known limitations. |
 | `/calibration-plan` [model name] | `bayesian-dsge-estimation-specialist` | Plans calibration and estimation: parameter sources, priors, moments, targets, identification checks. |
 | `/data-requirements` [model name] | `data-engineer` | Defines data requirements and checks availability, vintages, confidentiality classification and quality for a model. |
+| `/research-plan` [note path] [data paths] [short description] | `research-note-analyst` | Takes a research note or plan, a short description and data files, turns them into modeling tasks with replication and open-method tracks, runs them and reports results section by section. |
 | `/quick-model` [question] | `semi-structural-gap-modeler` | Fast path for a small model or back-of-envelope analysis: minimal spec, minimal checks, clear 'not for publication' label. |
 
 ## Build
@@ -77,6 +78,9 @@
 | `/policy-simulation` [policy options] | `economic-reasoning-specialist` | Simulates policy options (rates, fiscal, macroprudential, FX) in the chosen model(s) with welfare and distributional effects. |
 | `/fan-chart` [variable(s)] | `scenario-risk-analysis-specialist` | Produces density forecasts and fan charts with documented uncertainty method and calibration checks. |
 | `/debt-sustainability` [country] | `debt-sustainability-analyst` | Runs debt sustainability analysis: baseline, shocks, stochastic fan charts, realism checks and financing needs. |
+| `/debt-decomposition` [countries or group] [period] | `debt-sustainability-analyst` | Decomposes changes in debt ratios into drivers (interest, growth, primary balance, policy, exchange rate, stock-flow) by country and aggregated by group. |
+| `/vulnerability-dashboard` [indicators] [country group] | `cross-country-indicators-specialist` | Builds indicator-based vulnerability assessments across countries: thresholds, shares above threshold over time, heatmaps and spider charts by group, with robustness. |
+| `/country-typology` [country group] [policy area] | `cross-country-indicators-specialist` | Groups countries into policy-relevant types from data, by transparent rules or clustering, and maps each type to tailored policy options. |
 | `/stress-test` [sector or system] | `financial-stability-stress-testing-specialist` | Runs macro-financial stress tests: scenario design, satellite models, bank and sector results, policy implications. |
 | `/spillover-analysis` [shock and country set] | `global-spillover-specialist` | Quantifies cross-country spillovers from a global shock using multiple models and country-vulnerability measures. |
 | `/external-assessment` [country] | `external-assessment-specialist` | Runs an external sector assessment: current-account norm, REER gap, reserves, NIIP, with ranges and judgment. |

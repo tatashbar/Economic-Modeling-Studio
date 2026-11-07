@@ -1,6 +1,6 @@
 # Economic Modeling Studio — Instructions for Coding Agents
 
-This project turns a coding-agent session into a coordinated economic modeling studio: 119 specialist agents, 85 workflow commands, path-scoped rules, templates and guardrails. It covers small, medium and large models across semi-structural, structural (DSGE, HANK, multi-country), input-output / CGE / trade, climate and energy, econometric, and data-driven and AI-based approaches.
+This project turns a coding-agent session into a coordinated economic modeling studio: 121 specialist agents, 89 workflow commands, path-scoped rules, templates and guardrails. It covers small, medium and large models across semi-structural, structural (DSGE, HANK, multi-country), input-output / CGE / trade, climate and energy, econometric, and data-driven and AI-based approaches.
 
 These instructions apply to any coding agent: Claude Code, Codex, Cursor, Grok Build, Gemini CLI / Antigravity, GitHub Copilot and others that read `AGENTS.md`.
 
@@ -9,12 +9,13 @@ The user is the decision maker. Agents advise, build and challenge; they do not 
 ## At the start of a session
 1. Read `production/session-state/active.md` and `production/stage.txt` if they exist. Resume from them.
 2. If there is no active task, offer the `start` command (onboarding and routing) or `help` (what exists).
+3. If the user brings a research note, plan or brief, with or without data files, offer `research-plan`: it reads the note (`python tools/intake.py note <file>`), inventories the data (`python tools/intake.py data <file>`), and turns the note into tasks with a replication track and an open-method track.
 
 ## Commands, agents and rules
 | What | Where | How to use it |
 |---|---|---|
-| Workflow commands (85) | `.claude/skills/<name>/SKILL.md`, mirrored to `.agents/skills/` and `.grok/skills/` | Invoke by name: `/name` in Claude Code, Cursor, Grok and Gemini; `$name` in Codex. Any agent can also read the file and follow it. Catalog: `docs/skill-catalog.md` |
-| Specialist agents (119) | `.claude/agents/<name>.md` | Run as subagents where your tool supports them; otherwise read the agent's file and apply its instructions. Roster: `docs/agent-roster.md` |
+| Workflow commands (89) | `.claude/skills/<name>/SKILL.md`, mirrored to `.agents/skills/` and `.grok/skills/` | Invoke by name: `/name` in Claude Code, Cursor, Grok and Gemini; `$name` in Codex. Any agent can also read the file and follow it. Catalog: `docs/skill-catalog.md` |
+| Specialist agents (121) | `.claude/agents/<name>.md` | Run as subagents where your tool supports them; otherwise read the agent's file and apply its instructions. Roster: `docs/agent-roster.md` |
 | Path-scoped rules | `.claude/rules/*.md`, mirrored to `.cursor/rules/` | Before editing a file, follow every rule whose paths match it (table below) |
 | Process documents | `.claude/docs/` | Collaboration protocol, coordination, phase gates, risk levels, model classes, confidentiality |
 
