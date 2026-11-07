@@ -1097,7 +1097,7 @@ end;
         for s in ("any form", "with or without data", "only when the note or the user asks", "tools/intake.py note",
                   "tools/intake.py data", "NOT ASSESSED", "docs/templates/research-brief.md", "/select-model-class",
                   "/debt-decomposition", "/vulnerability-dashboard", "/country-typology", "tools/report.py docx",
-                  "docs/templates/results-report.md", "Word report", "tools/report.py pptx", "PowerPoint", "tools/report.py bundle", "all-results"):
+                  "docs/templates/results-report.md", "Word report", "tools/report.py pptx", "PowerPoint", "tools/report.py bundle", "all-results", "<results folder>/charts/"):
             self.assertIn(s, plan)
         self.assertIn("/research-plan", read(os.path.join(ROOT, ".claude", "skills", "start", "SKILL.md")))
         self.assertIn("research-plan", read(os.path.join(ROOT, "AGENTS.md")))

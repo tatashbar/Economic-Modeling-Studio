@@ -2,7 +2,7 @@
 
 # Economic Modeling Studio
 
-**Version 2.1.0**
+**Version 2.1.1**
 
 A studio for building, estimating, validating and using economic models. **121 specialist agents** and **89 skills** (workflow commands such as `/build-dsge` or `/validate-model`) cover specification, building, estimation and independent validation for semi-structural projection and DSGE, input-output and CGE, trade and climate-economy models, deep learning, reinforcement learning, neural-network solvers, LLM-based tools, agent-based and game-theoretic models, and other econometric models. The studio also lets you work with every model as a **lego set**: a core model with plug-and-play components that can be added, swapped or removed, with explicit interfaces and the impact of every change checked first. It works with any coding agent that reads `AGENTS.md`: Claude Code, Codex, Cursor, Grok Build, Gemini CLI and others.
 
@@ -354,6 +354,7 @@ Adapt `studio-config.yaml` and `.claude/docs/confidentiality-and-ai-use.md` to t
 Agents and skills are Markdown files with YAML frontmatter; edit them freely. After changes run `python tools/validate_studio.py`. To add an agent, create `.claude/agents/<name>.md` and list it as a peer in the related agents. To add a command, create `.claude/skills/<name>/SKILL.md`. Path-scoped standards live in `.claude/rules/`. After changing commands or rules, run `python tools/sync_agents.py` to update the copies for other coding agents.
 
 ## Version history
+- **2.1.1** — Every chart and table in a report comes from saved code: a model run, or a chart script saved next to the chart and listed in the report's annex.
 - **2.1.0** — PowerPoint presentations: `/research-plan` also ends with a deck built from the results report, with a questions-and-answers slide and, for each question or objective, the answer next to its chart, followed by its tables (`python tools/report.py pptx`). All results in one place: the deliverables, charts, code and every run folder a report names are collected in one folder and a zip with an index by question (`python tools/report.py bundle`). Policy briefs can be turned into slides too.
 - **1.10.0** — Word reports: `/research-plan` ends with a Word file that answers each question or objective with its charts and tables, from a new results template and `tools/report.py`. Policy briefs, technical notes and chart packs can be exported to Word too.
 - **1.9.0** — Research notes, plans and objectives as input: `/research-plan` turns a note in any form, with or without data, into modeling tasks and results. New cross-country skills (`/debt-decomposition`, `/vulnerability-dashboard`, `/country-typology`), probability-weighted scenarios, two new agents, and `tools/intake.py` for reading notes and data files.

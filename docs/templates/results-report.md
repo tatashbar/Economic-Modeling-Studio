@@ -37,5 +37,6 @@ Prepared for: <audience>. Inputs: <note, version or date>; <data files and vinta
 |---|---|---|
 
 ## Annex: reproducibility
+<!-- One row per model run, plus one row for any chart script in charts/ (charts drawn only for this report). -->
 | Result | Code | Run folder |
 |---|---|---|

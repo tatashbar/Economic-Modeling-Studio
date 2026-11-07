@@ -67,7 +67,7 @@ Bring in the specialists each task needs (for example `cross-country-indicators-
    - Estimation: `/estimate-var`, `/local-projections`, `/build-causal-ml`
    - Communication: `/chart-pack`, `/policy-brief`, `/technical-note`
 6. Where replication was agreed, reproduce the supplied results within tolerance first; where both the note's method and the studio's are run, explain each difference and the assumption behind it
-7. Write the results report (`docs/templates/results-report.md`): a short summary with one answer per question, then one section per question or objective with the answer, the charts and tables that support it (charts embedded as `![caption](path/to/chart.png)` from the run folders), the method and data, and the caveats; tasks that could not be done are listed with the reason
+7. Write the results report (`docs/templates/results-report.md`): a short summary with one answer per question, then one section per question or objective with the answer, the charts and tables that support it (charts embedded as `![caption](path/to/chart.png)` from the run folders), the method and data, and the caveats; tasks that could not be done are listed with the reason. A chart or table made only for the report, not by a model run, is drawn by a script saved in `<results folder>/charts/` that reads saved run outputs and computes no new numbers; the script is listed in the report's annex next to the model code
 8. Produce the Word report: `python tools/report.py docx <results-report.md> --out <project>-results.docx`. Charts and tables are numbered, and any chart that cannot be found is reported. Check that every question has its section and that no chart is missing
 9. Produce the presentation from the same report: `python tools/report.py pptx <results-report.md> --out <project>-results.pptx`. It has a title slide, a questions-and-answers slide, and for each question a slide with the answer next to its main chart (method as a footnote, caveats below the answer), followed by slides for further charts and tables; keep each answer short enough for a slide
 10. Collect everything in one place: `python tools/report.py bundle <results-report.md> --out <results folder>/<project>-all-results`. The folder (and `<project>-all-results.zip` next to it) holds the Word file, the presentation, the report, every chart, the code and the run folders the report names, keeping their studio paths, with an index (`README.md`) by question. Raw, restricted and confidential data are never copied. Give the user the paths of the folder and the zip, the Word file and the presentation
@@ -96,6 +96,7 @@ The research brief holds the tasks with their source in the note, the approach p
 - The Word report has a section and the presentation a slide for every question or objective, with its answer and supporting charts and tables, and no chart is reported missing
 - The all-results folder and zip exist, and their index lists the outputs of every question
 - Any agreed replication matches the supplied numbers within tolerance, or the discrepancies are explained
+- Every chart and table in the report comes from saved code: a model run or a saved chart script listed in the annex
 - Differences from the note's method are explained
 - Inputs were classified and are stored where their class allows
 
