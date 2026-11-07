@@ -103,6 +103,12 @@ The result is a **draft**: a working, documented starting point, not a finished 
 | Review structure | `/lego-show`, `/lego-check` | 3D HTML view, text or Mermaid diagram; wiring, closure and identity checks |
 | Validate and release | `/validate-model`, `/gate-check`, `/model-release` | Independent validation with a rating, gate verdicts with evidence, release package |
 
+**Example: working from a research note.** Put the note and any data files in the studio folder (non-public files in `data/raw/<project>/`, which stays outside git), then give the paths and what you want back:
+```
+/research-plan data/raw/my-project/note.docx data/raw/my-project/data.xlsx "answer the questions in the note, with charts by region"
+```
+Without a file, type the objective instead: `/research-plan "how would a 20% oil price fall affect public debt in Gulf economies? use public data"`.
+
 **Example: change-impact report.** Attaching a fiscal block with a debt-feedback rule to a small open-economy gap model (output of `python tools/lego.py attach`, before approval):
 
 ```
