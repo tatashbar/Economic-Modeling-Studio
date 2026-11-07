@@ -2,7 +2,7 @@
 
 # Economic Modeling Studio
 
-**Version 1.10.0**
+**Version 2.1.0**
 
 A studio for building, estimating, validating and using economic models. **121 specialist agents** and **89 skills** (workflow commands such as `/build-dsge` or `/validate-model`) cover specification, building, estimation and independent validation for semi-structural projection and DSGE, input-output and CGE, trade and climate-economy models, deep learning, reinforcement learning, neural-network solvers, LLM-based tools, agent-based and game-theoretic models, and other econometric models. The studio also lets you work with every model as a **lego set**: a core model with plug-and-play components that can be added, swapped or removed, with explicit interfaces and the impact of every change checked first. It works with any coding agent that reads `AGENTS.md`: Claude Code, Codex, Cursor, Grok Build, Gemini CLI and others.
 
@@ -97,7 +97,7 @@ The result is a **draft**: a working, documented starting point, not a finished 
 | Task | Commands | What you get |
 |---|---|---|
 | Specify and build a new model | `/scope-question`, `/model-spec`, then the build command for the family (e.g. `/build-semi-structural`, `/build-cge`) | A specification with a simple benchmark, then code, tests (steady state, identities, impulse-response signs) and the manifest |
-| Work from a research note, plan or objective | `/research-plan` with the note (any form), a short description and any data files | The note turned into modeling tasks with a proposed approach for each, the data mapped, the tasks run with the studio's skills, and a Word report that answers each question with its charts and tables |
+| Work from a research note, plan or objective | `/research-plan` with the note (any form), a short description and any data files | The note turned into modeling tasks with a proposed approach for each, the data mapped, the tasks run with the studio's skills, and a Word report and a PowerPoint presentation that answer each question with its charts and tables, with all outputs collected in one folder and a zip |
 | Bring in an existing model | `/adopt`, `/lego-map` | An inventory, reverse-documented equations and parameters, baseline outputs captured before any change, and a proposed decomposition into components for your approval |
 | Extend or modify a model | `/lego-add`, `/lego-swap`, `/lego-detach` | A change-impact report first (example below), then the change, with neighbouring components flagged for revalidation |
 | Review structure | `/lego-show`, `/lego-check` | 3D HTML view, text or Mermaid diagram; wiring, closure and identity checks |
@@ -107,7 +107,7 @@ The result is a **draft**: a working, documented starting point, not a finished 
 ```
 /research-plan data/raw/my-project/note.docx data/raw/my-project/data.xlsx "answer the questions in the note, with charts by region"
 ```
-Without a file, type the objective instead: `/research-plan "how would a 20% rise in food prices affect inflation in East African economies? use public data"`. Either way the studio ends with a Word report, one section per question with the answer, charts and tables.
+Without a file, type the objective instead: `/research-plan "how would a 20% rise in food prices affect inflation in East African economies? use public data"`. Either way the studio ends with a Word report and a PowerPoint presentation, one section and slide per question with the answer, charts and tables, and collects them with the code and every run's outputs in one folder and a zip (`<project>-all-results`).
 
 **Example: change-impact report.** Attaching a fiscal block with a debt-feedback rule to a small open-economy gap model (output of `python tools/lego.py attach`, before approval):
 
@@ -324,7 +324,7 @@ data/ forecasts/ validation/ production/ tests/ notebooks/ scripts/    working f
 tools/lego.py              lego engine: catalog, new, show, check, attach, detach, swap, arrange, validate, elements
 tools/lego_view.py         isometric 3D picture of a lego set (self-contained HTML)
 tools/intake.py            reads research notes (numbered paragraphs), inventories data workbooks and shows the formulas behind them, for /research-plan
-tools/report.py            writes a Word report from a Markdown results report, with charts and tables (standard library only)
+tools/report.py            writes a Word report and a PowerPoint presentation from a Markdown results report, and collects all results in one folder and zip (standard library only)
 tools/validate_studio.py   integrity check (counts, references, hooks, settings, lego catalog and examples)
 tools/test_studio.py       tests for hooks, guards, lego engine, agent adapters and documentation consistency
 tools/sync_agents.py       regenerates the copies for other coding agents from .claude/
@@ -354,6 +354,7 @@ Adapt `studio-config.yaml` and `.claude/docs/confidentiality-and-ai-use.md` to t
 Agents and skills are Markdown files with YAML frontmatter; edit them freely. After changes run `python tools/validate_studio.py`. To add an agent, create `.claude/agents/<name>.md` and list it as a peer in the related agents. To add a command, create `.claude/skills/<name>/SKILL.md`. Path-scoped standards live in `.claude/rules/`. After changing commands or rules, run `python tools/sync_agents.py` to update the copies for other coding agents.
 
 ## Version history
+- **2.1.0** — PowerPoint presentations: `/research-plan` also ends with a deck built from the results report, with a questions-and-answers slide and, for each question or objective, the answer next to its chart, followed by its tables (`python tools/report.py pptx`). All results in one place: the deliverables, charts, code and every run folder a report names are collected in one folder and a zip with an index by question (`python tools/report.py bundle`). Policy briefs can be turned into slides too.
 - **1.10.0** — Word reports: `/research-plan` ends with a Word file that answers each question or objective with its charts and tables, from a new results template and `tools/report.py`. Policy briefs, technical notes and chart packs can be exported to Word too.
 - **1.9.0** — Research notes, plans and objectives as input: `/research-plan` turns a note in any form, with or without data, into modeling tasks and results. New cross-country skills (`/debt-decomposition`, `/vulnerability-dashboard`, `/country-typology`), probability-weighted scenarios, two new agents, and `tools/intake.py` for reading notes and data files.
 - **1.8.3** — GTAP and GEMPACK support: GEMPACK is an approved toolchain, with rules for TABLO and command files (one `.cmf` per experiment with closure and shocks, multi-step solutions with accuracy reported, zero-shock benchmark check, aggregation mapping and database version kept, welfare decomposition and subtotals, results exported to `output/<run-id>/`). The GTAP database is treated as licensed data and never committed or shared. `/build-cge` offers the GEMPACK or GAMS route for GTAP models and `/setup-environment` checks GEMPACK.

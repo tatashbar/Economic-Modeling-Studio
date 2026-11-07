@@ -1097,7 +1097,7 @@ end;
         for s in ("any form", "with or without data", "only when the note or the user asks", "tools/intake.py note",
                   "tools/intake.py data", "NOT ASSESSED", "docs/templates/research-brief.md", "/select-model-class",
                   "/debt-decomposition", "/vulnerability-dashboard", "/country-typology", "tools/report.py docx",
-                  "docs/templates/results-report.md", "Word report"):
+                  "docs/templates/results-report.md", "Word report", "tools/report.py pptx", "PowerPoint", "tools/report.py bundle", "all-results"):
             self.assertIn(s, plan)
         self.assertIn("/research-plan", read(os.path.join(ROOT, ".claude", "skills", "start", "SKILL.md")))
         self.assertIn("research-plan", read(os.path.join(ROOT, "AGENTS.md")))
@@ -1263,6 +1263,63 @@ class TestReport(unittest.TestCase):
                   "Change in debt, pp of GDP", "Chart not found: run/none.png", "<w:tbl>", "<w:numId"):
             self.assertIn(s, doc)
 
+    def test_pptx_has_slides_by_question(self):
+        import zipfile
+        import xml.etree.ElementTree as ET
+        out = os.path.join(self.dir, "deck.pptx")
+        res = self.report.to_pptx(self.md, out)
+        # title, questions and answers, question 1 (answer and chart), the missing chart, the table
+        self.assertEqual(res["slides"], 5)
+        self.assertEqual(res["charts"], 1)
+        self.assertEqual(res["missing"], ["run/none.png"])
+        with zipfile.ZipFile(out) as z:
+            names = z.namelist()
+            for n in names:
+                if n.endswith(".xml") or n.endswith(".rels"):
+                    ET.fromstring(z.read(n))
+            text = [z.read("ppt/slides/slide%d.xml" % k).decode("utf-8") for k in range(1, 6)]
+            pres = z.read("ppt/presentation.xml").decode("utf-8")
+        self.assertEqual(pres.count("<p:sldId "), 5)
+        self.assertIn("ppt/media/image1.png", names)
+        self.assertIn("Results: test", text[0])
+        self.assertIn("Questions and answers", text[1])
+        self.assertIn("Debt rises.", text[1])
+        self.assertIn("Does debt rise?", text[2])
+        self.assertIn("r:embed", text[2])
+        self.assertIn("Chart not found: run/none.png", text[3])
+        self.assertIn("<a:tbl>", text[4])
+        self.assertIn("Change in debt, pp of GDP", text[4])
+
+    def test_bundle_collects_everything_in_one_folder_and_zip(self):
+        import zipfile
+        model = os.path.join(self.dir, "models", "econometrics", "m")
+        os.makedirs(os.path.join(model, "output", "r1"))
+        os.makedirs(os.path.join(self.dir, "data", "raw", "p"))
+        for rel, body in (("models/econometrics/m/run.py", "print(1)"), ("models/econometrics/m/output/r1/t.csv", "a,b"),
+                          ("models/econometrics/m/output/r1/run-log.md", "log"), ("data/raw/p/secret.csv", "x")):
+            with open(os.path.join(self.dir, *rel.split("/")), "w") as f:
+                f.write(body)
+        with open(self.md, "a", encoding="utf-8") as f:
+            f.write("\n## Annex\n\n| Result | Code | Run folder |\n|---|---|---|\n"
+                    "| Q1 | `models/econometrics/m/run.py` | `output/r1/` |\n\nInputs in `data/raw/p/`.\n")
+        with open(os.path.join(self.dir, "results.docx"), "w") as f:
+            f.write("doc")
+        out = os.path.join(self.dir, "proj-all-results")
+        res = self.report.bundle(self.md, out, root=self.dir)
+        for rel in ("README.md", "results.md", "results.docx", "run/chart.png", "models/econometrics/m/run.py",
+                    "models/econometrics/m/output/r1/t.csv", "models/econometrics/m/output/r1/run-log.md"):
+            self.assertTrue(os.path.isfile(os.path.join(out, *rel.split("/"))), rel)
+        self.assertFalse(os.path.exists(os.path.join(out, "data")))
+        self.assertEqual(res["skipped"], ["data/raw/p"])
+        self.assertIn("run/none.png", res["missing"])
+        with open(os.path.join(out, "results.md"), encoding="utf-8") as f:
+            self.assertIn("`models/econometrics/m/output/r1/`", f.read())
+        with zipfile.ZipFile(res["zip"]) as z:
+            self.assertIn("proj-all-results/models/econometrics/m/output/r1/t.csv", z.namelist())
+            self.assertIn("proj-all-results/README.md", z.namelist())
+        with open(os.path.join(self.dir, "data", "raw", "p", "secret.csv")) as f:
+            self.assertEqual(f.read(), "x")
+
     def test_cli(self):
         out = os.path.join(self.dir, "cli.docx")
         p = subprocess.run([sys.executable, os.path.join(ROOT, "tools", "report.py"), "docx", self.md, "--out", out],
@@ -1271,6 +1328,10 @@ class TestReport(unittest.TestCase):
         self.assertIn("1 figures, 1 tables", p.stdout)
         self.assertIn("missing chart: run/none.png", p.stdout)
         self.assertTrue(os.path.getsize(out) > 0)
+        p = subprocess.run([sys.executable, os.path.join(ROOT, "tools", "report.py"), "pptx", self.md, "--out",
+                            os.path.join(self.dir, "cli.pptx")], capture_output=True, text=True)
+        self.assertEqual(p.returncode, 0, p.stderr)
+        self.assertIn("5 slides, 1 charts", p.stdout)
 
 
 if __name__ == "__main__":

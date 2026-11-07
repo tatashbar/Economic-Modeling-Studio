@@ -62,7 +62,7 @@ Each agent is defined in `.claude/agents/<name>.md`. If your tool runs subagents
 - Mixing model results and judgment without labels
 
 ## Output
-`docs/briefs/<name>-brief.md`; a Word version on request (`python tools/report.py docx <file.md> --out <file.docx>`, charts embedded)
+`docs/briefs/<name>-brief.md`; a Word version or slides on request (`python tools/report.py docx|pptx <file.md> --out <file>`, charts embedded)
 
 The brief has a bottom line, evidence, risks, options, uncertainty and caveats in the main text, and a technical annex; a number-tracing table supports review.
 

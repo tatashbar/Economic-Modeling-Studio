@@ -1,6 +1,11 @@
 # Results: <project>
 
-<!-- Source of the Word report: python tools/report.py docx <this file> --out <project>-results.docx
+<!-- Source of the Word report and the presentation:
+       python tools/report.py docx <this file> --out <project>-results.docx
+       python tools/report.py pptx <this file> --out <project>-results.pptx
+     Each question becomes a slide with the answer next to its first chart, so keep each answer to a few sentences.
+     Everything in one folder and zip: python tools/report.py bundle <this file> --out <project>-all-results
+     Name code and run folders in backticks (as in the annex) so they are collected.
      One section per question or objective in the note, in the note's order. Charts are embedded with
      ![caption](models/<family>/<name>/output/<run-id>/chart.png); a bold line right above a table becomes its caption. -->
 
