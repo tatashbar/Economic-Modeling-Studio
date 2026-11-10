@@ -190,7 +190,7 @@ class TestIntegrity(unittest.TestCase):
         skills = len(glob.glob(os.path.join(ROOT, ".claude", "skills", "*", "SKILL.md")))
         readme = read(os.path.join(ROOT, "README.md"))
         claude = read(os.path.join(ROOT, "CLAUDE.md"))
-        self.assertEqual(agents, 121)
+        self.assertEqual(agents, 127)
         self.assertIn(f"{agents} specialist agents", readme)
         self.assertIn(f"{skills} skills", readme)
         self.assertIn(f"{agents} specialized agents", claude)
@@ -202,7 +202,7 @@ class TestIntegrity(unittest.TestCase):
         roster_counts = [int(n) for _, n in re.findall(r"^## (.+?) \((\d+)\)$", roster, re.M)]
         table = readme.split("## The agents", 1)[1].split("\n## ", 1)[0]
         readme_counts = [int(n) for n in re.findall(r"^\| [^|]+ \| (\d+) \|", table, re.M)]
-        self.assertEqual(sum(roster_counts), 121)
+        self.assertEqual(sum(roster_counts), 127)
         self.assertEqual(readme_counts, roster_counts)
 
     def test_no_hierarchy_in_agents(self):
@@ -1332,6 +1332,211 @@ class TestReport(unittest.TestCase):
                             os.path.join(self.dir, "cli.pptx")], capture_output=True, text=True)
         self.assertEqual(p.returncode, 0, p.stderr)
         self.assertIn("5 slides, 1 charts", p.stdout)
+
+
+class TestTranslate(unittest.TestCase):
+    """Code translation: language list, idioms, inventory, workspace and plan, output comparison, source check."""
+
+    @classmethod
+    def setUpClass(cls):
+        sys.path.insert(0, os.path.join(ROOT, "tools"))
+        import translate
+        cls.t = translate
+
+    def setUp(self):
+        self.dir = tempfile.mkdtemp()
+        self.src = os.path.join(self.dir, "src")
+        files = {
+            "run.do": 'version 17\ndo "sub/clean.do"\nuse "data/panel.dta", clear\ngen y2 = y^2\nsort id year\n'
+                      'regress y x, vce(robust)\nexport delimited using "out/results.csv", replace\n',
+            "sub/clean.do": 'import delimited using "C:\\Users\\me\\raw.csv", clear\nssc install estout\nsave "data/panel.dta", replace\n',
+            "main.m": "global beta\nx = helper(3);\ndynare rbc\nwritetable(T, \"irf.csv\")\n",
+            "helper.m": "function y = helper(x)\ny = x \\ 2;\nend\n",
+            "rbc.mod": "var y k;\nvarexo e;\nparameters alpha;\nmodel;\ny = k(-1)^alpha;\nend;\nsteady;\nstoch_simul(order=1);\n",
+            "calc.f": "      PROGRAM CALC\n      COMMON /BLK/ A\n      X = 0.1\n      CALL SUB1(X)\n      END\n",
+            "sub1.f90": "subroutine sub1(x)\n  implicit none\n  real :: x\nend subroutine\n",
+            "PAY.cbl": "       PROCEDURE DIVISION.\n       COPY PAYREC.\n           COMPUTE TOTAL = A * B.\n",
+            "PAYREC.cpy": "       01 REC.\n          05 AMT PIC 9(7)V99 COMP-3.\n          05 AMT2 REDEFINES AMT PIC X(5).\n",
+            "model.prg": "wfopen data.wf1\nsmpl 2000 2020\nequation eq.ls y c x\n",
+            "note.m": "f[x_] := Module[{y}, y = x^2]\n",
+            "oct.m": "x = 1;\nif x\n  printf(\"a\")\nendif\n",
+            "data.csv": "id,year,y\n",
+        }
+        for rel, text in files.items():
+            p = os.path.join(self.src, rel)
+            os.makedirs(os.path.dirname(p), exist_ok=True)
+            with open(p, "w", encoding="utf-8") as f:
+                f.write(text)
+
+    def tearDown(self):
+        shutil.rmtree(self.dir, ignore_errors=True)
+
+    def test_language_list_is_complete_and_documented(self):
+        langs = self.t.lang_index()
+        for k in ("stata", "r", "python", "matlab", "octave", "julia", "dynare", "iris", "eviews", "sas", "spss", "gauss",
+                  "rats", "gams", "gempack", "fortran", "c", "cobol", "excel", "stan", "sql", "troll", "fame"):
+            self.assertIn(k, langs)
+            self.assertTrue(langs[k]["pitfalls"], k)
+        approved = self.t.approved_toolchains()
+        for l in langs.values():
+            self.assertTrue(l["extensions"], l["id"])
+            if l["toolchain"]:
+                self.assertIn(l["toolchain"], approved, l["id"])
+            if l["target"]:
+                self.assertIn(l["id"], self.t.TARGET_EXT, l["id"])
+        doc = read(os.path.join(ROOT, "docs", "code-translation.md"))
+        block = doc.split(self.t.DOC_BEGIN)[1].split(self.t.DOC_END)[0].strip()
+        self.assertEqual(block, self.t.languages_md(), "run python tools/translate.py languages --write-doc")
+
+    def test_idioms_cover_known_default_differences(self):
+        I = self.t.load_idioms()
+        for r in I["idioms"]:
+            self.assertTrue(r["task"])
+            self.assertTrue(set(r) >= set(I["columns"]), r["task"])
+        rows = {r["task"]: r for r in self.t.idiom_rows("stata", "python")}
+        self.assertIn("HC1", rows["Heteroskedasticity-robust standard errors"]["python"])
+        rows = {r["task"]: r for r in self.t.idiom_rows("stata", "r")}
+        self.assertIn("HC3", rows["Heteroskedasticity-robust standard errors"]["r"])
+
+    def test_detects_languages_including_shared_extensions(self):
+        inv = self.t.inventory(self.src)
+        lang = {f["path"]: f["language"] for f in inv["files"]}
+        self.assertEqual(lang["run.do"], "stata")
+        self.assertEqual(lang["rbc.mod"], "dynare")
+        self.assertEqual(lang["main.m"], "matlab")
+        self.assertEqual(lang["note.m"], "mathematica")
+        self.assertEqual(lang["oct.m"], "octave")
+        self.assertEqual(lang["model.prg"], "eviews")
+        self.assertEqual(lang["calc.f"], "fortran")
+        self.assertEqual(lang["PAYREC.cpy"], "cobol")
+        self.assertEqual([d["path"] for d in inv["data_files"]], ["data.csv"])
+
+    def test_inventory_finds_calls_data_order_and_risky_constructs(self):
+        inv = self.t.inventory(self.src)
+        f = {x["path"]: x for x in inv["files"]}
+        self.assertEqual(f["run.do"]["calls"], ["sub/clean.do"])
+        self.assertEqual(set(f["main.m"]["calls"]), {"helper.m", "rbc.mod"})
+        self.assertEqual(f["calc.f"]["calls"], ["sub1.f90"])
+        self.assertEqual(f["PAY.cbl"]["calls"], ["PAYREC.cpy"])
+        self.assertIn("out/results.csv", f["run.do"]["writes"])
+        self.assertIn("data/panel.dta", f["run.do"]["reads"])
+        self.assertIn("data/panel.dta", f["sub/clean.do"]["writes"])
+        self.assertIn("estout", f["sub/clean.do"]["packages"])
+        order = inv["order"]
+        for callee, caller in (("sub/clean.do", "run.do"), ("helper.m", "main.m"), ("rbc.mod", "main.m"), ("PAYREC.cpy", "PAY.cbl")):
+            self.assertLess(order.index(callee), order.index(caller))
+        self.assertIn("run.do", inv["entry_points"])
+        self.assertNotIn("helper.m", inv["entry_points"])
+        flags = lambda p: " ".join(f[p]["flags"])
+        self.assertIn("absolute path", flags("sub/clean.do"))
+        self.assertIn("float", flags("run.do"))
+        self.assertIn("stable", flags("run.do"))
+        self.assertIn("IMPLICIT NONE", flags("calc.f"))
+        self.assertIn("COMMON", flags("calc.f"))
+        self.assertNotIn("IMPLICIT NONE", flags("sub1.f90"))
+        self.assertIn("COMP-3", flags("PAYREC.cpy"))
+        self.assertIn("REDEFINES", flags("PAYREC.cpy"))
+        self.assertIn("steady state", flags("rbc.mod"))
+        self.assertIn("sample state", flags("model.prg"))
+
+    def test_plan_creates_workspace_and_never_touches_the_source(self):
+        before = {os.path.relpath(p, self.src): self.t.sha256(p) for p in self.t.walk(self.src)}
+        ws = self.t.plan(self.src, "python", name="demo", out=os.path.join(self.dir, "translations"))
+        for rel in ("plan.md", "inventory.md", "inventory.json", "source-manifest.json", "construct-log.md", "target/README.md"):
+            self.assertTrue(os.path.exists(os.path.join(ws, rel)), rel)
+        for d in ("reference-outputs", "translated-outputs", "equivalence"):
+            self.assertTrue(os.path.isdir(os.path.join(ws, d)), d)
+        plan = read(os.path.join(ws, "plan.md"))
+        self.assertIn("`target/sub/clean.py`", plan)
+        for agent in ("statistical", "legacy", "model"):
+            self.assertIn(f"`{agent}-code-translation-specialist`", plan)
+        self.assertIn("vce(robust)", plan)
+        self.assertIn("Decisions for the user", plan)
+        self.assertLess(plan.index("| `sub/clean.do`"), plan.index("| `run.do`"))
+        after = {os.path.relpath(p, self.src): self.t.sha256(p) for p in self.t.walk(self.src)}
+        self.assertEqual(before, after)
+        self.assertEqual(self.t.verify_source(ws), ([], [], []))
+        with open(os.path.join(self.src, "helper.m"), "a") as f:
+            f.write("% edited\n")
+        self.assertEqual(self.t.verify_source(ws)[0], ["helper.m"])
+        with self.assertRaises(SystemExit):
+            self.t.plan(self.src, "python", name="demo", out=os.path.join(self.dir, "translations"))
+        with self.assertRaises(SystemExit):
+            self.t.plan(self.src, "cobol", out=os.path.join(self.dir, "translations"))
+        self.assertEqual(self.t.target_name("Model File.m", "python"), "model_file.py")
+        self.assertEqual(self.t.target_name("a.py", "python"), "a_translated.py")
+
+    def _outputs(self, ref, new):
+        a, b = os.path.join(self.dir, "ref"), os.path.join(self.dir, "new")
+        for d, files in ((a, ref), (b, new)):
+            os.makedirs(d, exist_ok=True)
+            for name, text in files.items():
+                with open(os.path.join(d, name), "w", encoding="utf-8") as f:
+                    f.write(text)
+        return a, b
+
+    def test_compare_passes_within_tolerance_and_treats_missing_codes_alike(self):
+        a, b = self._outputs({"est.csv": "id,b,se\n1,0.5,.\n2,1.25,0.1\n", "m.json": '{"irf": [1.0, 0.5], "n": 3}'},
+                             {"est.csv": "ID;b;se\n1;0.5000000001;NaN\n2;1.25;1.0D-01\n", "m.json": '{"irf": [1.0, 0.5000000001], "n": 3}'})
+        results, extra = self.t.compare(a, b)
+        self.assertEqual([s for _, s, _ in results], ["PASS", "PASS"], results)
+        md, ok = self.t.compare_md(results, extra, a, b, 1e-6, 1e-9)
+        self.assertTrue(ok)
+        self.assertIn("Verdict: PASS", md)
+
+    def test_compare_fails_on_values_rows_columns_and_missing_files(self):
+        a, b = self._outputs({"est.csv": "id,b\n1,0.5\n2,1.25\n", "keyed.csv": "id,b\n1,1\n2,2\n", "only.csv": "x\n1\n"},
+                             {"est.csv": "id,b,extra\n1,0.51\n", "keyed.csv": "id,b\n2,2\n1,1\n", "new.csv": "x\n1\n"})
+        results, extra = self.t.compare(a, b)
+        st = {r: s for r, s, _ in results}
+        self.assertEqual(st["est.csv"], "FAIL")
+        self.assertEqual(st["only.csv"], "MISSING")
+        self.assertEqual(st["keyed.csv"], "FAIL")      # same rows in another order
+        self.assertEqual(extra, ["new.csv"])
+        issues = " ".join({r: x for r, _, x in results}["est.csv"]["issues"])
+        self.assertIn("columns only in the translation: extra", issues)
+        self.assertIn("row counts differ", issues)
+        results, _ = self.t.compare(a, b, keys=["id"], pairs=["keyed.csv=keyed.csv"])
+        self.assertEqual(results[0][1], "PASS")
+        md, ok = self.t.compare_md(*self.t.compare(a, b), a, b, 1e-6, 1e-9)
+        self.assertFalse(ok)
+        self.assertIn("Verdict: FAIL", md)
+
+    def test_cli(self):
+        tool = os.path.join(ROOT, "tools", "translate.py")
+        run = lambda *args: subprocess.run([sys.executable, tool, *args], capture_output=True, text=True, timeout=60)
+        p = run("languages", "--target-only")
+        self.assertEqual(p.returncode, 0, p.stderr)
+        self.assertIn("dynare", p.stdout)
+        self.assertNotIn("cobol", p.stdout)
+        p = run("idioms", "--from", "stata", "--to", "r", "--task", "round")
+        self.assertIn("half to even", p.stdout)
+        p = run("inventory", self.src)
+        self.assertEqual(p.returncode, 0, p.stderr)
+        self.assertIn("Files in translation order", p.stdout)
+        p = run("plan", self.src, "--to", "julia", "--out", os.path.join(self.dir, "tr"))
+        self.assertEqual(p.returncode, 0, p.stderr)
+        ws = os.path.join(self.dir, "tr", "src-to-julia")
+        self.assertEqual(run("verify-source", ws).returncode, 0)
+        a, b = self._outputs({"t.csv": "a\n1\n"}, {"t.csv": "a\n2\n"})
+        p = run("compare", a, b, "--out", os.path.join(ws, "equivalence", "report.md"))
+        self.assertEqual(p.returncode, 1)
+        self.assertTrue(os.path.exists(os.path.join(ws, "equivalence", "report.md")))
+
+    def test_translation_agents_skills_and_rule(self):
+        for a in ("code-translation-architect", "source-code-analyst", "statistical-code-translation-specialist",
+                  "model-code-translation-specialist", "legacy-code-translation-specialist", "translation-equivalence-auditor"):
+            self.assertTrue(os.path.exists(os.path.join(ROOT, ".claude", "agents", a + ".md")), a)
+        for s in ("code-inventory", "translation-plan", "translate-code", "translate-model", "equivalence-test"):
+            t = read(os.path.join(ROOT, ".claude", "skills", s, "SKILL.md"))
+            self.assertIn("tools/translate.py", t, s)
+        auditor = read(os.path.join(ROOT, ".claude", "agents", "translation-equivalence-auditor.md"))
+        self.assertIn("did not translate", auditor)
+        rule = read(os.path.join(ROOT, ".claude", "rules", "code-translation.md"))
+        self.assertIn("translations/**", rule)
+        self.assertIn("read-only", rule)
+        self.assertIn("translations/incoming/*", read(os.path.join(ROOT, ".gitignore")))
+        self.assertIn("translate-code", read(os.path.join(ROOT, "AGENTS.md")))
 
 
 if __name__ == "__main__":

@@ -66,4 +66,5 @@ The adoption report holds the inventory, reverse documentation, reference output
 
 ## Suggested next steps
 - `/validate-model`
+- `/translate-code`
 - `/model-card`

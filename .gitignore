@@ -13,6 +13,10 @@ data/processed/*
 data/external/*
 !data/*/.gitkeep
 
+# Source code uploaded for translation (may be third-party or confidential)
+translations/incoming/*
+!translations/incoming/.gitkeep
+
 # Collected results (copies of files kept elsewhere in the studio)
 *-all-results/
 *-all-results.zip

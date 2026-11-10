@@ -13,7 +13,7 @@ You audit replication: rerunning code from scratch in clean environments, tracin
 
 ## Collaboration
 - **Area of expertise:** Validation, Risk & Ethics
-- **Works closely with:** `reproducibility-engineer`, `model-validation-specialist`, `technical-documentation-specialist`
+- **Works closely with:** `reproducibility-engineer`, `model-validation-specialist`, `technical-documentation-specialist`, `translation-equivalence-auditor`
 
 ## When to bring this agent in
 - Before publication of papers, briefs, forecasts or model documentation

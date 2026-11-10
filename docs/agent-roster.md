@@ -1,6 +1,6 @@
 # Agent Roster
 
-121 agents, grouped by area of expertise. Source of truth: `.claude/agents/`.
+127 agents, grouped by area of expertise. Source of truth: `.claude/agents/`.
 
 | Area | Agents |
 |---|---|
@@ -20,6 +20,7 @@
 | Games, Agents & Strategic Behavior | 6 |
 | Data & Statistics | 7 |
 | Computation & Engineering | 7 |
+| Code Translation | 6 |
 | Validation, Risk & Ethics | 6 |
 | Communication & Capacity Building | 5 |
 
@@ -212,6 +213,17 @@
 | [`mlops-engineer`](../.claude/agents/mlops-engineer.md) | Engineers MLOps for models: experiment tracking, model registry, deployment, monitoring, drift detection, CI/CD. |
 | [`numerical-methods-specialist`](../.claude/agents/numerical-methods-specialist.md) | Specializes in numerical methods: root finding, optimization, quadrature, interpolation, linear algebra, stochastic simulation. |
 | [`reproducibility-engineer`](../.claude/agents/reproducibility-engineer.md) | Guarantees reproducibility: environments, containers, seeds, data vintages, code review, automated tests, replication packages. |
+
+## Code Translation (6)
+
+| Agent | Role |
+|---|---|
+| [`code-translation-architect`](../.claude/agents/code-translation-architect.md) | Plans and coordinates the translation of model code between languages and software (Stata, R, Python, MATLAB, Dynare, EViews, SAS, GAMS, Fortran, COBOL and others) and signs off the translated package. |
+| [`source-code-analyst`](../.claude/agents/source-code-analyst.md) | Reads source code in any language used for economic models, maps its structure and dependencies, and writes down what each part computes before it is translated. |
+| [`statistical-code-translation-specialist`](../.claude/agents/statistical-code-translation-specialist.md) | Translates statistical and econometric code between Stata, R, Python, SAS, SPSS, EViews, RATS, gretl, LIMDEP and Stan/JAGS, matching estimators, standard errors and data handling. |
+| [`model-code-translation-specialist`](../.claude/agents/model-code-translation-specialist.md) | Translates model code between Dynare, IRIS, RISE, MATLAB, Octave, Python, Julia, GAMS, GEMPACK, AMPL, TROLL and C/C++, matching steady states, solutions, impulse responses and simulations. |
+| [`legacy-code-translation-specialist`](../.claude/agents/legacy-code-translation-specialist.md) | Translates legacy code (COBOL, Fortran, GAUSS, TSP, FAME/AREMOS, Excel and VBA, SQL, C) into maintained languages with exact arithmetic, record layouts and control flow preserved. |
+| [`translation-equivalence-auditor`](../.claude/agents/translation-equivalence-auditor.md) | Independently tests whether translated code reproduces the source: reference outputs, tolerances, comparisons, edge cases, and a verdict on the translation. |
 
 ## Validation, Risk & Ethics (6)
 

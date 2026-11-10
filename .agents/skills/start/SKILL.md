@@ -35,8 +35,9 @@ Be the first stop for a new user: find out what they want to achieve (answer a q
 Each agent is defined in `.claude/agents/<name>.md`. If your tool runs subagents, run these agents as subagents, in parallel where the steps are independent; otherwise read each agent's file and apply its instructions in turn. Subagents only write to the paths named in your instructions.
 
 ## Workflow
-1. Greet the user and ask what they are trying to achieve: a question to answer, a model to build, a forecast to produce, a model to validate, an existing model to adopt, or a research note, plan or objective (in any form, with or without data) to turn into modeling work
+1. Greet the user and ask what they are trying to achieve: a question to answer, a model to build, a forecast to produce, a model to validate, an existing model to adopt, code to translate to another language, or a research note, plan or objective (in any form, with or without data) to turn into modeling work
    - If the user brings a note, plan, objective or brief, recommend `/research-plan` first
+   - If the user brings code to move to another language or software, recommend `/translate-code` (or `/code-inventory` to look first)
 2. Ask the model size class (small, medium, large), the audience and the deadline
 3. Run `/project-stage-detect` logic to see what already exists
 4. Recommend the first three skills to run, with reasons, and wait for the user's choice
@@ -60,4 +61,5 @@ The session-state file records the user's goal, size class, audience, deadline a
 - `/scope-question`
 - `/research-plan`
 - `/adopt`
+- `/translate-code`
 - `/project-stage-detect`

@@ -5,7 +5,7 @@ Checks: agent count and frontmatter, skill frontmatter, agent references in skil
 agents, links to next skills, rules/templates present, hooks parse, settings.json valid,
 copies for other coding agents in sync with .claude/ (tools/sync_agents.py), Cursor hooks valid.
 
-Usage: python tools/validate_studio.py [--expect-agents 121] [--expect-skills 89]
+Usage: python tools/validate_studio.py [--expect-agents 127] [--expect-skills 94]
 """
 import argparse
 import glob
@@ -38,8 +38,8 @@ def frontmatter(path):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--expect-agents", type=int, default=121)
-    ap.add_argument("--expect-skills", type=int, default=89)
+    ap.add_argument("--expect-agents", type=int, default=127)
+    ap.add_argument("--expect-skills", type=int, default=94)
     args = ap.parse_args()
 
     agents = {}

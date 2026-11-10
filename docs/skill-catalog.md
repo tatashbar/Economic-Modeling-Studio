@@ -1,6 +1,6 @@
 # Skill Catalog
 
-89 slash commands. Source of truth: `.claude/skills/`.
+94 slash commands. Source of truth: `.claude/skills/`.
 
 ## Onboarding
 
@@ -138,6 +138,16 @@
 |---|---|---|
 | `/design-training` [audience and model] | `training-curriculum-designer` | Designs a capacity-development program: needs assessment, curriculum, labs, assessment and ownership-transfer plan. |
 | `/create-exercise` [learning goal] | `policy-wargame-facilitator` | Creates a hands-on exercise, case study, or policy wargame with scenario, roles, materials, facilitator guide and debrief. |
+
+## Code Translation
+
+| Command | Primary agent | What it does |
+|---|---|---|
+| `/code-inventory` [source-folder] | `source-code-analyst` | Inventories a code folder in any language used for economic models: languages, files, call graph, data in and out, packages, risky constructs, entry points and translation order. |
+| `/translation-plan` [source-folder] [target-language] | `code-translation-architect` | Plans a code translation: file mapping in dependency order, target libraries, agents, idioms and pitfalls for the language pair, decisions, tolerances and the equivalence test. |
+| `/translate-code` [source-folder] [target-language] | `code-translation-architect` | Translates a code folder from one language or software to another (Stata, R, Python, MATLAB, Dynare, EViews, SAS, GAMS, Fortran, COBOL and more), with specialist agents and an equivalence test against the source. |
+| `/translate-model` [model-file-or-folder] [target] | `model-code-translation-specialist` | Translates a model definition (Dynare, IRIS, RISE, GAMS, GEMPACK, AMPL, TROLL, EViews model, MATLAB or Python model code) to another tool, matching steady state, solution, IRFs, moments or benchmark solutions. |
+| `/equivalence-test` [translation-workspace or reference-dir translated-dir] | `translation-equivalence-auditor` | Tests whether translated code reproduces the source: reference outputs, tolerances, cell-by-cell comparison, edge cases, diagnosis of differences and a verdict. |
 
 ## Lego (Modular Models)
 

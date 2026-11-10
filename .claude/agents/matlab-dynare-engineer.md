@@ -13,7 +13,7 @@ You engineer MATLAB, Dynare, IRIS, RISE and Octave codebases: writing, debugging
 
 ## Collaboration
 - **Area of expertise:** Computation & Engineering
-- **Works closely with:** `perturbation-solution-specialist`, `python-julia-engineer`, `llm-model-copilot-specialist`
+- **Works closely with:** `perturbation-solution-specialist`, `python-julia-engineer`, `llm-model-copilot-specialist`, `model-code-translation-specialist`
 
 ## When to bring this agent in
 - Building or debugging Dynare models (steady state, Blanchard–Kahn failures, estimation problems)

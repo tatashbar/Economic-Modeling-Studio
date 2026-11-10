@@ -1,0 +1,375 @@
+{
+  "_about": "Languages and software used for economic models, for /translate-code and tools/translate.py. kind: statistical, numerical, model, optimization, bayesian, legacy, spreadsheet, database. source: the studio reads and translates from it. target: the studio translates to it. toolchain: the name in studio-config.yaml toolchains.approved that covers it (null if none). run: how a program is run in batch. pitfalls: semantics that most often change results when code moves to another language.",
+  "languages": [
+    {
+      "id": "python", "name": "Python (NumPy, pandas, SciPy, statsmodels, linearmodels)", "kind": "numerical",
+      "extensions": [".py", ".ipynb"], "source": true, "target": true, "toolchain": "python",
+      "run": "python run.py", "tests": "pytest",
+      "pitfalls": [
+        "Indexing starts at 0 and slices exclude the end point (x[0:3] is three elements).",
+        "NumPy std and var default to ddof=0 (population); pandas std and var default to ddof=1.",
+        "round() and numpy.round round half to even (2.5 becomes 2); Stata, MATLAB, SAS and Excel round half away from zero.",
+        "pandas aligns on the index when assigning a Series, so rows can be silently reordered or set to NaN.",
+        "NumPy arrays are row-major by default; reshape from MATLAB, Fortran, R or Julia needs order='F'.",
+        "Comparisons with NaN are False, so filters drop missing values silently.",
+        "pandas sort_values is not stable for a single key unless kind='mergesort' or 'stable'.",
+        "statsmodels OLS has no constant unless the formula interface or add_constant is used."
+      ]
+    },
+    {
+      "id": "r", "name": "R", "kind": "statistical",
+      "extensions": [".R", ".r", ".Rmd", ".qmd", ".Rproj"], "source": true, "target": true, "toolchain": "r",
+      "run": "Rscript run.R", "tests": "testthat",
+      "pitfalls": [
+        "NA propagates: mean(x) is NA unless na.rm = TRUE; lm() drops incomplete rows by default (na.action).",
+        "round() rounds half to even (round(2.5) is 2).",
+        "sandwich::vcovHC defaults to HC3; Stata's robust errors are HC1.",
+        "quantile() defaults to type 7; Stata and SAS use other definitions.",
+        "Factors: the base level is the first level (alphabetical unless set), which changes dummy coefficients.",
+        "Vectors recycle silently when lengths differ.",
+        "dplyr::lag shifts by position and ignores gaps in the time index; use a panel-aware lag.",
+        "Before R 4.0, data.frame() and read.csv() turned strings into factors by default.",
+        "Results can depend on package versions; pin them with renv."
+      ]
+    },
+    {
+      "id": "stata", "name": "Stata (do-files, ado-files, Mata)", "kind": "statistical",
+      "extensions": [".do", ".ado", ".mata", ".dta"], "source": true, "target": true, "toolchain": "stata",
+      "run": "stata-mp -b do run.do", "tests": "assert statements in a test do-file",
+      "pitfalls": [
+        "Missing values (., .a to .z) are larger than any number, so 'if x > 5' includes missing values.",
+        "generate creates float (about 7 significant digits) unless the type is given or set type double is used.",
+        "Time-series operators (L., D., F.) respect gaps in the time variable; positional shifts in other languages do not.",
+        "sort is not stable unless the stable option is used; results that depend on order within ties change between runs.",
+        "vce(robust) is HC1; vce(cluster) applies the small-sample factor G/(G-1)*(N-1)/(N-K).",
+        "xtreg, fe reports a constant (the average of the fixed effects) and its own degrees of freedom; areg differs.",
+        "Commands depend on the version statement and on user-written packages (ssc), which change over time.",
+        "_pctile and summarize, detail use the empirical distribution with averaging (R type 2); altdef gives another definition.",
+        "Local and global macros are expanded before execution; a misspelled macro expands to an empty string without error.",
+        "Daily dates count days since 1 January 1960."
+      ]
+    },
+    {
+      "id": "matlab", "name": "MATLAB (with Econometrics, Optimization and Statistics toolboxes)", "kind": "numerical",
+      "extensions": [".m", ".mat", ".mlx"], "source": true, "target": true, "toolchain": "matlab-dynare",
+      "run": "matlab -batch run", "tests": "matlab.unittest",
+      "pitfalls": [
+        "Indexing starts at 1 and arrays are column-major.",
+        "A\\b solves least squares when A is not square; numpy.linalg.solve fails instead.",
+        "' is the conjugate transpose; .' is the plain transpose (they differ for complex matrices).",
+        "Scripts share the base workspace and global variables; hidden state can carry between runs.",
+        "quantile uses the midpoint definition (R type 5); prctile likewise.",
+        "Toolbox functions change outputs across releases (for example the outputs of hpfilter).",
+        "Implicit expansion (R2016b and later) broadcasts silently where older code would have failed.",
+        "round rounds half away from zero.",
+        "Dates as datenum count days since year 0."
+      ]
+    },
+    {
+      "id": "octave", "name": "GNU Octave", "kind": "numerical",
+      "extensions": [".m"], "source": true, "target": true, "toolchain": "matlab-dynare",
+      "run": "octave --no-gui --eval run", "tests": "test blocks (%!test)",
+      "pitfalls": [
+        "Mostly MATLAB-compatible, but toolbox functions live in packages (statistics, optim) with different defaults.",
+        "Accepts syntax MATLAB rejects (#comments, endif, ++, printf), so Octave code may not run in MATLAB.",
+        "Some MATLAB functions are missing or behave differently (tables, datetime, string arrays)."
+      ]
+    },
+    {
+      "id": "julia", "name": "Julia", "kind": "numerical",
+      "extensions": [".jl"], "source": true, "target": true, "toolchain": "julia",
+      "run": "julia --project run.jl", "tests": "Test (@testset)",
+      "pitfalls": [
+        "Indexing starts at 1 and arrays are column-major.",
+        "Integer overflow wraps silently (typemax(Int) + 1 is negative).",
+        "Broadcasting needs the dot (x .+ y, f.(x)); missing dots change the meaning or fail.",
+        "missing propagates and is different from NaN and nothing.",
+        "The random-number stream for a given seed can change between Julia versions; pin the version and use StableRNGs where draws must reproduce.",
+        "Integer division is div or ÷; / always returns a float."
+      ]
+    },
+    {
+      "id": "dynare", "name": "Dynare (.mod files, run in MATLAB or Octave)", "kind": "model",
+      "extensions": [".mod", ".inc"], "source": true, "target": true, "toolchain": "matlab-dynare",
+      "run": "dynare model.mod (inside MATLAB or Octave)", "tests": "steady-state residuals and IRF regression tests",
+      "pitfalls": [
+        "Timing: a stock variable carries the date of the period in which it is chosen, so capital in production is k(-1).",
+        "Variables are in levels unless the model is written in logs or model(linear) is used; IRFs are then deviations in levels.",
+        "steady_state_model computes the steady state analytically; steady with initval solves it numerically and can find another solution.",
+        "stoch_simul options (order, pruning, periods, irf, hp_filter) change the moments and IRFs reported.",
+        "Theoretical moments and simulated moments (periods > 0) differ.",
+        "Prior shapes in estimated_params are parameterized by mean and standard deviation, not by the distribution's own parameters.",
+        "The macro processor (@#define, @#if, @#for) generates the model text; translate the expanded model, not the macro code.",
+        "Shock blocks set either the standard deviation (stderr) or the variance (var)."
+      ]
+    },
+    {
+      "id": "iris", "name": "IRIS toolbox (MATLAB; .model files)", "kind": "model",
+      "extensions": [".model", ".mdl"], "source": true, "target": true, "toolchain": "matlab-dynare",
+      "run": "MATLAB script calling Model.fromFile", "tests": "steady-state and simulation regression tests",
+      "pitfalls": [
+        "Model files declare !transition_variables, !measurement_variables, !log_variables; log variables change what deviations mean.",
+        "Lags are written x{-1}; steady-state references use &x.",
+        "Simulation and filtering options (anticipate, deviation, method) change results.",
+        "Databases (struct of Series) carry their own date ranges; ranges must match in the target."
+      ]
+    },
+    {
+      "id": "rise", "name": "RISE toolbox (MATLAB; regime-switching models)", "kind": "model",
+      "extensions": [".rs", ".dsge"], "source": true, "target": false, "toolchain": "matlab-dynare",
+      "run": "MATLAB script calling rise()", "tests": "solution and IRF regression tests",
+      "pitfalls": [
+        "Regime-switching solutions depend on the solution concept and the transition matrix specification.",
+        "Few other tools solve Markov-switching DSGE models; check that the target supports the solution concept before translating."
+      ]
+    },
+    {
+      "id": "eviews", "name": "EViews (programs and workfiles)", "kind": "statistical",
+      "extensions": [".prg", ".wf1"], "source": true, "target": true, "toolchain": "eviews",
+      "run": "EViews.exe run.prg (batch)", "tests": "checks in a test program",
+      "pitfalls": [
+        "The sample (smpl) is state that persists across commands and programs until changed.",
+        "Every estimation writes its coefficients to the default vector c, which later equations may read.",
+        "Equations need an explicit constant (c) in ls.",
+        "Model objects solve with options (dynamic or static, Gauss-Seidel or Newton, add factors) that change the solution.",
+        "Frequency conversion defaults differ by series and setting (average, sum, last).",
+        "Program variables: !name are numbers, %name are strings, and arguments are %0, %1, ...",
+        "Built-in filters choose defaults by frequency (for example the HP lambda)."
+      ]
+    },
+    {
+      "id": "sas", "name": "SAS (data step, PROCs, macro language)", "kind": "statistical",
+      "extensions": [".sas", ".sas7bdat"], "source": true, "target": true, "toolchain": null,
+      "run": "sas -sysin run.sas", "tests": "PROC COMPARE against reference datasets",
+      "pitfalls": [
+        "The data step loops implicitly over rows through the program data vector; RETAIN keeps values across rows.",
+        "LAG() is a queue: inside a conditional it returns the value from the last time that statement ran, not the previous row.",
+        "Missing numeric values are smaller than any number.",
+        "MERGE with BY does not form a Cartesian product for many-to-many matches, unlike SQL joins.",
+        "FIRST. and LAST. BY-group flags need the data sorted by the BY variables.",
+        "PROC LOGISTIC models the probability of the lowest response value unless DESCENDING or EVENT= is given.",
+        "Formats change how values print and group, not the stored values.",
+        "The macro language (%let, &var, %macro) generates code before it runs.",
+        "Dates count days since 1 January 1960."
+      ]
+    },
+    {
+      "id": "spss", "name": "SPSS syntax", "kind": "statistical",
+      "extensions": [".sps", ".sav"], "source": true, "target": false, "toolchain": null,
+      "run": "stats run.sps (batch)", "tests": "compare saved outputs",
+      "pitfalls": [
+        "Transformations are pending until a procedure or EXECUTE runs.",
+        "User-missing values (declared codes such as 99) differ from system-missing values; both must be carried over.",
+        "LAG works on the cases that pass the current filter.",
+        "SPLIT FILE and WEIGHT change every later procedure until turned off."
+      ]
+    },
+    {
+      "id": "gauss", "name": "GAUSS", "kind": "legacy",
+      "extensions": [".gss", ".src", ".prg", ".g"], "source": true, "target": false, "toolchain": null,
+      "run": "tgauss -b run.gss", "tests": "compare saved outputs",
+      "pitfalls": [
+        "Indexing starts at 1; .* and ./ are element-wise, * is matrix multiplication, ' is transpose.",
+        "Procedures return values with retp and can read and change global variables.",
+        "Missing values are a special NaN-like code handled by miss() and packr(); behavior depends on settings.",
+        "Many published econometric codes (1990s and 2000s) rely on library procedures that must be found and translated too."
+      ]
+    },
+    {
+      "id": "rats", "name": "RATS / WinRATS", "kind": "statistical",
+      "extensions": [".rpf", ".prg", ".src"], "source": true, "target": false, "toolchain": null,
+      "run": "rats run.rpf (batch)", "tests": "compare saved outputs",
+      "pitfalls": [
+        "CALENDAR and ALLOCATE set the date frame for all later instructions.",
+        "Entry ranges on instructions (start end) silently restrict the sample.",
+        "Procedures (@name) are separate source files that must be included in the translation."
+      ]
+    },
+    {
+      "id": "gretl", "name": "gretl (hansl scripts)", "kind": "statistical",
+      "extensions": [".inp", ".gdt"], "source": true, "target": true, "toolchain": null,
+      "run": "gretlcli -b run.inp", "tests": "assert in hansl",
+      "pitfalls": [
+        "The sample (smpl) is state that persists across commands.",
+        "Robust standard errors depend on settings (set hc_version)."
+      ]
+    },
+    {
+      "id": "ox", "name": "Ox", "kind": "numerical",
+      "extensions": [".ox", ".oxh"], "source": true, "target": false, "toolchain": null,
+      "run": "oxl run.ox", "tests": "compare saved outputs",
+      "pitfalls": [
+        "Indexing starts at 0, unlike GAUSS and MATLAB from which Ox code is often ported.",
+        "Packages (PcGive, SsfPack, G@RCH) carry their own estimators and defaults."
+      ]
+    },
+    {
+      "id": "limdep", "name": "LIMDEP / NLOGIT", "kind": "statistical",
+      "extensions": [".lim"], "source": true, "target": false, "toolchain": null,
+      "run": "batch run in LIMDEP", "tests": "compare saved outputs",
+      "pitfalls": ["Commands use their own syntax ($ terminators, ; separators) and estimator defaults that must be checked against the manual."]
+    },
+    {
+      "id": "tsp", "name": "TSP", "kind": "legacy",
+      "extensions": [".tsp"], "source": true, "target": false, "toolchain": null,
+      "run": "tsp run.tsp", "tests": "compare saved outputs",
+      "pitfalls": ["SMPL state persists; FREQ and date conventions set the frame for every later command."]
+    },
+    {
+      "id": "troll", "name": "TROLL (macroeconometric models)", "kind": "model",
+      "extensions": [".inp", ".src", ".mod"], "source": true, "target": false, "toolchain": null,
+      "run": "troll batch", "tests": "simulation regression tests",
+      "pitfalls": [
+        "Model equations, add factors and exogenized paths live in separate files and archives.",
+        "Simulation algorithm and convergence settings (Newton, stacked time) change results.",
+        "Large macroeconometric models depend on databanks with their own frequencies and missing codes."
+      ]
+    },
+    {
+      "id": "fame", "name": "FAME / AREMOS (time-series databases and scripts)", "kind": "database",
+      "extensions": [".pro", ".inp", ".cmd"], "source": true, "target": false, "toolchain": null,
+      "run": "batch script against the database", "tests": "compare extracted series",
+      "pitfalls": [
+        "Several missing-value codes (NA, NC, ND) carry different meanings.",
+        "Frequency conversion and observed attributes (averaged, summed, end of period) are properties of each series.",
+        "Translation usually means re-implementing the data pipeline, not the models."
+      ]
+    },
+    {
+      "id": "gams", "name": "GAMS (CGE and optimization models)", "kind": "optimization",
+      "extensions": [".gms", ".inc", ".gdx"], "source": true, "target": true, "toolchain": "gams",
+      "run": "gams model.gms", "tests": "benchmark replication (zero-shock) and model status checks",
+      "pitfalls": [
+        "Variables are free unless declared positive; bounds (.lo, .up) and fixings (.fx) define the closure.",
+        "Dollar conditions ($) restrict equations and sums to subsets; dropping one changes the model.",
+        "Results are levels (.l) and marginals (.m); model and solver status must be checked after every solve.",
+        "Scaling, starting values and solver options (CONOPT, PATH, IPOPT) affect whether and where a solve converges.",
+        "MCP models pair equations with variables (=e= with complementarity); the pairing is part of the model.",
+        "Python targets: Pyomo or GAMSPy; Julia target: JuMP."
+      ]
+    },
+    {
+      "id": "gempack", "name": "GEMPACK (TABLO .tab, command .cmf; GTAP)", "kind": "model",
+      "extensions": [".tab", ".cmf", ".har", ".sti", ".prm"], "source": true, "target": true, "toolchain": "gempack",
+      "run": "tablo and the generated program, or rungtap; one .cmf per experiment", "tests": "zero-shock benchmark and accuracy summary",
+      "pitfalls": [
+        "Equations are usually linearized percentage changes; a levels target (GAMS, Python) needs the levels form re-derived.",
+        "Solutions are multi-step (Euler or Gragg with extrapolation); the number of steps changes results for large shocks.",
+        "The closure (exogenous list) lives in the command file, not the model.",
+        "Data come from HAR files with headers; the GTAP database is licensed and never shared.",
+        "Equivalence with a levels model holds exactly only for small shocks; compare large shocks within the accuracy GEMPACK reports."
+      ]
+    },
+    {
+      "id": "ampl", "name": "AMPL", "kind": "optimization",
+      "extensions": [".mod", ".dat", ".run"], "source": true, "target": false, "toolchain": null,
+      "run": "ampl run.run", "tests": "objective and solution comparison",
+      "pitfalls": [".mod is shared with Dynare; the inventory tells them apart by content.", "Model, data and run files are separate and must be translated together."]
+    },
+    {
+      "id": "fortran", "name": "Fortran (77 and 90+)", "kind": "legacy",
+      "extensions": [".f", ".for", ".f77", ".f90", ".f95", ".f03", ".f08"], "source": true, "target": true, "toolchain": null,
+      "run": "gfortran -O2 -o model *.f90 && ./model", "tests": "pFUnit or compare saved outputs",
+      "pitfalls": [
+        "Without IMPLICIT NONE, names starting with I to N are integers and others are single precision.",
+        "REAL is 32-bit; the literal 0.1 is single precision even when assigned to DOUBLE PRECISION (use 0.1d0).",
+        "Arrays are column-major and start at 1 unless other bounds are declared.",
+        "Integer division truncates (3/2 is 1).",
+        "COMMON blocks, EQUIVALENCE and SAVE create shared and persistent state.",
+        "Arguments are passed by reference, so a routine can change its caller's variables, including aliased ones.",
+        "Fixed form (Fortran 77): column 1 marks comments, column 6 continuation, code ends at column 72.",
+        "GOTO and arithmetic IF need to be restructured, not copied."
+      ]
+    },
+    {
+      "id": "c", "name": "C and C++", "kind": "numerical",
+      "extensions": [".c", ".h", ".cpp", ".cc", ".hpp"], "source": true, "target": true, "toolchain": null,
+      "run": "cmake --build build && ./build/model", "tests": "GoogleTest or Catch2",
+      "pitfalls": [
+        "Indexing starts at 0 and arrays are row-major.",
+        "Integer division truncates and float is 32-bit.",
+        "Undefined behavior (overflow, out-of-bounds access) can make results depend on compiler and flags.",
+        "Results can change with optimization flags (-ffast-math) and with the BLAS/LAPACK library linked."
+      ]
+    },
+    {
+      "id": "cobol", "name": "COBOL", "kind": "legacy",
+      "extensions": [".cbl", ".cob", ".cpy", ".cobol"], "source": true, "target": false, "toolchain": null,
+      "run": "cobc -x program.cbl && ./program", "tests": "compare output files record by record",
+      "pitfalls": [
+        "Numbers are fixed-point decimals (PIC 9(7)V99); translate with exact decimal arithmetic (Python decimal, Java BigDecimal), never binary floating point.",
+        "Arithmetic truncates unless ROUNDED is given; intermediate precision follows compiler rules.",
+        "COMP-3 is packed decimal and signs may be overpunched in the last digit; record layouts come from copybooks (.cpy).",
+        "REDEFINES overlays several layouts on the same bytes; OCCURS DEPENDING ON gives variable-length tables.",
+        "Level-88 condition names are named tests on a field's value.",
+        "EBCDIC sorts letters and digits in a different order from ASCII, so sorted outputs differ after migration.",
+        "PERFORM THRU and GO TO define control flow by paragraph ranges; restructure carefully.",
+        "Files are fixed-width records; the record layout is the interface to everything else."
+      ]
+    },
+    {
+      "id": "excel", "name": "Excel workbooks (formulas) and VBA macros", "kind": "spreadsheet",
+      "extensions": [".xlsx", ".xlsm", ".xls", ".xlsb", ".bas", ".cls", ".frm"], "source": true, "target": false, "toolchain": null,
+      "run": "open in Excel; macros run from the workbook", "tests": "compare cell values",
+      "pitfalls": [
+        "LOG is base 10 (LN is natural); ROUND rounds half away from zero, but VBA Round rounds half to even.",
+        "Date serial numbers start on 30 December 1899 in the 1900 system and treat 1900 as a leap year.",
+        "Iterative calculation (circular references) and Solver runs are part of the model; their settings must be recorded.",
+        "Hard-coded numbers inside formulas and hidden rows, columns or sheets carry assumptions.",
+        "Use python tools/intake.py formulas to list the formulas behind a calculation sheet before translating it.",
+        "Numbers have 15 significant digits; text that looks like numbers does not compute."
+      ]
+    },
+    {
+      "id": "mathematica", "name": "Mathematica / Wolfram Language", "kind": "numerical",
+      "extensions": [".nb", ".wl", ".m"], "source": true, "target": false, "toolchain": null,
+      "run": "wolframscript -file run.wl", "tests": "compare saved outputs",
+      "pitfalls": [
+        "Exact (symbolic, rational) arithmetic gives different numbers from floating point until N[] is applied.",
+        "Indexing starts at 1 with [[ ]]; .m is shared with MATLAB and Objective-C.",
+        "Symbolic derivations are best translated to SymPy (with symbolic-derivation-specialist), not to numeric code."
+      ]
+    },
+    {
+      "id": "maple", "name": "Maple", "kind": "numerical",
+      "extensions": [".mw", ".mpl"], "source": true, "target": false, "toolchain": null,
+      "run": "maple -q run.mpl", "tests": "compare saved outputs",
+      "pitfalls": ["Exact arithmetic until evalf; translate derivations to SymPy and numerics separately."]
+    },
+    {
+      "id": "scilab", "name": "Scilab", "kind": "numerical",
+      "extensions": [".sce", ".sci"], "source": true, "target": false, "toolchain": null,
+      "run": "scilab-cli -f run.sce", "tests": "compare saved outputs",
+      "pitfalls": ["MATLAB-like syntax with different function names and defaults; 1-based and column-major."]
+    },
+    {
+      "id": "stan", "name": "Stan, JAGS and BUGS (Bayesian models)", "kind": "bayesian",
+      "extensions": [".stan", ".bug", ".jags", ".odc"], "source": true, "target": true, "toolchain": null,
+      "run": "cmdstan, rjags or the host language", "tests": "posterior summaries with Monte Carlo error",
+      "pitfalls": [
+        "BUGS and JAGS dnorm takes the precision (1/variance); Stan normal takes the standard deviation.",
+        "Truncation and censoring use different syntax (T(,) in JAGS, T[,] in Stan).",
+        "Samplers differ (Gibbs against Hamiltonian Monte Carlo); compare posterior summaries within Monte Carlo error, never draws."
+      ]
+    },
+    {
+      "id": "sql", "name": "SQL", "kind": "database",
+      "extensions": [".sql"], "source": true, "target": true, "toolchain": null,
+      "run": "the database client", "tests": "compare query results",
+      "pitfalls": [
+        "NULL uses three-valued logic: NULL = NULL is not true, and WHERE drops NULL comparisons.",
+        "Row order is not defined without ORDER BY.",
+        "Integer division truncates in some dialects; AVG and SUM ignore NULLs.",
+        "Dialects (PostgreSQL, SQL Server, Oracle, SQLite) differ in functions and date handling."
+      ]
+    }
+  ],
+  "general": [
+    "Translate behavior, not syntax: write down what each piece of source code computes before writing target code.",
+    "Bugs in the source are preserved in the first translation and logged; they are fixed only after equivalence is shown, as a separate approved change.",
+    "Random draws do not reproduce across software even with the same seed; export the draws from the source run and read them in the target, or compare distributions.",
+    "Default options differ more often than functions do: standard errors, degrees of freedom, quantile definitions, filters, optimizer methods and tolerances.",
+    "Missing values, sorting, rounding, indexing and storage order are the most common causes of differences after translation.",
+    "A translation is complete only when the target reproduces the source outputs to stated tolerances, or the differences are explained."
+  ]
+}

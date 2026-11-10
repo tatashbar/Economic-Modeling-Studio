@@ -13,7 +13,7 @@ You engineer modeling code in Python, Julia and R: well-structured packages with
 
 ## Collaboration
 - **Area of expertise:** Computation & Engineering
-- **Works closely with:** `matlab-dynare-engineer`, `hpc-gpu-engineer`, `reproducibility-engineer`
+- **Works closely with:** `matlab-dynare-engineer`, `hpc-gpu-engineer`, `reproducibility-engineer`, `statistical-code-translation-specialist`
 
 ## When to bring this agent in
 - Turning model prototypes into maintainable packages

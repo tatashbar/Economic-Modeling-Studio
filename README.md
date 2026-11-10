@@ -2,23 +2,9 @@
 
 # Economic Modeling Studio
 
-**Version 2.1.1**
+**Version 2.2.0**
 
-A studio for building, estimating, validating and using economic models. **121 specialist agents** and **89 skills** (workflow commands such as `/build-dsge` or `/validate-model`) cover specification, building, estimation and independent validation for semi-structural projection and DSGE, input-output and CGE, trade and climate-economy models, deep learning, reinforcement learning, neural-network solvers, LLM-based tools, agent-based and game-theoretic models, and other econometric models. The studio also lets you work with every model as a **lego set**: a core model with plug-and-play components that can be added, swapped or removed, with explicit interfaces and the impact of every change checked first. It works with any coding agent that reads `AGENTS.md`: Claude Code, Codex, Cursor, Grok Build, Gemini CLI and others.
-
-Two design choices set it apart.
-
-**Models are assembled from components with explicit interfaces.** Each model has a manifest that lists its core block, the components attached to it, and every variable exchanged between them, with its unit and its timing (same period or lagged). The studio derives the rest from the manifest:
-- the dependency graph, the simultaneous blocks and the solve order
-- open inputs, and the documented closure each one runs on (for example "exports follow an exogenous baseline path")
-- the accounting identities the assembled model must satisfy
-- the bridges needed between components on different frequencies
-
-The diagram of the model is generated from the same manifest, so the documented structure cannot drift from the model. This is the lego view: the core is the baseplate and each component is a brick.
-
-**Changes are analyzed before they are made.** Adding, removing or replacing a component (a trade block, a fiscal rule, an alternative monetary reaction function) first produces a change-impact report. It shows the new linkages, inputs that become endogenous or exogenous, any new simultaneity, and which components need revalidation. Nothing is written until the modeler approves. A neutral-attachment test then confirms that the new component, set to neutral values, reproduces the existing baseline.
-
-Around this sits a governed workflow, scaled to the model's size and risk level: specification, calibration or estimation, benchmark comparison, independent validation, phase gates and replication packages. The modeler sets the specification and makes every economic judgment. Missing data or evidence is reported as `NOT ASSESSED — NO DATA`, never filled in.
+A studio for building, estimating, validating and using economic models. **127 specialist agents** and **94 skills** (workflow commands such as `/build-dsge` or `/validate-model`) cover specification, building, estimation and independent validation for semi-structural projection and DSGE, input-output and CGE, trade and climate-economy models, deep learning, reinforcement learning, neural-network solvers, LLM-based tools, agent-based and game-theoretic models, and other econometric models. The studio also lets you work with every model as a **lego set**: a core model with plug-and-play components that can be added, swapped or removed, with explicit interfaces and the impact of every change checked first. It also **translates model code** between the languages and software economists use (Stata, R, Python, MATLAB, Dynare, EViews, SAS, GAMS, Fortran, COBOL and more), and tests the translation against the original's outputs. It works with any coding agent that reads `AGENTS.md`: Claude Code, Codex, Cursor, Grok Build, Gemini CLI and others.
 
 ![Lego view of a small open-economy model built as a stepped pyramid: the core baseplate as the ground, foundation components on the bottom step, and on the steps above them the policy rules, sectors, satellites and outputs that read their outputs; a dashed catalog brick in the front yard would fill an open input](docs/images/lego-full-set.png)
 
@@ -98,6 +84,7 @@ The result is a **draft**: a working, documented starting point, not a finished 
 |---|---|---|
 | Specify and build a new model | `/scope-question`, `/model-spec`, then the build command for the family (e.g. `/build-semi-structural`, `/build-cge`) | A specification with a simple benchmark, then code, tests (steady state, identities, impulse-response signs) and the manifest |
 | Work from a research note, plan or objective | `/research-plan` with the note (any form), a short description and any data files | The note turned into modeling tasks with a proposed approach for each, the data mapped, the tasks run with the studio's skills, and a Word report and a PowerPoint presentation that answer each question with its charts and tables, with all outputs collected in one folder and a zip |
+| Translate code to another language | `/translate-code` with a folder (a path or an upload) and the target, for example Stata to Python or Dynare to Julia | A plan for your approval, the translated code with a one-command run, a log of every construct that did not translate one-to-one, and an independent equivalence test against the original's outputs |
 | Bring in an existing model | `/adopt`, `/lego-map` | An inventory, reverse-documented equations and parameters, baseline outputs captured before any change, and a proposed decomposition into components for your approval |
 | Extend or modify a model | `/lego-add`, `/lego-swap`, `/lego-detach` | A change-impact report first (example below), then the change, with neighbouring components flagged for revalidation |
 | Review structure | `/lego-show`, `/lego-check` | 3D HTML view, text or Mermaid diagram; wiring, closure and identity checks |
@@ -108,6 +95,12 @@ The result is a **draft**: a working, documented starting point, not a finished 
 /research-plan data/raw/my-project/note.docx data/raw/my-project/data.xlsx "answer the questions in the note, with charts by region"
 ```
 Without a file, type the objective instead: `/research-plan "how would a 20% rise in food prices affect inflation in East African economies? use public data"`. Either way the studio ends with a Word report and a PowerPoint presentation, one section and slide per question with the answer, charts and tables, and collects them with the code and every run's outputs in one folder and a zip (`<project>-all-results`).
+
+**Example: translating code.** Point the studio at a folder, or upload one, and name the target:
+```
+/translate-code data/raw/old-model python
+```
+The source is never changed. The studio inventories it (languages, call graph, data in and out, risky constructs), proposes a plan, translates file by file with specialist agents, runs both codes and compares their outputs cell by cell (`python tools/translate.py compare`). Supported languages and the pitfalls of each pair are listed in the [code translation guide](docs/code-translation.md).
 
 **Example: change-impact report.** Attaching a fiscal block with a debt-feedback rule to a small open-economy gap model (output of `python tools/lego.py attach`, before approval):
 
@@ -167,12 +160,13 @@ Tool conventions change quickly. If a tool moves its folders, update `tools/sync
 | **Growth, labor, distribution, development** | Growth and productivity, labor and demography, inequality and incidence, fragility and disasters, AI and the digital economy |
 | **AI and machine learning** | Deep-learning and foundation-model forecasters, deep reinforcement learning for policy, neural solvers, simulation-based inference, causal ML, graph methods, generative scenarios, interpretability; LLM tools (extraction, retrieval, agents, modeling copilot) |
 | **Games, agents, strategy** | Game theory, mechanism design, policy-interaction and sovereign-crisis games, agent-based models, wargames |
+| **Code translation** | Stata, R, Python, SAS, SPSS, EViews, RATS, gretl, MATLAB, Octave, Julia, Dynare, IRIS, RISE, TROLL, GAMS, GEMPACK, AMPL, Stan/JAGS, Fortran, C/C++, COBOL, GAUSS, Excel/VBA, FAME/AREMOS, SQL and others, with equivalence tests against the original |
 | **Cross-cutting support** | Data and statistics (national accounts, surveys, high-frequency data, quality), computation (Dynare/MATLAB, Python, Julia, GAMS, HPC/GPU, MLOps, symbolic derivation), validation, risk and ethics, and communication |
 
 Models are classed **small, medium or large**, and effort scales with class (see [model classes](.claude/docs/model-classes.md)). A decision table there maps common questions to the right model family.
 
 ## The agents
-121 agents, grouped by area of expertise. They are peers: none manages another. Each lists the specialists it works most closely with, and five cross-cutting functions (economic reasoning, methodology, model-risk governance, policy relevance, project planning) are available for consultation by all. See [coordination rules](.claude/docs/coordination-rules.md) and the full [roster](docs/agent-roster.md).
+127 agents, grouped by area of expertise. They are peers: none manages another. Each lists the specialists it works most closely with, and five cross-cutting functions (economic reasoning, methodology, model-risk governance, policy relevance, project planning) are available for consultation by all. See [coordination rules](.claude/docs/coordination-rules.md) and the full [roster](docs/agent-roster.md).
 
 | Area of expertise | Agents | Examples |
 |---|---|---|
@@ -192,11 +186,12 @@ Models are classed **small, medium or large**, and effort scales with class (see
 | Games, agents and strategic behavior | 6 | game theory, mechanism design, agent-based models, policy-interaction and sovereign-crisis games, wargames |
 | Data and statistics | 7 | data pipelines, national accounts, cross-country indicators, survey microdata, high-frequency data, data quality, governance |
 | Computation and engineering | 7 | Dynare/MATLAB, Python/Julia, HPC/GPU, MLOps, numerical methods, reproducibility, symbolic derivation |
+| Code translation | 6 | translation planning, source-code analysis, statistical, model and legacy code translation, equivalence audit |
 | Validation, risk and ethics | 6 | model validation, backtesting, sensitivity, replication audit, AI ethics, LLM red-teaming |
 | Communication and capacity building | 5 | policy briefs, technical documentation, visualization, stakeholder liaison, training design |
 
 ## The skills
-89 skills, each a packaged workflow that you run as a slash command (`$name` in Codex). They are listed by stage below; the [skill catalog](docs/skill-catalog.md) gives each one's primary agent and purpose.
+94 skills, each a packaged workflow that you run as a slash command (`$name` in Codex). They are listed by stage below; the [skill catalog](docs/skill-catalog.md) gives each one's primary agent and purpose.
 
 Skills follow a common template, so each command behaves predictably:
 - **Purpose and prerequisites:** what the skill produces and what must exist first, such as a scope note, a model spec or data.
@@ -225,6 +220,7 @@ Skills follow a common template, so each command behaves predictably:
 | Documentation | `/model-card` `/technical-note` `/policy-brief` `/chart-pack` |
 | Governance | `/gate-check` `/milestone-review` `/retrospective` `/model-release` |
 | Multi-agent teams | `/team-dsge` `/team-forecast` `/team-stress-test` `/team-ai-model` `/team-fiscal` `/team-country-analysis` |
+| Code translation | `/code-inventory` `/translation-plan` `/translate-code` `/translate-model` `/equivalence-test` |
 | Modular (lego) models | `/lego-map` `/lego-show` `/lego-add` `/lego-detach` `/lego-swap` `/lego-check` `/lego-brick` |
 | Capacity building | `/design-training` `/create-exercise` |
 
@@ -238,6 +234,7 @@ Commands are listed in the order they are run.
 - **Forecast round:** `/nowcast`, `/team-forecast`, `/fan-chart`, `/policy-brief`, `/retrospective`
 - **Climate-economy analysis:** `/build-climate-macro`, `/climate-scenario`, `/carbon-pricing-analysis`, `/distributional-analysis`
 - **AI model:** `/select-model-class`, `/team-ai-model` (benchmark first), `/ai-audit`, `/model-risk-review`, `/model-release`
+- **Translate code:** `/code-inventory`, `/translation-plan`, `/translate-code` (or `/translate-model` for a model definition), `/equivalence-test`, `/validate-model`
 - **Existing model:** `/adopt <path>`, `/lego-map`, `/validate-model`, `/model-card`
 - **Modular model:** `/lego-map`, `/lego-show`, `/lego-add` (for example the missing trade sector), neutral-attachment test, `/lego-check`, `/validate-model`
 
@@ -307,24 +304,26 @@ The studs on each brick are shared among its elements in proportion to their cou
 ```
 AGENTS.md                  project instructions for every coding agent (CLAUDE.md and GEMINI.md import it)
 studio-config.yaml         rigor by model class, data classes, approved toolchains, AI governance
-.claude/agents/            121 agent definitions
-.claude/skills/            89 commands (one SKILL.md each)
-.claude/rules/             path-scoped standards (models, DSGE, sectoral/trade/climate, econometrics, R, Stata, EViews, GEMPACK, lego manifests, AI/ML, RL, LLM, data, forecasts, validation, ...)
+.claude/agents/            127 agent definitions
+.claude/skills/            94 commands (one SKILL.md each)
+.claude/rules/             path-scoped standards (models, DSGE, sectoral/trade/climate, econometrics, R, Stata, EViews, GEMPACK, lego manifests, code translation, AI/ML, RL, LLM, data, forecasts, validation, ...)
 .claude/hooks/             Python guard scripts: session context, command guard, protected paths, document checks, audit log
 .agents/ .grok/ .cursor/   generated copies of commands and rules for other coding agents; Cursor hooks
 .githooks/                 git pre-commit guard (any tool)
 .claude/docs/              collaboration protocol, coordination, phase gates, risk levels, model classes, confidentiality and AI use
-docs/                      templates (23), lego guide, screenshots (docs/images), agent roster, command catalog; briefs, models, notes, references, training
+docs/                      templates (23), lego guide, screenshots (docs/images), agent roster, command catalog, code translation guide with the language list and idioms (docs/translation); briefs, models, notes, references, training
 lego/                      brick catalog (20 reusable bricks), shared port definitions, two worked examples
 models/                    model code by family: semi-structural, fpas, financial-programming, dsge, multicountry,
                            io-sam, cge, trade, climate, sfc, abm, games, ai, llm, econometrics
                            (each model with its code, its model.lego.json and an output/ folder with one subfolder per run;
                            estimation-only econometric models need no manifest)
+translations/              code translation workspaces (uploaded source code goes to translations/incoming/, outside git)
 data/ forecasts/ validation/ production/ tests/ notebooks/ scripts/    working folders
 tools/lego.py              lego engine: catalog, new, show, check, attach, detach, swap, arrange, validate, elements
 tools/lego_view.py         isometric 3D picture of a lego set (self-contained HTML)
 tools/intake.py            reads research notes (numbered paragraphs), inventories data workbooks and shows the formulas behind them, for /research-plan
 tools/report.py            writes a Word report and a PowerPoint presentation from a Markdown results report, and collects all results in one folder and zip (standard library only)
+tools/translate.py         code translation: languages, idioms, inventory of a code folder, translation workspace and plan, output comparison, source check
 tools/validate_studio.py   integrity check (counts, references, hooks, settings, lego catalog and examples)
 tools/test_studio.py       tests for hooks, guards, lego engine, agent adapters and documentation consistency
 tools/sync_agents.py       regenerates the copies for other coding agents from .claude/
@@ -354,6 +353,7 @@ Adapt `studio-config.yaml` and `.claude/docs/confidentiality-and-ai-use.md` to t
 Agents and skills are Markdown files with YAML frontmatter; edit them freely. After changes run `python tools/validate_studio.py`. To add an agent, create `.claude/agents/<name>.md` and list it as a peer in the related agents. To add a command, create `.claude/skills/<name>/SKILL.md`. Path-scoped standards live in `.claude/rules/`. After changing commands or rules, run `python tools/sync_agents.py` to update the copies for other coding agents.
 
 ## Version history
+- **2.2.0** — Code translation between the languages and software used for economic models: 32 languages and tools listed with their pitfalls (Stata, R, Python, SAS, SPSS, EViews, RATS, gretl, MATLAB, Octave, Julia, Dynare, IRIS, RISE, TROLL, GAMS, GEMPACK, AMPL, Stan/JAGS, Fortran, C/C++, COBOL, GAUSS, Excel/VBA, FAME/AREMOS, SQL and others). Six agents (architect, source-code analyst, statistical, model and legacy translators, independent equivalence auditor), five commands (`/code-inventory`, `/translation-plan`, `/translate-code`, `/translate-model`, `/equivalence-test`), a rule for translation workspaces, a side-by-side idiom table, and `tools/translate.py` for inventories, plans, output comparison and source checks.
 - **2.1.1** — Every chart and table in a report comes from saved code: a model run, or a chart script saved next to the chart and listed in the report's annex.
 - **2.1.0** — PowerPoint presentations: `/research-plan` also ends with a deck built from the results report, with a questions-and-answers slide and, for each question or objective, the answer next to its chart, followed by its tables (`python tools/report.py pptx`). All results in one place: the deliverables, charts, code and every run folder a report names are collected in one folder and a zip with an index by question (`python tools/report.py bundle`). Policy briefs can be turned into slides too.
 - **1.10.0** — Word reports: `/research-plan` ends with a Word file that answers each question or objective with its charts and tables, from a new results template and `tools/report.py`. Policy briefs, technical notes and chart packs can be exported to Word too.

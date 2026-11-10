@@ -3,7 +3,7 @@
 
 studio:
   name: "Economic Modeling Studio"
-  version: "2.1.1"
+  version: "2.2.0"
   default_language: "en"
 
 # How much process each model class needs. See .claude/docs/model-classes.md
@@ -32,6 +32,16 @@ ai_governance:
 forecast_rounds:
   freeze_data_vintage: true
   log_judgment_overlays: true
+
+# Code translation (see docs/code-translation.md)
+translation:
+  workspace: "translations"                 # one folder per translation: <name>-to-<target>/
+  incoming: "translations/incoming"         # uploaded source folders; ignored by git
+  source_read_only: true                    # fingerprints checked at sign-off
+  faithful_pass_first: true                 # idiomatic refactoring only after equivalence
+  default_rtol: 1.0e-6
+  default_atol: 1.0e-9
+  independent_equivalence_audit: true
 
 # Lego view of models (see docs/lego.md)
 lego:
