@@ -276,11 +276,11 @@ See the [guide](docs/lego.md) and two worked examples (open the HTML files in a 
 
 **The full set.** The full example as drawn by `/lego-show`. The baseplate is the core model, bricks are components colored by type, and studs are colored by what each brick is made of. Dashed sockets are inputs running on stubs, dashed bricks are catalog components that would supply them, and badges show validation status.
 
-![Lego view of a small open-economy model built as a stepped pyramid: the core baseplate as the ground, foundation components on the bottom step, and on the steps above them the policy rules, sectors, satellites and outputs that read their outputs; a dashed catalog brick in the front yard would fill an open input](docs/images/lego-full-set.png)
+![Lego view of a small open-economy model built as a stepped pyramid: the core baseplate as the ground, foundation components on the bottom step, and on the steps above them the policy rules, sectors, satellites and outputs that read their outputs; a dashed catalog brick in the front yard would fill an open input](docs/images/lego-full-set-v2.png)
 
 **A starter set.** The core with five bricks, built as a small three-step pyramid. Dashed yellow sockets on the baseplate and on bricks are open studs running on stubs; the dashed ghost bricks in the front yard are catalog bricks that would fill them (trade, carbon pricing, physical climate damage, resource revenue). A detached brick waits in the parts bin and says which open stud it would fill.
 
-![A starter lego set: a baseplate with five bricks in a three-step pyramid, four dashed ghost bricks suggested for open studs, and a detached financial-accelerator brick in the parts bin that would fill credit_spread](docs/images/lego-starter-set.png)
+![A starter lego set: a baseplate with five bricks in a three-step pyramid, four dashed ghost bricks suggested for open studs, and a detached financial-accelerator brick in the parts bin that would fill credit_spread](docs/images/lego-starter-set-v2.png)
 
 **Inside the bricks.** Each brick can declare its elements, each with its own color and symbol:
 
@@ -299,7 +299,7 @@ The studs on each brick are shared among its elements in proportion to their cou
 
 **Hover to see the wiring.** Hovering a brick fades everything it is not connected to. Here the fiscal rule is highlighted together with the core it feeds, the monetary rule it reads and the carbon-pricing block whose revenue it receives. The hover text also lists the brick's elements and findings.
 
-![Hovering the fiscal-debt-rule brick: it and the bricks it connects to stay lit while the rest fade](docs/images/lego-hover.png)
+![Hovering the fiscal-debt-rule brick: it and the bricks it connects to stay lit while the rest fade](docs/images/lego-hover-v2.png)
 
 ## Quality controls
 - **You decide.** Agents advise; nothing is written without your approval.
