@@ -6,10 +6,6 @@
 
 A studio for building, estimating, validating and using economic models. **127 specialist agents** and **94 skills** (workflow commands such as `/build-dsge` or `/validate-model`) cover specification, building, estimation and independent validation for semi-structural projection and DSGE, input-output and CGE, trade and climate-economy models, deep learning, reinforcement learning, neural-network solvers, LLM-based tools, agent-based and game-theoretic models, and other econometric models. The studio also lets you work with every model as a **lego set**: a core model with plug-and-play components that can be added, swapped or removed, with explicit interfaces and the impact of every change checked first. It also **translates model code** between the languages and software economists use (Stata, R, Python, MATLAB, Dynare, EViews, SAS, GAMS, Fortran, COBOL and more), and tests the translation against the original's outputs. It works with any coding agent that reads `AGENTS.md`: Claude Code, Codex, Cursor, Grok Build, Gemini CLI and others.
 
-![Lego view of a small open-economy model built as a stepped pyramid: the core baseplate as the ground, foundation components on the bottom step, and on the steps above them the policy rules, sectors, satellites and outputs that read their outputs; a dashed catalog brick in the front yard would fill an open input](docs/images/lego-full-set.png)
-
-*Lego view generated from a model manifest by `/lego-show`, built as a stepped pyramid with `lego.py arrange`. Baseplate: the core model. Bricks: components, colored by type. Studs: colored by what each brick is made of (variables, equations, parameters, shocks, data, constraints). Each step rests on the bricks whose outputs it reads, with no limit on the number of levels. Dashed sockets: inputs running on documented closures. Dashed bricks: catalog components that would supply them. Badges: validation status.*
-
 > The repository contains the studio (agents, commands, rules, templates and guardrails), not a library of finished models. Models are built in your own copy.
 
 ## Contents
@@ -277,6 +273,10 @@ Every change is shown as a **plan first**: new joints, inputs that become endoge
 See the [guide](docs/lego.md) and two worked examples (open the HTML files in a browser): [a six-brick set with one brick in the parts bin](lego/examples/small-open-economy.html) and [the full twelve-brick set](lego/examples/small-open-economy-full.html). The engine is `python tools/lego.py` (standard library only).
 
 **Building up.** Bricks stack vertically with no limit on the number of levels: a brick stands on the bricks whose outputs it reads, so a causal chain in which world prices feed an oil sector that feeds the fiscal rule builds up three levels. Bricks that read each other stand side by side. In the default grid the stacks stand side by side; `python tools/lego.py arrange <manifest> --apply` builds the whole set into a stepped pyramid. Positions are stored in the manifest, so any brick can be moved by hand, and they never change the wiring.
+
+**The full set.** The full example as drawn by `/lego-show`. The baseplate is the core model, bricks are components colored by type, and studs are colored by what each brick is made of. Dashed sockets are inputs running on stubs, dashed bricks are catalog components that would supply them, and badges show validation status.
+
+![Lego view of a small open-economy model built as a stepped pyramid: the core baseplate as the ground, foundation components on the bottom step, and on the steps above them the policy rules, sectors, satellites and outputs that read their outputs; a dashed catalog brick in the front yard would fill an open input](docs/images/lego-full-set.png)
 
 **A starter set.** The core with five bricks, built as a small three-step pyramid. Dashed yellow sockets on the baseplate and on bricks are open studs running on stubs; the dashed ghost bricks in the front yard are catalog bricks that would fill them (trade, carbon pricing, physical climate damage, resource revenue). A detached brick waits in the parts bin and says which open stud it would fill.
 
