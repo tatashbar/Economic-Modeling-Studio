@@ -23,6 +23,18 @@ A studio for building, estimating, validating and using economic models. **127 s
 3. **You stay in control.** Agents ask clarifying questions, present two to four options with trade-offs and a simple benchmark, draft section by section, and ask before writing files.
 4. **Gates check the work.** Each stage has written exit criteria, and independent validation is separate from building.
 
+**Agents and skills.** An agent is an expert; a skill is a job that experts are called in to do.
+- **Agent:** a file in `.claude/agents/` that describes one specialist: what they know, the checks they always run and the mistakes they watch for. For example, `legacy-code-translation-specialist` knows that COBOL decimal numbers need exact decimal arithmetic in Python. An agent does nothing until a skill calls it in.
+- **Skill:** a file in `.claude/skills/` that describes a workflow you start with a slash command: the steps, where it stops for your approval, which agents do the work, what it produces and how it is judged.
+
+For example, `/translate-code old-model python` is a skill. It hands each step to an agent:
+1. `source-code-analyst` reads the old code and writes down what it does.
+2. `code-translation-architect` drafts the plan, and the skill stops for your approval.
+3. `statistical-code-translation-specialist` translates the Stata files, while `legacy-code-translation-specialist` translates the COBOL files.
+4. `translation-equivalence-auditor` compares the outputs of both codes and gives the verdict.
+
+An agent can serve many skills. The same `matlab-dynare-engineer`, for instance, is called in by `/build-dsge`, `/translate-model` and `/adopt`.
+
 The lifecycle has six stages: **Concept, Design, Build, Estimate, Validate, and Release / Operate**. Small models move through it quickly with light checks. Large ones add architecture decisions, staged integration and periodic revalidation.
 
 ## Setup
