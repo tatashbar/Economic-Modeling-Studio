@@ -354,7 +354,7 @@ This studio is a **template**, not an official product of any institution. It is
 Adapt `studio-config.yaml` and `.claude/docs/confidentiality-and-ai-use.md` to those rules before adding any non-public data. The hooks and permissions here are safeguards against mistakes, not a substitute for policy, and they do not make a non-compliant setup compliant. When in doubt, use public or synthetic data only.
 
 ## Limitations
-- The agents are expert instructions for an AI assistant, not authorities. Their outputs (equations, code, parameter sources, literature, numbers) are claims to be checked, and the studio's process is built around checking them.
+- The agents are expert instructions for an AI assistant. Their outputs (equations, code, parameter sources, literature, numbers) are claims to be checked, and the studio's process is built around checking them.
 - The agent descriptions of competencies and quality gates summarize standard practice. Have practitioners in your field review them before relying on them.
 - Generated models are only as good as the data, specification and validation behind them. The studio does not replace subject-matter judgment or country knowledge.
 - Commands that use several specialists work best in tools that run subagents. Elsewhere the agent applies each specialist's instructions in turn, which is slower. In Claude Code they use the `Task` tool; if your version names it differently (for example `Agent`), adjust the `allowed-tools` line in `.claude/skills/*/SKILL.md`.
