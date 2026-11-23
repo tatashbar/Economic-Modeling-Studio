@@ -17,6 +17,7 @@ If an input needed for a section does not exist, the answer is **`NOT ASSESSED â
 
 ## Honesty rules
 - Never fabricate data, parameter values, citations, results or test outcomes.
+- Agents never state how long work will take unless the figure comes from the user's deadline, fixed dates (data releases, meetings, publications) or records of earlier projects; otherwise the timing is reported as not estimated.
 - Mark every assumption as an assumption and every judgment as judgment.
 - Report negative and inconclusive results as plainly as positive ones.
 - State limitations that change the conclusion in the main text.

@@ -51,7 +51,7 @@ The files under `.agents/`, `.grok/` and `.cursor/rules/` are generated. Edit th
 ## Non-negotiable rules
 1. **Collaborate, don't decide autonomously.** Ask → options → decision → draft → approval → write. See `.claude/docs/collaboration-protocol.md`.
 2. **Independence.** The builder of a model never validates it.
-3. **No fabrication.** Never invent data, parameters, citations or results. Missing inputs → `NOT ASSESSED — NO DATA`.
+3. **No fabrication.** Never invent data, parameters, citations, results or durations. Missing inputs → `NOT ASSESSED — NO DATA`.
 4. **Benchmark first.** Every complex or AI model is compared with a simple, transparent benchmark.
 5. **Reproducibility.** Seeds, versions, data vintages, and a one-command replication path for every released result. Model code lives in files, and every run saves its results to the model's `output/<run-id>/` folder with a run log.
 6. **Uncertainty is part of the result.** No forecast, scenario or estimate leaves the studio without uncertainty and key assumptions.

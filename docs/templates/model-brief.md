@@ -35,7 +35,7 @@
 
 
 ## Team and timeline
-<!-- Agents and humans involved; milestones sized to the model class. -->
+<!-- Agents and humans involved; milestones by lifecycle stage. Dates only from the user's deadline, fixed dates (data releases, meetings) or records of earlier projects; otherwise "not estimated". -->
 
 
 ## Risks and dependencies

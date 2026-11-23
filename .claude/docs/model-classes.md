@@ -6,10 +6,12 @@ One lifecycle, different depth. Choose the simplest model that can answer the qu
 |---|---|---|---|---|
 | Typical size | Up to ~30 equations or a handful of variables | ~30-300 equations; estimated multi-block | Hundreds to thousands of equations; multi-country, multi-sector, high-dimensional state | Defined by learned components |
 | Examples | 3-equation NK, gap model, financial programming, DSA, small BVAR, small IO or SAM multiplier model, gravity regression | FPAS core model, medium open-economy DSGE, BVAR/DFM suites, single-country CGE, SFC, regional IO, quantitative trade model | Multi-country DSGE, large macroeconometric models, multi-region multi-sector CGE, global IO/trade systems, HANK with rich heterogeneity, climate-macro IAM | Deep forecasters, DRL policy, neural solvers, LLM pipelines, ABM with learned agents |
-| Typical timeline | Days to 2 weeks | Weeks to 3 months | 3 months to years | Weeks to months, plus audit |
+| What sets the calendar | Data access and your review rounds | Adds independent validation and data pipelines | Adds staged integration, several reviewers and periodic revalidation | Adds the AI audit and evaluation data |
 | Validation | Peer review + tests | Independent validation | Independent validation + periodic revalidation | Independent validation + `/ai-audit` |
 | Documentation | Short model card | Full spec + model card | Full spec, model card, user guide, replication package | Model card + experiment log + evaluation card |
 | Compute | Laptop | Laptop / workstation | HPC / GPU / parallel | GPU as needed |
+
+The table gives no durations on purpose. The agents' own work takes minutes to hours; calendar time is set by what the studio cannot speed up: getting the data, your review and approvals, independent validation and sign-off. Agents never state how long work will take unless the figure comes from the user's deadline, fixed dates (data releases, meetings, publications) or records of earlier projects; otherwise the timing is reported as not estimated.
 
 ## Which family for which question
 | If the question is about... | Start with |

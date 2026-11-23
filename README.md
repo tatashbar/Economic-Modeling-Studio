@@ -2,7 +2,7 @@
 
 # Economic Modeling Studio
 
-**Version 2.2.0**
+**Version 2.2.1**
 
 A studio for building, estimating, validating and using economic models. **127 specialist agents** and **94 skills** (workflow commands such as `/build-dsge` or `/validate-model`) cover specification, building, estimation and independent validation for semi-structural projection and DSGE, input-output and CGE, trade and climate-economy models, deep learning, reinforcement learning, neural-network solvers, LLM-based tools, agent-based and game-theoretic models, and other econometric models. The studio also lets you work with every model as a **lego set**: a core model with plug-and-play components that can be added, swapped or removed, with explicit interfaces and the impact of every change checked first. It also **translates model code** between the languages and software economists use (Stata, R, Python, MATLAB, Dynare, EViews, SAS, GAMS, Fortran, COBOL and more), and tests the translation against the original's outputs. It works with any coding agent that reads `AGENTS.md`: Claude Code, Codex, Cursor, Grok Build, Gemini CLI and others.
 
@@ -304,7 +304,7 @@ The studs on each brick are shared among its elements in proportion to their cou
 ## Quality controls
 - **You decide.** Agents advise; nothing is written without your approval.
 - **Independent validation.** The agents or people who build a model do not validate it. Validation covers conceptual soundness, independent re-implementation of core outputs, benchmarks, sensitivity and stress cases, with a rating of PASS, PASS WITH CONDITIONS, FAIL or NOT ASSESSED.
-- **No fabrication.** Missing data, code or results yield `NOT ASSESSED — NO DATA` rather than invented numbers or citations.
+- **No fabrication.** Missing data, code or results yield `NOT ASSESSED — NO DATA` rather than invented numbers, citations or durations.
 - **Benchmark first.** Complex and AI models are compared with a simple transparent benchmark on the same data and split.
 - **Uncertainty is part of the result.** Forecasts, scenarios and estimates carry ranges and stated assumptions. Elasticities, closures and damage functions are varied, not assumed.
 - **Model-specific checks.** Accounting identities and steady-state residuals for DSGE and macro models; balance and benchmark-replication tests for IO, SAM and CGE models; determinacy and accuracy diagnostics for solutions; look-ahead and leakage checks for forecasting and AI.
@@ -365,6 +365,7 @@ Adapt `studio-config.yaml` and `.claude/docs/confidentiality-and-ai-use.md` to t
 Agents and skills are Markdown files with YAML frontmatter; edit them freely. After changes run `python tools/validate_studio.py`. To add an agent, create `.claude/agents/<name>.md` and list it as a peer in the related agents. To add a command, create `.claude/skills/<name>/SKILL.md`. Path-scoped standards live in `.claude/rules/`. After changing commands or rules, run `python tools/sync_agents.py` to update the copies for other coding agents.
 
 ## Version history
+- **2.2.1** — No invented durations: model classes, the planner, `/model-brief` and `/select-model-class` no longer give fixed timelines such as "days to 2 weeks". Plans name what sets the calendar (data access, reviews, validation, sign-off), and dates come only from the user's deadlines, fixed dates or records of earlier projects.
 - **2.2.0** — Code translation between the languages and software used for economic models: 32 languages and tools listed with their pitfalls (Stata, R, Python, SAS, SPSS, EViews, RATS, gretl, MATLAB, Octave, Julia, Dynare, IRIS, RISE, TROLL, GAMS, GEMPACK, AMPL, Stan/JAGS, Fortran, C/C++, COBOL, GAUSS, Excel/VBA, FAME/AREMOS, SQL and others). Six agents (architect, source-code analyst, statistical, model and legacy translators, independent equivalence auditor), five commands (`/code-inventory`, `/translation-plan`, `/translate-code`, `/translate-model`, `/equivalence-test`), a rule for translation workspaces, a side-by-side idiom table, and `tools/translate.py` for inventories, plans, output comparison and source checks.
 - **2.1.1** — Every chart and table in a report comes from saved code: a model run, or a chart script saved next to the chart and listed in the report's annex.
 - **2.1.0** — PowerPoint presentations: `/research-plan` also ends with a deck built from the results report, with a questions-and-answers slide and, for each question or objective, the answer next to its chart, followed by its tables (`python tools/report.py pptx`). All results in one place: the deliverables, charts, code and every run folder a report names are collected in one folder and a zip with an index by question (`python tools/report.py bundle`). Policy briefs can be turned into slides too.

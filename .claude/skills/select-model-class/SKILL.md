@@ -43,13 +43,13 @@ Run these agents as subagents (the `Task` tool), in parallel where the steps are
 | Question fit | Can the class answer the question at all? |
 | Transparency | Can users understand and explain results? |
 | Data needs | Are the required data available at the right frequency? |
-| Build and validation effort | Weeks or months; depth of validation needed |
+| Build and validation effort | Components to build, data work and depth of validation needed (no invented durations) |
 | Run time | Fit for regular use or one-off |
 | Modularity | Can existing lego bricks be reused or attached? |
 
 ## Workflow
 1. Ask the relevant specialists (in parallel) for their best candidate approach and its main weakness
-2. Compare candidates on: question fit, transparency, data needs, build time, validation effort, run time, communicability
+2. Compare candidates on: question fit, transparency, data needs, build effort, validation effort, run time, communicability
    - Check which candidates can reuse existing lego sets and bricks
 3. Present 2-4 options with a recommendation; always include a simple benchmark
 4. Record the user's decision in an ADR

@@ -40,14 +40,15 @@ Each agent is defined in `.claude/agents/<name>.md`. If your tool runs subagents
 | Purpose | forecasting, policy analysis, scenario, research | Validation focus |
 | Risk level | low, medium, high | Validation depth and sign-offs |
 | Ownership | studio team, counterpart, shared | Documentation and training |
-| Timeline | weeks, months | Model size and scope |
+| Timeline | the user's deadline and fixed dates, or not estimated | Model size and scope |
 
 ## Workflow
 1. Collect the scoping note, the chosen model class and available resources
 2. Draft the brief from `docs/templates/model-brief.md`, one section at a time, with approval for each
    - State non-purposes explicitly
 3. Assign risk level with the model-risk-governance-specialist
-4. Set milestones sized to the model class and flag dependencies
+4. Set milestones by lifecycle stage and flag dependencies
+   - Dates come only from the user's deadline, fixed dates or records of earlier projects; otherwise the timeline says not estimated
    - Include data, validation and documentation milestones
 
 ## Checkpoints with the user
@@ -57,6 +58,7 @@ Each agent is defined in `.claude/agents/<name>.md`. If your tool runs subagents
 ## Common pitfalls
 - No non-purposes, so the model is later used for everything
 - Timelines that ignore validation
+- Durations invented without a basis
 - Unclear ownership after delivery
 
 ## Output
