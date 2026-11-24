@@ -4,9 +4,13 @@
 Standard library only.
 
 Every payment moves money from one account to another, so the sum of all accounts (households, firms, the
-government, the bank) never changes: the run checks it every period and reports the largest error. Behaviour
-rules (consumption, prices, wages, the policy rate) are formulas that people and agents can replace without
-writing code: a formula is checked against a short list of allowed names and functions before it runs.
+government, the bank, other entities) never changes: the run checks it every period and reports the largest error.
+Every behaviour is a rule, a formula that people and agents can replace without writing code: spending, prices,
+wages, planned output, expected sales, dividends, defaults, government purchases, taxes, benefits, reservation
+wages and the policy rate. Parameter rules set any parameter from the state of the economy each period, or add
+new quantities; scheduled changes replace rules, parameters and entities from a given period; checks are
+conditions people or agents want to hold. A formula is checked against a short list of allowed names first.
+A period is a quarter by default; a month or a year with "period".
 
     python tools/economy.py run [--households 1000] [--firms 50] [--periods 200] [--seed 1] [--set mpc_y=0.7]
     python tools/economy.py run --config economy.json --out run.json
@@ -84,7 +88,35 @@ RULES = {
              "default": "wage * (1 + theta_w * shock) if vac > 0 else (wage * (1 - theta_w * shock) if u > ustar else wage)"},
     "policy": {"vars": ("pi", "u"), "doc": "the annual policy rate: pi annual inflation, u unemployment rate",
                "default": "max(0, rstar + pistar + phi_pi * (pi - pistar) + phi_u * (ustar - u))"},
+    "plan": {"vars": ("exp_sales", "inv"), "doc": "the output a firm plans: exp_sales its expected sales, inv its stock",
+             "default": "exp_sales * (1 + inv_target) - inv"},
+    "expect": {"vars": ("exp_sales", "sales", "unmet"), "doc": "a firm's new expected sales: exp_sales the old "
+               "expectation, sales what it sold, unmet demand it could not serve",
+               "default": "exp_sales + lam * (sales + unmet - exp_sales)"},
+    "dividend": {"vars": ("profit", "cash", "wage_bill"), "doc": "what a firm with positive deposits pays out: profit "
+                 "this period, cash its deposits, wage_bill its wage bill (never more than its cash)",
+                 "default": "payout * max(0, profit) + max(0, cash - cash_buffer * wage_bill)"},
+    "default": {"vars": ("cash", "wage_bill", "t"), "doc": "whether a firm defaults (true or false): cash its deposits "
+                "(negative is a loan), wage_bill its wage bill, t the period",
+                "default": "cash < -default_after * max(wage_bill, 1e-9)"},
+    "purchases": {"vars": ("gdp", "gov"), "doc": "government purchases this period: gdp last period's nominal output, "
+                  "gov the government's balance (negative is debt); ppy is the number of periods in a year",
+                  "default": "max(0, g_share * gdp + fiscal_rho * (gov + debt_target * ppy * gdp))"},
+    "tax": {"vars": ("u", "debt"), "doc": "the tax rate this period: u unemployment, debt government debt to annual output",
+            "default": "tau"},
+    "benefit": {"vars": ("avg_wage", "u"), "doc": "the benefit each unemployed household receives: avg_wage the average "
+                "wage, u unemployment", "default": "benefit * avg_wage"},
+    "reservation": {"vars": ("res", "mean_wage"), "doc": "the lowest wage an unemployed household accepts next period, "
+                    "after a period without an offer: res its current one, mean_wage the average wage per efficiency unit",
+                    "default": "res * (1 - res_decay)"},
 }
+# Parameter rules and checks see the state at the end of the last period. Parameter rules can set any parameter,
+# or define a new name that every other formula can then use; checks are conditions that should hold every period.
+STATE_VARS = ("t", "u", "pi", "r", "gdp", "debt", "dep", "gov", "bank", "wage", "price", "cons")
+STATE_DOC = ("t the period, u unemployment, pi inflation (annual), r policy rate (annual), gdp nominal output, debt "
+             "government debt to annual output, dep household deposits, gov the government's balance, bank the bank's, "
+             "wage the average wage, price the average price, cons household spending")
+PERIODS = {"month": 12, "quarter": 4, "year": 1}
 ALLOWED_NODES = (ast.Expression, ast.BinOp, ast.UnaryOp, ast.BoolOp, ast.Compare, ast.IfExp, ast.Call, ast.Name,
                  ast.Load, ast.Constant, ast.Add, ast.Sub, ast.Mult, ast.Div, ast.Pow, ast.Mod, ast.USub, ast.UAdd,
                  ast.And, ast.Or, ast.Not, ast.Lt, ast.LtE, ast.Gt, ast.GtE, ast.Eq, ast.NotEq)
@@ -99,8 +131,9 @@ def compile_rule(name, expr, params):
     return compile_formula(name, expr, RULES[name]["vars"], params)
 
 
-def compile_formula(name, expr, variables, params):
-    """Check a formula against the whitelist (its variables, the parameters, numbers and FUNCS), then compile it."""
+def compile_formula(name, expr, variables, params, env=None):
+    """Check a formula against the whitelist (its variables, the parameters, numbers and FUNCS), then compile it.
+    With env, the formula reads its parameters from that table each time it runs, so changes to it take effect."""
     spec = {"vars": tuple(variables)}
     if not isinstance(expr, str) or len(expr) > 2000:
         raise RuleError(f"{name}: a rule is a formula of at most 2000 characters")
@@ -108,7 +141,7 @@ def compile_formula(name, expr, variables, params):
         tree = ast.parse(expr, mode="eval")
     except SyntaxError as x:
         raise RuleError(f"{name}: not a formula ({x.msg})")
-    allowed = set(spec["vars"]) | set(params) | set(FUNCS)
+    allowed = set(spec["vars"]) | {k for k in params if not k.startswith("_")} | set(FUNCS)
     for node in ast.walk(tree):
         if not isinstance(node, ALLOWED_NODES):
             raise RuleError(f"{name}: '{type(node).__name__}' is not allowed in a rule")
@@ -123,9 +156,10 @@ def compile_formula(name, expr, variables, params):
         args=ast.arguments(posonlyargs=[], args=[ast.arg(arg=v) for v in spec["vars"]], kwonlyargs=[], kw_defaults=[],
                            defaults=[]), body=tree.body))
     code = compile(ast.fix_missing_locations(lam), f"<rule {name}>", "eval")
-    env = dict(FUNCS)
-    env.update(params)
-    env["__builtins__"] = {}
+    if env is None:
+        env = dict(FUNCS)
+        env.update(params)
+        env["__builtins__"] = {}
     return eval(code, env)  # noqa: S307 - the tree was checked against a whitelist above
 
 
@@ -184,6 +218,11 @@ def _entity_params(spec, P):
 def check_entities(cfg):
     probs = []
     P = dict({k: v[0] for k, v in PARAMS.items()}, **(cfg.get("params") or {}))
+    P["ppy"] = PERIODS.get(cfg.get("period", "quarter"), 4)
+    P.update(dict.fromkeys(cfg.get("param_rules") or {}, 0.0))
+    for c in cfg.get("changes") or []:
+        if isinstance(c, dict):
+            P.update(dict.fromkeys(c.get("param_rules") or {}, 0.0))
     seen = set()
     for n, e in enumerate(cfg.get("entities") or []):
         label = f"entities[{n}]"
@@ -226,14 +265,19 @@ def _build_entities(cfg, P):
     out = []
     for e in cfg.get("entities") or []:
         typ = ENTITY_TYPES[e["type"]]
-        names = _entity_params(e, P)
-        fns = {f: compile_formula(f, (e.get("flows") or {}).get(f, typ["flows"][f]), ENTITY_VARS, names)
+        e_env = {k: v for k, v in P.items()}
+        e_env.update(FUNCS)
+        own = set(typ["params"]) | set(e.get("params") or {})
+        e_env.update({k: v[0] for k, v in typ["params"].items()})
+        e_env.update(e.get("params") or {})
+        e_env["__builtins__"] = {}
+        fns = {f: compile_formula(f, (e.get("flows") or {}).get(f, typ["flows"][f]), ENTITY_VARS, e_env, e_env)
                for f in FLOWS}
         count = e.get("count", 1)
         for i in range(count):
             out.append({"name": e.get("name", e["type"]), "type": e["type"], "bal": float(e.get("start", typ["start"])),
                         "share": 1.0 / count, "pay_to": e.get("pay_to", typ["pay_to"]), "fns": fns, "budget": 0.0,
-                        "levied": 0.0, "paid": 0.0, "bought": 0.0})
+                        "levied": 0.0, "paid": 0.0, "bought": 0.0, "env": e_env, "own": own})
     return out
 
 
@@ -253,7 +297,63 @@ def check_config(cfg):
         probs.append([605, "households", "at most 1,000,000 households"])
     if isinstance(cfg.get("firms"), int) and isinstance(cfg.get("households"), int) and cfg["firms"] > cfg["households"]:
         probs.append([605, "firms", "more firms than households"])
+    if cfg.get("period", "quarter") not in PERIODS:
+        probs.append([605, "period", f"period must be one of {', '.join(PERIODS)}"])
     params = dict({k: v[0] for k, v in PARAMS.items()}, **(cfg.get("params") or {}))
+    params["ppy"] = PERIODS.get(cfg.get("period", "quarter"), 4)
+    defined = dict.fromkeys(cfg.get("param_rules") or {}, 0.0)
+    for c in cfg.get("changes") or []:
+        defined.update(dict.fromkeys((c or {}).get("param_rules") or {}, 0.0))
+    for k in defined:
+        if not str(k).isidentifier() or k in FUNCS or k in STATE_VARS:
+            probs.append([602, k, f"'{k}' cannot be the name of a parameter rule"])
+    names = dict(params, **defined)
+    for k, f in (cfg.get("param_rules") or {}).items():
+        try:
+            compile_formula(f"param_rules.{k}", f, STATE_VARS, names)
+        except RuleError as x:
+            probs.append([601, k, str(x)])
+    for k, f in (cfg.get("checks") or {}).items():
+        try:
+            compile_formula(f"checks.{k}", f, STATE_VARS, names)
+        except RuleError as x:
+            probs.append([601, k, str(x)])
+    T = cfg.get("periods") if isinstance(cfg.get("periods"), int) else 0
+    added = {e.get("name", e.get("type")) for e in (cfg.get("entities") or []) if isinstance(e, dict)}
+    for n, c in enumerate(cfg.get("changes") or []):
+        label = f"changes[{n}]"
+        if not isinstance(c, dict) or not isinstance(c.get("at"), int) or not 0 <= c["at"] < max(T, 1):
+            probs.append([605, label, f"{label}: 'at' must be a period from 0 to {max(T - 1, 0)}"])
+            continue
+        unknown = set(c) - {"at", "params", "rules", "param_rules", "add", "remove", "note"}
+        if unknown:
+            probs.append([605, label, f"{label}: unknown keys {', '.join(sorted(unknown))}"])
+        for k, v in (c.get("params") or {}).items():
+            if k in PARAMS and (not isinstance(v, (int, float)) or not PARAMS[k][1] <= v <= PARAMS[k][2]):
+                probs.append([602, label, f"{label}: {k} = {v} is outside [{PARAMS[k][1]}, {PARAMS[k][2]}]"])
+            elif k not in PARAMS and k not in defined:
+                probs.append([602, label, f"{label}: unknown parameter '{k}'"])
+        for r_, f in (c.get("rules") or {}).items():
+            if r_ not in RULES:
+                probs.append([601, label, f"{label}: unknown rule '{r_}'"])
+                continue
+            try:
+                compile_formula(r_, f, RULES[r_]["vars"], names)
+            except RuleError as x:
+                probs.append([601, label, f"{label}: {x}"])
+        for k, f in (c.get("param_rules") or {}).items():
+            try:
+                compile_formula(f"param_rules.{k}", f, STATE_VARS, names)
+            except RuleError as x:
+                probs.append([601, label, f"{label}: {x}"])
+        if c.get("add"):
+            sub = check_entities({"params": cfg.get("params"), "entities": c["add"], "period": cfg.get("period"),
+                                  "param_rules": defined})
+            probs += [[q[0], label, f"{label}: {q[2]}"] for q in sub]
+            added |= {e.get("name", e.get("type")) for e in c["add"] if isinstance(e, dict)}
+        for name in c.get("remove") or []:
+            if name not in added:
+                probs.append([606, label, f"{label}: no entity named '{name}' to remove"])
     for k, v in (cfg.get("params") or {}).items():
         if k not in PARAMS:
             probs.append([602, k, f"unknown parameter '{k}'"])
@@ -264,7 +364,7 @@ def check_config(cfg):
             probs.append([601, name, f"unknown rule '{name}' (rules: {', '.join(RULES)})"])
             continue
         try:
-            compile_rule(name, expr, params)
+            compile_formula(name, expr, RULES[name]["vars"], names)
         except RuleError as x:
             probs.append([601, name, str(x)])
     for s in cfg.get("shocks") or []:
@@ -282,21 +382,36 @@ def _gini(xs):
 
 
 def run(cfg, series=False):
-    """Simulate one economy. Returns moments, optional per-quarter series, and the accounting check."""
+    """Simulate one economy. Returns moments, optional per-period series, and the accounting check."""
     probs = check_config(cfg)
     if probs:
         raise RuleError("; ".join(p[2] for p in probs))
     t_start = time.perf_counter()
-    P = {k: v[0] for k, v in PARAMS.items()}
-    P.update(cfg.get("params") or {})
+    ppy = PERIODS[cfg.get("period", "quarter")]
+    # one shared table of parameter values: every formula reads it when it runs, so a change made by a parameter
+    # rule or a scheduled change takes effect in every formula at once, with nothing recompiled
+    env = dict(FUNCS)
+    env.update({k: v[0] for k, v in PARAMS.items()})
+    env.update(cfg.get("params") or {})
+    env["ppy"] = ppy
+    env["__builtins__"] = {}
+    param_rules = {}
+    for k, f in (cfg.get("param_rules") or {}).items():
+        env.setdefault(k, 0.0)
+    for k, f in (cfg.get("param_rules") or {}).items():
+        param_rules[k] = compile_formula(f"param_rules.{k}", f, STATE_VARS, env, env)
+    checks = {k: compile_formula(f"checks.{k}", f, STATE_VARS, env, env) for k, f in (cfg.get("checks") or {}).items()}
+    P = env
     rng = random.Random(cfg.get("seed", 1))
     H, F, T = cfg["households"], cfg["firms"], cfg["periods"]
     burn = min(cfg.get("burn", 50), max(0, T - 2))
-    rules = {n: compile_rule(n, (cfg.get("rules") or {}).get(n, RULES[n]["default"]), P) for n in RULES}
-    consume, price_rule, wage_rule, policy_rule = rules["consume"], rules["price"], rules["wage"], rules["policy"]
-    shocks = {}
-    for s in cfg.get("shocks") or []:
-        shocks.setdefault(s["at"], []).append(s)
+    R = {n: compile_formula(n, (cfg.get("rules") or {}).get(n, RULES[n]["default"]), RULES[n]["vars"], env, env)
+         for n in RULES}
+    changes = {}
+    for s in cfg.get("shocks") or []:                    # the older form: one parameter at one period
+        changes.setdefault(s["at"], []).append({"params": {s["param"]: s["value"]}})
+    for c in cfg.get("changes") or []:
+        changes.setdefault(c["at"], []).append(c)
 
     # ---------------------------------------------------------------- agents and accounts
     z = [math.exp(rng.gauss(-0.5 * P["z_sigma"] ** 2, P["z_sigma"])) for _ in range(H)]
@@ -307,41 +422,80 @@ def run(cfg, series=False):
     price = [1.0 + 0.05 * (rng.random() - 0.5) for _ in range(F)]
     wage = [1.0 / (1 + P["markup"])] * F           # wage offer per efficiency unit
     inv = [0.0] * F
-    left = [0.0] * F                               # inventory left unsold at the end of the last quarter
+    left = [0.0] * F                               # stock left unsold at the end of the last period
     workers = [[] for _ in range(F)]
     eff = [0.0] * F                                # efficiency units employed
     exp_sales = [H * 0.9 * P["prod"] / F] * F
     vac_left = [0] * F
-    gov, bank = 0.0, 0.0
-    # hire an initial workforce so the economy starts near full employment
-    order = list(range(H))
+    bank = 0.0
+    order = list(range(H))                         # an initial workforce, so the economy starts near full employment
     rng.shuffle(order)
     for n, i in enumerate(order[: int(H * 0.94)]):
         j = n % F
         employer[i] = j
         workers[j].append(i)
         eff[j] += z[i]
-    gov = -P["debt_target"] * 4 * sum(eff) * P["prod"]     # the government starts at its debt target
-    ents = _build_entities(cfg, P)
+    gov = -P["debt_target"] * ppy * sum(eff) * P["prod"]     # the government starts at its debt target
+    ents = _build_entities(cfg, env)
+    retired = []
     total0 = sum(hh) + sum(firm) + gov + bank + sum(e["bal"] for e in ents)
 
     pi, u, pbar_prev = P["pistar"], 1 - sum(1 for e in employer if e >= 0) / H, sum(price) / F
     gdp_nom_prev = sum(eff) * P["prod"] * pbar_prev
     dividends_hh = 0.0
     cons_prev = 0.8 * gdp_nom_prev
+    rate = P["rstar"] + P["pistar"]
+    avg_wage = wage[0]
     out = {k: [] for k in ("gdp", "u", "pi", "rate", "pbar", "wage", "cons", "debt_gdp", "gini", "defaults",
                            "err", "deposits", "income", "firms_dep", "gov", "bank", "inv", "emp_eff", "entities")}
+    for k in param_rules:
+        out["param:" + k] = []
+    violations = {k: [] for k in checks}
+    applied = []
     max_err, defaults_total = 0.0, 0
     for t in range(T):
-        for s in shocks.get(t, []):
-            P[s["param"]] = s["value"]
-            rules = {n: compile_rule(n, (cfg.get("rules") or {}).get(n, RULES[n]["default"]), P) for n in RULES}
-            consume, price_rule, wage_rule, policy_rule = rules["consume"], rules["price"], rules["wage"], rules["policy"]
+        # 0. scheduled changes, then parameter rules: both see the state at the end of the last period
+        state = (t, u, pi, rate, gdp_nom_prev, -gov / (ppy * gdp_nom_prev) if gdp_nom_prev else 0.0, sum(hh), gov,
+                 bank, avg_wage, pbar_prev, cons_prev)
+        for c in changes.get(t, []):
+            for k, v in (c.get("params") or {}).items():
+                env[k] = v
+            for n, f in (c.get("rules") or {}).items():
+                R[n] = compile_formula(n, f, RULES[n]["vars"], env, env)
+            for k, f in (c.get("param_rules") or {}).items():
+                env.setdefault(k, 0.0)
+                param_rules[k] = compile_formula(f"param_rules.{k}", f, STATE_VARS, env, env)
+                out.setdefault("param:" + k, [None] * t)
+            for name in c.get("remove") or []:
+                for e in [e for e in ents if e["name"] == name]:
+                    if e["bal"] > 0:                       # what it holds goes to households in equal parts
+                        each = e["bal"] / H
+                        for i in range(H):
+                            hh[i] += each
+                    else:
+                        bank += e["bal"]                   # what it owes is written off by the bank
+                    e["bal"] = 0.0
+                    e["removed_at"] = t
+                    ents.remove(e)
+                    retired.append(e)
+            if c.get("add"):
+                new = _build_entities({"entities": c["add"]}, env)
+                ents += new
+                total0 += sum(e["bal"] for e in new)
+            applied.append(t)
+        for k, fn in param_rules.items():
+            env[k] = fn(*state)
+        for e in ents:                              # entities see the same parameter values, except their own
+            e_env = e["env"]
+            for key, val in env.items():
+                if key not in e["own"]:
+                    e_env[key] = val
+        consume, price_rule, wage_rule, policy_rule = R["consume"], R["price"], R["wage"], R["policy"]
         # 1. the policy rate and interest: deposits earn it from the bank, loans pay the loan rate to it
         rate = policy_rule(pi, u)
-        rd, rl = P["dep_share"] * rate / 4, (rate + P["spread"]) / 4
+        rd, rl = P["dep_share"] * rate / ppy, (rate + P["spread"]) / ppy
+        tau = R["tax"](u, -gov / (ppy * gdp_nom_prev) if gdp_nom_prev else 0.0)
         paid, tax = 0.0, 0.0
-        tau = P["tau"]
         for i in range(H):
             x = hh[i] * rd
             hh[i] += x - tau * x                    # interest, net of tax
@@ -360,8 +514,9 @@ def run(cfg, series=False):
             paid += x
         bank -= paid
         # 2. firms plan output and hire or fire
+        plan = R["plan"]
         for j in range(F):
-            need = max(0.0, exp_sales[j] * (1 + P["inv_target"]) - inv[j]) / P["prod"]
+            need = max(0.0, plan(exp_sales[j], inv[j])) / P["prod"]
             gap = need - eff[j]
             avg_z = eff[j] / len(workers[j]) if workers[j] else 1.0
             if gap < -avg_z and workers[j]:
@@ -376,14 +531,16 @@ def run(cfg, series=False):
         hiring = [j for j in range(F) if vac_left[j] > 0]
         unemployed = [i for i in range(H) if employer[i] < 0]
         rng.shuffle(unemployed)
-        k = int(P["search"])
+        k = max(1, int(P["search"]))
+        reservation = R["reservation"]
         for i in unemployed:
             if not hiring:
                 break
             best = -1
-            for j in (hiring if len(hiring) <= k else rng.sample(hiring, k)):
-                if vac_left[j] > 0 and wage[j] >= res[i] * 0.999 and (best < 0 or wage[j] > wage[best]):
-                    best = j
+            if hiring:
+                for j in (hiring if len(hiring) <= k else rng.sample(hiring, k)):
+                    if vac_left[j] > 0 and wage[j] >= res[i] * 0.999 and (best < 0 or wage[j] > wage[best]):
+                        best = j
             if best >= 0:
                 employer[i] = best
                 workers[best].append(i)
@@ -393,7 +550,7 @@ def run(cfg, series=False):
                 if vac_left[best] == 0:
                     hiring.remove(best)
             else:
-                res[i] *= 1 - P["res_decay"]
+                res[i] = max(0.0, reservation(res[i], avg_wage / max(1e-9, sum(z) / H)))
         # 4. production, wages, benefits and taxes
         wage_bill = [0.0] * F
         avg_wage = 0.0
@@ -411,12 +568,12 @@ def run(cfg, series=False):
                 n_emp += 1
             firm[j] -= wage_bill[j]
         avg_wage = avg_wage / n_emp if n_emp else wage[0]
-        b = P["benefit"] * avg_wage
+        b = max(0.0, R["benefit"](avg_wage, u))
         taxes, benefits = 0.0, 0.0
         div_each = dividends_hh / H
         for i in range(H):
             gross = income[i] + div_each
-            tx = P["tau"] * gross
+            tx = tau * gross
             taxes += tx
             if employer[i] < 0:
                 gross += b
@@ -424,7 +581,7 @@ def run(cfg, series=False):
             hh[i] += gross - tx
             income[i] = gross - tx
         gov += taxes - benefits
-        # 4b. other entities: levies on and payments to households, and their purchases this quarter
+        # 4b. other entities: levies on and payments to households, and what they will buy
         if ents:
             wages_total = sum(wage_bill)
             for e in ents:
@@ -455,42 +612,33 @@ def run(cfg, series=False):
         for j in range(F):
             cost = wage[j] / P["prod"]
             price[j] = max(1e-6, price_rule(price[j], pbar, left[j], P["inv_target"] * exp_sales[j], cost, rng.random()))
-        # 6. the goods market: the government buys first, then households spend at the cheapest of a few firms.
-        #    Demand a firm could not serve is recorded, so that firms plan on demand, not only on sales.
+        # 6. the goods market: the government buys first, then other entities, then households spend at the cheapest
+        #    of a few firms. Demand a firm could not serve is recorded, so firms plan on demand, not only on sales.
         sales = [0.0] * F
         revenue = [0.0] * F
         unmet = [0.0] * F
         cons_total = 0.0
-        # fiscal rule: purchases rise when debt is below its target and fall when it is above
-        g_budget = max(0.0, P["g_share"] * gdp_nom_prev
-                       + P["fiscal_rho"] * (gov + P["debt_target"] * 4 * gdp_nom_prev))
-        stock = sum(inv)
-        if stock > 0 and g_budget > 0:
-            for j in range(F):
-                if inv[j] <= 0:
-                    continue
-                want = g_budget * inv[j] / stock / price[j]
-                q = min(inv[j], want)
-                unmet[j] += want - q
-                inv[j] -= q
-                sales[j] += q
-                revenue[j] += q * price[j]
-                gov -= q * price[j]
-        for e in ents:                               # other entities buy after the government
+        buyers = [("gov", max(0.0, R["purchases"](gdp_nom_prev, gov)))] + [(e, e["budget"]) for e in ents]
+        for who, budget_ in buyers:
             stock = sum(inv)
-            if e["budget"] <= 0 or stock <= 0:
+            if budget_ <= 0 or stock <= 0:
                 continue
+            spent = 0.0
             for j in range(F):
                 if inv[j] <= 0:
                     continue
-                want = e["budget"] * inv[j] / stock / price[j]
+                want = budget_ * inv[j] / stock / price[j]
                 q = min(inv[j], want)
                 unmet[j] += want - q
                 inv[j] -= q
                 sales[j] += q
                 revenue[j] += q * price[j]
-                e["bal"] -= q * price[j]
-                e["bought"] += q * price[j]
+                spent += q * price[j]
+            if who == "gov":
+                gov -= spent
+            else:
+                who["bal"] -= spent
+                who["bought"] += spent
         hh_order = list(range(H))
         rng.shuffle(hh_order)
         F_list = range(F)
@@ -514,23 +662,23 @@ def run(cfg, series=False):
                 if budget <= 1e-12:
                     break
             if budget > 1e-12:
-                j = visited[0]                       # the cheapest firm visited sees the demand it could not serve
-                unmet[j] += budget / price[j]
-        # 7. profits, dividends, wage offers, defaults
+                unmet[visited[0]] += budget / price[visited[0]]   # the cheapest firm visited sees the demand it missed
+        # 7. profits, dividends, expectations, wage offers, defaults
         dividends_hh = 0.0
         defaults = 0
         left = list(inv)
+        dividend, expect, default_rule = R["dividend"], R["expect"], R["default"]
         for j in range(F):
             firm[j] += revenue[j]
             profit = revenue[j] - wage_bill[j]
             if firm[j] > 0:
-                d = min(firm[j], P["payout"] * max(0.0, profit) + max(0.0, firm[j] - P["cash_buffer"] * wage_bill[j]))
+                d = min(firm[j], max(0.0, dividend(profit, firm[j], wage_bill[j])))
                 firm[j] -= d
                 dividends_hh += d
-            exp_sales[j] += P["lam"] * (sales[j] + unmet[j] - exp_sales[j])
+            exp_sales[j] = max(0.0, expect(exp_sales[j], sales[j], unmet[j]))
             wage[j] = max(1e-6, wage_rule(wage[j], vac_left[j], u, pi, rng.random()))
-            if firm[j] < -P["default_after"] * max(wage_bill[j], 1e-9):
-                bank += firm[j]                     # the bank writes off the loan
+            if default_rule(firm[j], wage_bill[j], t):
+                bank += firm[j]                     # the bank takes the loss (or the firm's cash, if any)
                 firm[j] = 0.0
                 for i in workers[j]:
                     employer[i] = -1
@@ -539,14 +687,13 @@ def run(cfg, series=False):
                 exp_sales[j] = sum(exp_sales) / F
                 defaults += 1
         defaults_total += defaults
-        # bank dividends: the bank pays its positive equity above zero to households, as dividends next quarter
-        if bank > 0:
+        if bank > 0:                                # the bank pays its positive equity to households next period
             dividends_hh += bank
             bank = 0.0
-        # 8. the period's statistics and the accounting check
+        # 8. the period's statistics, the accounting check and the checks people or agents added
         gdp = sum(sales)
         pbar_new = sum(p * s for p, s in zip(price, sales)) / gdp if gdp > 0 else sum(price) / F
-        pi = (pbar_new / pbar_prev) ** 4 - 1 if pbar_prev > 0 else 0.0
+        pi = (pbar_new / pbar_prev) ** ppy - 1 if pbar_prev > 0 else 0.0
         pbar_prev = pbar_new
         u = 1 - sum(1 for e in employer if e >= 0) / H
         gdp_nom_prev = gdp * pbar_new
@@ -554,13 +701,21 @@ def run(cfg, series=False):
         total = sum(hh) + sum(firm) + gov + bank + dividends_hh + sum(e["bal"] for e in ents)
         err = abs(total - total0) / max(1.0, abs(total0))
         max_err = max(max_err, err)
+        debt = -gov / (ppy * gdp_nom_prev) if gdp_nom_prev else 0.0
         for key, val in (("gdp", gdp), ("u", u), ("pi", pi), ("rate", rate), ("pbar", pbar_new), ("wage", avg_wage),
-                         ("cons", cons_total), ("debt_gdp", -gov / (4 * gdp_nom_prev) if gdp_nom_prev else 0.0),
-                         ("defaults", defaults), ("err", err), ("deposits", sum(hh) / H),
-                         ("income", sum(income) / H), ("firms_dep", sum(firm)), ("gov", gov), ("bank", bank), ("inv", sum(inv)), ("emp_eff", sum(eff)),
+                         ("cons", cons_total), ("debt_gdp", debt), ("defaults", defaults), ("err", err),
+                         ("deposits", sum(hh) / H), ("income", sum(income) / H), ("firms_dep", sum(firm)), ("gov", gov),
+                         ("bank", bank), ("inv", sum(inv)), ("emp_eff", sum(eff)),
                          ("entities", sum(e["bal"] for e in ents))):
             out[key].append(val)
+        for k in param_rules:
+            out["param:" + k].append(env[k])
         out["gini"].append(_gini(hh) if (t == T - 1 or series) else (out["gini"][-1] if out["gini"] else 0.0))
+        if checks:
+            now = (t, u, pi, rate, gdp_nom_prev, debt, sum(hh), gov, bank, avg_wage, pbar_new, cons_total)
+            for k, fn in checks.items():
+                if not fn(*now):
+                    violations[k].append(t)
 
     # ---------------------------------------------------------------- moments after the burn-in
     def mean(xs):
@@ -582,19 +737,26 @@ def run(cfg, series=False):
                "debt_gdp": out["debt_gdp"][-1], "wealth_gini": out["gini"][-1],
                "default_rate": defaults_total / (F * T), "output": mean(g)}
     res_ = {"moments": moments, "accounting_error": max_err, "seconds": round(time.perf_counter() - t_start, 3),
-            "households": H, "firms": F, "periods": T}
-    if ents:
+            "households": H, "firms": F, "periods": T, "period": cfg.get("period", "quarter")}
+    if checks:
+        res_["checks"] = {k: {"held": not v, "failed_in": len(v), **({"first": v[0]} if v else {})}
+                          for k, v in violations.items()}
+    if applied:
+        res_["changes_applied"] = sorted(set(applied))
+    if ents or retired or cfg.get("entities"):
         summary = {}
-        for e in ents:
+        for e in ents + retired:
             s = summary.setdefault(e["name"], {"type": e["type"], "count": 0, "levied": 0.0, "paid": 0.0,
                                                "bought": 0.0, "balance": 0.0})
             s["count"] += 1
+            if "removed_at" in e:
+                s["removed_at"] = e["removed_at"]
             for key in ("levied", "paid", "bought"):
                 s[key] += e[key]
             s["balance"] += e["bal"]
         res_["entities"] = summary
     if series:
-        res_["series"] = {k: [round(x, 6) for x in v] for k, v in out.items()}
+        res_["series"] = {k: [None if x is None else round(x, 6) for x in v] for k, v in out.items()}
     return res_
 
 
@@ -655,6 +817,15 @@ def known_answers():
     rows.append(("an entity added by configuration collects exactly what its formula says",
                  abs(got - 500) < 1e-9 and r["accounting_error"] < 1e-9,
                  f"expected 500, got {got:.9f}; accounts off by {r['accounting_error']:.1e}"))
+    # a scheduled change and a parameter rule take effect exactly when and as they say
+    cfg = default_config(households=200, firms=10, periods=30)
+    cfg["changes"] = [{"at": 10, "rules": {"policy": "0.05"}}]
+    cfg["param_rules"] = {"tau": "0.30 if t >= 20 else 0.22"}
+    s = run(cfg, series=True)["series"]
+    ok = all(abs(r_ - 0.05) < 1e-15 for r_ in s["rate"][10:]) and s["rate"][9] != 0.05 and         s["param:tau"][19] == 0.22 and s["param:tau"][20] == 0.30
+    rows.append(("a scheduled change and a parameter rule apply from the period they name", ok,
+                 f"policy rate from period 10: {s['rate'][10]}; tax rate in periods 19 and 20: "
+                 f"{s['param:tau'][19]}, {s['param:tau'][20]}"))
     # the policy rule at known points
     pol = compile_rule("policy", RULES["policy"]["default"], {k: v[0] for k, v in PARAMS.items()})
     want = 0.02 + 0.02 + 1.5 * (0.04 - 0.02) + 0.5 * (0.06 - 0.08)
@@ -712,7 +883,14 @@ def register(api):
 
     @op("economy.rules", "the behaviour rules: their variables, meaning and default formulas", {})
     def rules(a, ctx):
-        return ok({k: {"vars": v["vars"], "doc": v["doc"], "default": v["default"]} for k, v in RULES.items()})
+        return ok({"rules": {k: {"vars": v["vars"], "doc": v["doc"], "default": v["default"]} for k, v in RULES.items()},
+                   "param_rules": {"vars": STATE_VARS, "doc": "a formula per parameter (existing or new), evaluated at "
+                                   "the start of every period from the state at the end of the last: " + STATE_DOC},
+                   "checks": {"vars": STATE_VARS, "doc": "conditions that should hold every period; the result says "
+                              "which held and when each first failed"},
+                   "changes": {"doc": "from period 'at': new params, rules, param_rules, entities to add, and names "
+                               "of entities to remove"},
+                   "periods": PERIODS})
 
     @op("economy.check", "check an economy configuration: parameters within bounds, rules valid", {
         "d": "obj? inline configuration (or t, or m)"})

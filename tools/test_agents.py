@@ -479,6 +479,52 @@ class TestEconomy(unittest.TestCase):
         self.assertNotEqual(r["r"]["moments"], H("economy.run", d=self.small)["r"]["moments"])
         self.assertIn("foreign", H("economy.entities")["r"]["types"])
 
+    def test_every_behaviour_is_a_rule(self):
+        rules = H("economy.rules")["r"]["rules"]
+        for name in ("consume", "price", "wage", "policy", "plan", "expect", "dividend", "default", "purchases", "tax",
+                     "benefit", "reservation"):
+            self.assertIn(name, rules)
+        base = H("economy.run", d=self.small)["r"]["moments"]
+        for name, formula in (("purchases", "0"), ("dividend", "0"), ("tax", "0.1"), ("benefit", "0"),
+                              ("plan", "exp_sales"), ("default", "t % 10 == 9")):
+            r = H("economy.run", d=dict(self.small, rules={name: formula}))
+            self.assertTrue(r["ok"], (name, r))
+            self.assertLess(r["r"]["accounting_error"], 1e-9, name)
+            self.assertNotEqual(r["r"]["moments"], base, name)
+
+    def test_parameter_rules_changes_and_checks(self):
+        cfg = dict(self.small, periods=60,
+                   param_rules={"surcharge": "0.05 if debt > 0.65 else 0", "tau": "0.22 + surcharge"},
+                   checks={"unemployment below 30%": "u < 0.3", "never": "u < 0"},
+                   entities=[{"type": "custom", "name": "fund", "flows": {"levy": "100 * surcharge"}}],
+                   changes=[{"at": 10, "add": [{"type": "foreign"}]},
+                            {"at": 20, "rules": {"policy": "0.04"}, "params": {"g_share": 0.2}},
+                            {"at": 30, "remove": ["foreign"]},
+                            {"at": 40, "param_rules": {"benefit": "0.5 if u > 0.05 else 0.4"}}])
+        self.assertTrue(H("economy.check", d=cfg)["r"]["pass"])
+        r = self.E.run(cfg, series=True)
+        self.assertLess(r["accounting_error"], 1e-9)
+        self.assertEqual(r["changes_applied"], [10, 20, 30, 40])
+        self.assertTrue(r["checks"]["unemployment below 30%"]["held"])
+        self.assertEqual(r["checks"]["never"]["first"], 0)
+        self.assertEqual(r["entities"]["foreign"]["removed_at"], 30)
+        self.assertTrue(all(x == 0.04 for x in r["series"]["rate"][20:]))
+        self.assertIsNone(r["series"]["param:benefit"][39])
+        self.assertIsNotNone(r["series"]["param:benefit"][40])
+
+    def test_bad_changes_are_refused(self):
+        for bad in ({"param_rules": {"u": "1"}}, {"changes": [{"at": 999}]},
+                    {"changes": [{"at": 5, "remove": ["ghost"]}]}, {"changes": [{"at": 5, "rules": {"policy": "open(1)"}}]},
+                    {"changes": [{"at": 5, "params": {"tau": 5}}]}, {"checks": {"x": "w > 0"}}, {"period": "week"}):
+            r = H("economy.check", d=dict(self.small, **bad))
+            self.assertFalse(r["r"]["pass"], bad)
+
+    def test_months_and_years(self):
+        for period in ("month", "year"):
+            r = H("economy.run", d=dict(self.small, period=period))
+            self.assertTrue(r["ok"], r)
+            self.assertLess(r["r"]["accounting_error"], 1e-9)
+
     def test_bad_entities_are_refused(self):
         for bad in ({"type": "dragon"}, {"type": "foreign", "count": 0},
                     {"type": "custom", "flows": {"levy": "__import__('os')"}},

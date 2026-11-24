@@ -1,6 +1,6 @@
 # The studio for AI agents
 
-People use the studio through commands and readable reports. AI agents need something else: short messages, numbered findings they can act on, fixes they can send back unchanged, and safe ways for many of them to work on the same model. This guide covers the machine side of the studio.
+People use the studio through commands and readable reports. AI agents, including agents from outside the studio (any AI agent or system of agents, on any model or framework), can use it too, and need something else: short messages, numbered findings they can act on, fixes they can send back unchanged, and safe ways for many of them to work on the same model. This guide covers the machine side of the studio.
 
 - [The studio protocol](#the-studio-protocol)
 - [The studio as an MCP server](#the-studio-as-an-mcp-server)
@@ -192,13 +192,48 @@ The formulas can use `gdp` (last quarter's nominal output), `cons` (household sp
 
 A new kind needs no code: `custom` with a name, parameters and formulas. Extensions add kinds in code with `economy.entity_type(name, doc, params, flows, pay_to)`. Every flow moves money between accounts, so the accounting check covers entities. An entity's balance earns the deposit rate or, if negative, pays the loan rate to the bank. Formulas are checked against the same whitelist as the rules, and a bad entity is refused with code 606 before anything runs. `python tools/economy.py entities` lists the kinds; `python tools/economy.py run --entity foreign --entity pension_fund:3` adds them to a run; the result reports what each entity collected, paid and bought, and its balance.
 
-**Rules are formulas.** How households spend, how firms set prices and wages and how the policy rate responds are short formulas, for example the default spending rule
+**Every behaviour is a rule.** Each is a short formula that a person or an agent can replace in the configuration (`"rules": {"consume": "..."}`), without writing code:
+
+| Rule | Decides |
+|---|---|
+| `consume` | how much a household spends |
+| `plan` | the output a firm plans |
+| `expect` | how a firm updates its expected sales |
+| `price`, `wage` | a firm's price and wage offer |
+| `dividend` | what a firm pays out |
+| `default` | whether a firm defaults |
+| `purchases` | what the government buys |
+| `tax` | the tax rate |
+| `benefit` | the unemployment benefit |
+| `reservation` | how far an unemployed household lowers the wage it accepts |
+| `policy` | the policy rate |
+
+For example, the default spending rule is
 
     min(w + y, mpc_y * y + mpc_w * w * max(0, 1 - rate_sens * (r - pi - rstar)))
 
-A person or an agent can replace any of them in the configuration (`"rules": {"consume": "..."}`) without writing code. A formula may use only its listed variables, the parameters, numbers and `min`, `max`, `abs`, `exp`, `log`, `sqrt`; anything else is refused before it runs (code 601). Parameters have bounds (code 602). `python tools/economy.py rules` and `params` list them.
+**New rules.** `"param_rules"` sets any parameter, or defines a new quantity, from the state of the economy at the start of every period. Every other formula can use the result, so a rule can switch when a condition is met:
 
-**Known answers.** `python tools/economy.py known`: money conserved every quarter; an entity added by configuration collects exactly what its formula says, with money still conserved; the same seed gives the same economy and another seed another draw; with one type of household and no frictions, deposits settle at the level the spending rule implies, (1 - mpc_y) y / mpc_w; the policy rule at known points; and a formula that tries to call anything outside the list is refused.
+```json
+"param_rules": {"surcharge": "0.05 if debt > 0.9 else 0", "tau": "0.22 + surcharge"}
+```
+
+The state they see: `t`, `u`, `pi`, `r`, `gdp`, `debt`, `dep`, `gov`, `bank`, `wage`, `price`, `cons`. Each parameter rule's path is in the run's series.
+
+**Checks.** `"checks"` states conditions that should hold every period, for example `{"unemployment below 15%": "u < 0.15"}`. Each run reports which held and when each first failed.
+
+**Changes over time.** `"changes"` lists what changes from a given period: new parameter values, new rules, new parameter rules, entities that join (`add`) and entities that leave (`remove`). An entity that leaves pays what it holds to households, or the bank writes off what it owes, so money still adds up.
+
+```json
+"changes": [{"at": 80, "rules": {"policy": "max(0, 0.03 + 2 * (pi - pistar))"}, "params": {"g_share": 0.22}},
+            {"at": 100, "add": [{"type": "foreign"}]}, {"at": 150, "remove": ["foreign"]}]
+```
+
+**Periods.** `"period"` is `quarter` (the default), `month` or `year`. Rates and inflation are annual in every case. The default parameters are set for quarters, so a monthly or yearly economy needs its own.
+
+A formula may use only its listed variables, the parameters, numbers and `min`, `max`, `abs`, `exp`, `log`, `sqrt`; anything else is refused before it runs (code 601). Parameters have bounds (code 602). `python tools/economy.py rules` and `params` list them, and `economy.rules` gives agents the same, with the state variables.
+
+**Known answers.** `python tools/economy.py known`: money conserved every period; an entity added by configuration collects exactly what its formula says, with money still conserved; a scheduled change and a parameter rule apply from exactly the period they name; the same seed gives the same economy and another seed another draw; with one type of household and no frictions, deposits settle at the level the spending rule implies, (1 - mpc_y) y / mpc_w; the policy rule at known points; and a formula that tries to call anything outside the list is refused.
 
 **Scale.** A thousand households, 50 firms and 200 quarters take about three seconds on a laptop; 10,000 households and 1,000 firms about 17 seconds per hundred quarters. Larger economies (up to a million households) are allowed; time grows roughly in proportion to the number of households. Several seeds or scenarios run in parallel processes (`--seeds 8`, or `seeds` in `economy.run`). Shocks change a parameter from a given quarter (`"shocks": [{"param": "g_share", "value": 0.25, "at": 80}]`).
 
