@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-"""An agent-based economy: a thousand households (or a hundred thousand), firms, a bank, a government and a
-monetary authority, stock-flow consistent by construction. Standard library only.
+"""Agent Economy Lab (AEL): agent-based economies at the scale you choose (for example 10,000 households and
+1,000 firms), with a bank, a government and a monetary authority, stock-flow consistent by construction.
+Standard library only.
 
 Every payment moves money from one account to another, so the sum of all accounts (households, firms, the
 government, the bank) never changes: the run checks it every period and reports the largest error. Behaviour

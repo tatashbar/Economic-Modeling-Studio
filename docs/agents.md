@@ -6,7 +6,7 @@ People use the studio through commands and readable reports. AI agents need some
 - [The studio as an MCP server](#the-studio-as-an-mcp-server)
 - [Many MCP servers through one gateway](#many-mcp-servers-through-one-gateway)
 - [A shared workspace for many agents, with people in charge](#a-shared-workspace-for-many-agents-with-people-in-charge)
-- [An economy of a thousand households](#an-economy-of-a-thousand-households)
+- [The Agent Economy Lab (AEL)](#the-agent-economy-lab-ael)
 - [The improvement loop](#the-improvement-loop)
 - [A swarm in one command](#a-swarm-in-one-command)
 - [Putting it together](#putting-it-together)
@@ -157,8 +157,8 @@ Agents cannot post constraints, freezes, pauses, vetoes or answers (code 104), a
 
 **Over MCP.** `python tools/mcp_server.py --agent builder-7` (or `STUDIO_AGENT`) gives each agent its name in the workspace; the `ws_*` tools are there with the others.
 
-## An economy of a thousand households
-`tools/economy.py` is an agent-based economy, standard library only, for agents and people to build models on and test them at scale.
+## The Agent Economy Lab (AEL)
+`tools/economy.py` is a capability for building agent-based economies at the scale you choose, standard library only, for agents and people to build models on and test them at scale. It is not one fixed model: the number of households and firms, the parameters, the behaviour rules and the shocks are yours to set, and every example in this guide is one configuration of it.
 
 **Who is in it.** Households, each with its own productivity, job or unemployment, reservation wage, income and deposits; firms that plan output from demand, hire and fire, set wages and prices, pay dividends and can default; a bank that lends to firms and the government; a government that taxes, pays unemployment benefits and buys goods under a debt rule; and a monetary authority that sets the policy rate. Each quarter: the policy rate and interest, hiring, production, wages, taxes and benefits, prices, the goods market, profits and defaults.
 
@@ -172,7 +172,7 @@ A person or an agent can replace any of them in the configuration (`"rules": {"c
 
 **Known answers.** `python tools/economy.py known`: money conserved every quarter; the same seed gives the same economy and another seed another draw; with one type of household and no frictions, deposits settle at the level the spending rule implies, (1 - mpc_y) y / mpc_w; the policy rule at known points; and a formula that tries to call anything outside the list is refused.
 
-**Scale.** A thousand households, 50 firms and 200 quarters take about three seconds on a laptop; ten thousand households about fifteen seconds per hundred quarters. Several seeds or scenarios run in parallel processes (`--seeds 8`, or `seeds` in `economy.run`). Shocks change a parameter from a given quarter (`"shocks": [{"param": "g_share", "value": 0.25, "at": 80}]`).
+**Scale.** A thousand households, 50 firms and 200 quarters take about three seconds on a laptop; 10,000 households and 1,000 firms about 17 seconds per hundred quarters. Larger economies (up to a million households) are allowed; time grows roughly in proportion to the number of households. Several seeds or scenarios run in parallel processes (`--seeds 8`, or `seeds` in `economy.run`). Shocks change a parameter from a given quarter (`"shocks": [{"param": "g_share", "value": 0.25, "at": 80}]`).
 
 **For agents.** `economy.new`, `economy.params`, `economy.rules`, `economy.check`, `economy.run` and `economy.known`. An economy can live on a workspace track (`ws.track` with `kind: "economy"`), where many agents try changes on their own tracks and the report shows people the parameters and the last results.
 
