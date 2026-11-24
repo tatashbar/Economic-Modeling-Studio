@@ -12,13 +12,22 @@ Commands (changes are shown as a plan; nothing is written without --apply):
   catalog                         list reusable bricks
   new <manifest> --name N --freq Q --class medium --bricks ID [ID ...]
   show <manifest> [--html FILE] [--mermaid]
-  check <manifest>                exit code 1 if there are errors
+  check <manifest> [--strict]     exit code 1 if there are errors (with --strict, also if there are warnings)
   attach <manifest> <brick-id|file> [--apply] [--force]
   detach <manifest> <brick-id> [--apply] [--force]
   swap <manifest> <old-brick-id> <new-brick-id|file> [--apply] [--force]
   arrange <manifest> [--style pyramid|grid] [--apply]
+  bridge-test <manifest> [--data PORT=FILE.csv ...] [--apply]   known-answer tests of each declared bridge
   validate <manifest> <brick-id> --report FILE [--apply]
+  approve <manifest> <brick-id> --by NAME [--revoke] [--apply]   the economist's sign-off, recorded separately
   elements <manifest> <brick-id> [--from-mod FILE] [--set KEY=VALUE ...] [--apply]
+
+Three separate records for each brick, so that one is never read as another: WIRING (this check: ports, units,
+stubs, bridges declared), NUMBERS (the independent validator's verdict, which needs passing bridge tests), and
+SIGN-OFF (the economist's approval, which needs the numbers first and is withdrawn when the brick goes stale).
+
+Bridges: a brick on a different frequency declares how each exchanged port converts, for example
+"bridge": {"methods": {"primary_balance": "sum", "gov_debt": "last", "policy_rate": "average"}}. See tools/bridge.py.
 
 Inside each brick: an optional "elements" block declares what the brick is made of (variables, equations,
 parameters, shocks, data series, constraints), with their status (estimated, calibrated or assumed parameters;
@@ -32,6 +41,9 @@ import json
 import os
 import re
 import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import bridge as bridgemod  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CATALOG_DIR = os.path.join(ROOT, "lego", "catalog")
@@ -574,15 +586,7 @@ def check(m):
         if p not in consumed:
             r["unused"].append({"port": p, "brick": v[0]})
 
-    mf = m.get("freq")
-    for b in att:
-        bf = b.get("freq") or mf
-        if bf != mf:
-            if b.get("bridge"):
-                I.append(f"{b['id']}: frequency {bf} vs model {mf}, bridged by: {b['bridge']}")
-            else:
-                W.append(f"{b['id']}: frequency {bf} differs from the model's {mf} and no bridge is declared "
-                         f"(temporal aggregation or disaggregation, and which direction feeds which)")
+    _check_bridges(m, att, r, ports)
 
     stub_ports = {s["port"] for s in r["stubs"]}
     att_ids = {b["id"] for b in att}
@@ -639,7 +643,93 @@ def check(m):
     for b in att:
         counts[b.get("validation", "unvalidated")] = counts.get(b.get("validation", "unvalidated"), 0) + 1
     r["validation"] = counts
+
+    # three separate records per brick: wiring (this check), numbers (validator), sign-off (economist)
+    r["wiring"] = {}
+    for b in att:
+        bid = b["id"]
+        mine = [e for e in E if e.startswith(f"{bid}:") or f"'{bid}'" in e]
+        r["wiring"][bid] = "errors" if mine else "ok"
+        ap = b.get("approval")
+        if ap and b.get("validation") != "validated":
+            W.append(f"{bid}: signed off by {ap.get('by', '?')} but its numbers are not validated "
+                     "(sign-off needs a validated brick; revoke it or re-validate)")
+    r["signoff"] = {"approved": sum(1 for b in att if b.get("approval")), "bricks": len(att)}
     return r
+
+
+def _bridge_signature(entries):
+    return json.dumps(sorted([e["port"], e["from"], e["to"], e["method"]] for e in entries))
+
+
+def _check_bridges(m, att, r, ports):
+    """A brick on another frequency must say how each port it exchanges converts, and the methods must be tested."""
+    E, W, I = r["errors"], r["warnings"], r["info"]
+    mf = m.get("freq")
+    freq = {b["id"]: b.get("freq") or mf for b in att}
+    r["bridges"], r["untestable"] = [], []
+    registry = None
+    for b in att:
+        bid, bf = b["id"], freq[b["id"]]
+        if bf == mf:
+            continue
+        br = b.get("bridge")
+        if not br:
+            W.append(f"{bid}: frequency {bf} differs from the model's {mf} and no bridge is declared "
+                     f"(declare how each exchanged port converts: sum, average, last or first to aggregate; "
+                     f"split, repeat or interpolate to disaggregate)")
+            r["untestable"].append(bid)
+            continue
+        if isinstance(br, str):
+            W.append(f"{bid}: the bridge is only a note (\"{br}\"), so it cannot be tested; declare a method for "
+                     f"each exchanged port under \"methods\" and run lego.py bridge-test")
+            r["untestable"].append(bid)
+            continue
+        methods, default = dict(br.get("methods") or {}), br.get("method")
+        crossing = []
+        for j in r["joints"]:
+            if j["from"] == bid and freq.get(j["to"], mf) != bf:
+                crossing.append((j["port"], bf, freq.get(j["to"], mf)))
+            elif j["to"] == bid and freq.get(j["from"], mf) != bf:
+                crossing.append((j["port"], freq.get(j["from"], mf), bf))
+        mine = []
+        for port, src, dst in sorted(set(crossing)):
+            meth = methods.get(port, default)
+            if not meth:
+                E.append(f"{bid}: the bridge does not say how '{port}' converts from {src} to {dst} "
+                         f"(add it under \"methods\")")
+                continue
+            if src not in bridgemod.PER_YEAR or dst not in bridgemod.PER_YEAR:
+                E.append(f"{bid}: bridge for '{port}': frequencies must be A, Q or M (got {src} and {dst})")
+                continue
+            prob = bridgemod.fits(meth, src, dst)
+            if prob:
+                E.append(f"{bid}: bridge for '{port}': {prob}")
+                continue
+            measure = (ports.get(port) or {}).get("measure")
+            if not measure:
+                registry = load_ports() if registry is None else registry
+                measure = (registry.get(port) or {}).get("measure")
+            if measure and measure != bridgemod.METHODS[meth][1]:
+                word = {"flow": "a flow", "stock": "a stock", "average": "a rate or average"}
+                W.append(f"{bid}: bridge for '{port}' uses {meth}, which treats it as {word[bridgemod.METHODS[meth][1]]}, "
+                         f"but the port is declared {word.get(measure, measure)} (the same data give a different "
+                         f"number under each method)")
+            mine.append({"brick": bid, "port": port, "from": src, "to": dst, "method": meth})
+        for port in sorted(set(methods) - {c[0] for c in crossing}):
+            I.append(f"{bid}: the bridge has a method for '{port}', but no joint carries it across frequencies")
+        r["bridges"] += mine
+        if not mine:
+            continue
+        listed = ", ".join(f"{e['port']} {e['from']}>{e['to']} {e['method']}" for e in mine)
+        t = b.get("bridge_test") or {}
+        if t.get("result") == "pass" and t.get("signature") == _bridge_signature(mine):
+            I.append(f"{bid}: bridge ({listed}); known-answer tests passed on {t.get('on', '?')}")
+        elif t.get("result") == "fail" and t.get("signature") == _bridge_signature(mine):
+            E.append(f"{bid}: bridge known-answer tests FAILED on {t.get('on', '?')} ({listed})")
+        else:
+            W.append(f"{bid}: bridge declared ({listed}) but not tested since it last changed; "
+                     f"run lego.py bridge-test <manifest> --apply")
 
 
 def neighbours(m, bid):
@@ -686,6 +776,15 @@ def _mark_stale(m, ids):
         b = find(m, i)
         if b and b.get("validation") == "validated":
             b["validation"] = "stale"
+        if b:
+            _withdraw_signoff(b, "the brick went stale")
+
+
+def _withdraw_signoff(b, why):
+    """A sign-off covers the brick as it was approved; any change that needs re-validation withdraws it."""
+    ap = b.pop("approval", None)
+    if ap:
+        b.setdefault("signoff_history", []).append(dict(ap, withdrawn=datetime.date.today().isoformat(), why=why))
 
 
 def _diff(before, after):
@@ -716,6 +815,7 @@ def _refresh(m2, existing, spec, errs, notes):
     existing["checks"] = spec.get("checks", existing.get("checks", []))
     _merge_ports(m2, existing, errs)
     existing["validation"] = "unvalidated"
+    _withdraw_signoff(existing, "its definition changed in the catalog")
     notes.append(f"{spec['id']}: the parts-bin copy differs from the current definition ({', '.join(changed)}); "
                  "the current definition is used and the brick is marked unvalidated")
 
@@ -731,6 +831,7 @@ def plan_attach(m, spec, note=""):
         existing["status"] = "attached"
         if existing.get("validation") == "validated":
             existing["validation"] = "stale"
+        _withdraw_signoff(existing, "taken back from the parts bin")
         _refresh(m2, existing, spec, errs, notes)
         action, changed = "reattach", existing
     else:
@@ -764,6 +865,7 @@ def plan_detach(m, bid, note=""):
     nb = neighbours(m, bid)
     m2 = copy.deepcopy(m)
     find(m2, bid)["status"] = "detached"
+    _withdraw_signoff(find(m2, bid), "detached")
     after = check(m2)
     d = _diff(before, after)
     d["neighbours"] = sorted(nb)
@@ -784,11 +886,13 @@ def plan_swap(m, old, spec, note=""):
     nb_old = neighbours(m, old)
     m1 = copy.deepcopy(m)
     find(m1, old)["status"] = "detached"
+    _withdraw_signoff(find(m1, old), f"swapped out for {spec['id']}")
     errs, notes = [], []
     existing = find(m1, spec["id"])
     if existing is not None:
         existing["status"] = "attached"
         existing["validation"] = "stale" if existing.get("validation") == "validated" else existing.get("validation", "unvalidated")
+        _withdraw_signoff(existing, "taken back from the parts bin")
         _refresh(m1, existing, spec, errs, notes)
         changed = existing
     else:
@@ -854,7 +958,9 @@ def render_text(m, rep, cat):
     det = [b for b in m.get("bricks", []) if b.get("status") == "detached"]
     o = []
     o.append(f"LEGO SET: {m.get('name', '?')}   (class {m.get('class', '?')}, frequency {m.get('freq', '?')}, revision {m.get('revision', 0)})")
-    o.append(f"Bricks attached: {len(att)}   detached: {len(det)}   validation: {model_validation(m, rep)}")
+    so = rep.get("signoff", {})
+    o.append(f"Bricks attached: {len(att)}   detached: {len(det)}   validation: {model_validation(m, rep)}   "
+             f"sign-off: {so.get('approved', 0)} of {so.get('bricks', len(att))}")
     if m.get("layout"):
         o.append(f"Picture layout: {m['layout']} (positions set with `lego.py arrange`; edit a brick's \"place\" to move it)")
     o.append("Legend: [v] validated   [ ] unvalidated   [~] stale (changed since validation)")
@@ -926,6 +1032,15 @@ def render_text(m, rep, cat):
         o.append("IDENTITIES:")
         for i in rep["identities"]:
             o.append(f"  - {i['name']}: {i['status']}")
+    o.append("")
+    o.append("STATUS BY BRICK (three separate records; one never stands in for another):")
+    o.append(f"  {'brick':<28} {'wiring':<8} {'numbers':<13} sign-off")
+    for b in att:
+        ap = b.get("approval")
+        sign = f"approved by {ap.get('by', '?')} on {ap.get('on', '?')}" if ap else "pending"
+        o.append(f"  {b['id']:<28} {rep.get('wiring', {}).get(b['id'], '?'):<8} {b.get('validation', 'unvalidated'):<13} {sign}")
+    o.append("  wiring: this check   numbers: independent validation (lego.py validate), with bridge tests where "
+             "frequencies differ   sign-off: the economist (lego.py approve)")
     o.append("")
     for tag, items in (("ERRORS", rep["errors"]), ("WARNINGS", rep["warnings"]), ("NOTES", rep["info"])):
         if items:
@@ -1063,7 +1178,9 @@ def cmd_check(a):
     m = load_manifest(a.manifest)
     rep = check(m)
     print(render_text(m, rep, load_catalog()))
-    sys.exit(1 if rep["errors"] else 0)
+    if a.strict and rep["warnings"] and not rep["errors"]:
+        print(f"STRICT: {len(rep['warnings'])} warning(s) count as failures")
+    sys.exit(1 if rep["errors"] or (a.strict and rep["warnings"]) else 0)
 
 
 def _finish(a, title, m2, rep, d):
@@ -1136,6 +1253,15 @@ def cmd_validate(a):
             raise SystemExit("--report <path to the validation report> is required to mark a brick validated")
         if not os.path.isfile(a.report):
             raise SystemExit(f"validation report not found: {a.report}")
+        rep = check(m)
+        if a.brick in rep.get("untestable", []):
+            raise SystemExit(f"{a.brick} runs at a different frequency without a testable bridge: declare a method "
+                             "for each exchanged port and run lego.py bridge-test --apply first")
+        mine = [e for e in rep.get("bridges", []) if e["brick"] == a.brick]
+        t = b.get("bridge_test") or {}
+        if mine and not (t.get("result") == "pass" and t.get("signature") == _bridge_signature(mine)):
+            raise SystemExit(f"{a.brick}: its bridge has not passed the known-answer tests in its current form; "
+                             "run lego.py bridge-test <manifest> --apply first")
     m2 = copy.deepcopy(m)
     b2 = find(m2, a.brick)
     old = b2.get("validation", "unvalidated")
@@ -1145,6 +1271,7 @@ def cmd_validate(a):
         b2["validated_on"] = datetime.date.today().isoformat()
     else:
         b2.pop("validated_on", None)
+        _withdraw_signoff(b2, f"numbers marked {a.status}")
     _stamp(m2, "validate", a.brick, a.note or f"{old} -> {a.status}" + (f" ({a.report})" if a.report else ""))
     print(f"PLAN: mark {a.brick} {a.status} (was {old})" + (f"; evidence: {a.report}" if a.report else ""))
     if not a.apply:
@@ -1245,6 +1372,97 @@ def cmd_elements(a):
     print(f"\napplied: {a.manifest} is now revision {m2['revision']}")
 
 
+def _read_series(path):
+    import csv as _csv
+    with open(path, newline="", encoding="utf-8") as f:
+        rows = [r for r in _csv.reader(f) if r and r[0].strip()]
+    if rows and not re.match(r"\d{4}", rows[0][0].strip()):
+        rows = rows[1:]  # header
+    return [(r[0], r[1]) for r in rows]
+
+
+def cmd_bridge_test(a):
+    """Run the known-answer tests for every declared bridge, and optionally the declared method on real data."""
+    m = load_manifest(a.manifest)
+    rep = check(m)
+    data = {}
+    for spec in a.data or []:
+        port, _, path = spec.partition("=")
+        if not path:
+            raise SystemExit(f"--data {spec}: use PORT=FILE.csv")
+        data[port.strip()] = path
+    failed, results = 0, {}
+    if not rep["bridges"] and not rep["untestable"]:
+        print("No bridges: every attached brick runs at the model's frequency.")
+    for bid in rep["untestable"]:
+        failed += 1
+        print(f"NOT TESTABLE  {bid}: no bridge with a declared method (see lego.py check)")
+    for e in rep["bridges"]:
+        cases = bridgemod.known_answers(e["method"], e["from"], e["to"])
+        ok = all(c[3] for c in cases)
+        print(f"{'PASS' if ok else 'FAIL'}  {e['brick']}: {e['port']} {e['from']} to {e['to']} by {e['method']}")
+        for case, want, got, good in cases:
+            print(f"        {'ok ' if good else 'BAD'} {case}: expected {bridgemod._fmt(want)}, got {bridgemod._fmt(got)}")
+        if e["port"] in data:
+            path = data[e["port"]]
+            try:
+                out = bridgemod.convert(_read_series(path), e["method"], e["from"], e["to"])
+                shown = ", ".join(f"{p} {v:g}" for p, v in out[:8]) + (" ..." if len(out) > 8 else "")
+                print(f"        ok  data {path}: {shown}")
+            except (bridgemod.BridgeError, OSError, IndexError, ValueError) as err:
+                ok = False
+                print(f"        BAD data {path}: {err}")
+        failed += not ok
+        results.setdefault(e["brick"], []).append(ok)
+    print(f"\nRESULT: {'all bridges passed' if not failed else f'{failed} problem(s)'}")
+    if a.apply and results:
+        m2 = copy.deepcopy(m)
+        today = datetime.date.today().isoformat()
+        for bid, oks in results.items():
+            mine = [e for e in rep["bridges"] if e["brick"] == bid]
+            find(m2, bid)["bridge_test"] = {"result": "pass" if all(oks) else "fail", "on": today,
+                                            "signature": _bridge_signature(mine)}
+        _stamp(m2, "bridge-test", ",".join(sorted(results)), a.note or ("passed" if not failed else "failed"))
+        write_json(a.manifest, m2)
+        print(f"recorded: {a.manifest} is now revision {m2['revision']}")
+    elif results:
+        print("(not recorded: re-run with --apply to record the result in the manifest)")
+    sys.exit(1 if failed else 0)
+
+
+def cmd_approve(a):
+    """Record the economist's sign-off on one brick, separately from wiring and numbers."""
+    m = load_manifest(a.manifest)
+    b = find(m, a.brick)
+    if b is None or b.get("status", "attached") != "attached":
+        raise SystemExit(f"'{a.brick}' is not an attached brick")
+    m2 = copy.deepcopy(m)
+    b2 = find(m2, a.brick)
+    if a.revoke:
+        if not b2.get("approval"):
+            raise SystemExit(f"{a.brick} has no sign-off to revoke")
+        _withdraw_signoff(b2, a.note or "revoked")
+        print(f"PLAN: revoke the sign-off on {a.brick}")
+    else:
+        if not a.by:
+            raise SystemExit("--by NAME is required: a sign-off names the person who gives it")
+        rep = check(m)
+        if rep["wiring"].get(a.brick) != "ok":
+            raise SystemExit(f"{a.brick} has wiring errors (see lego.py check); fix them before sign-off")
+        if b.get("validation") != "validated":
+            raise SystemExit(f"{a.brick} is {b.get('validation', 'unvalidated')}: sign-off comes after the numbers "
+                             "are independently validated (/validate-model, then lego.py validate)")
+        b2["approval"] = {"by": a.by, "on": datetime.date.today().isoformat(), "note": a.note or ""}
+        extra = f" (validated on {b.get('validated_on')}, report {b.get('validation_report')})" if b.get("validated_on") else ""
+        print(f"PLAN: record sign-off on {a.brick} by {a.by}{extra}")
+    _stamp(m2, "revoke" if a.revoke else "approve", a.brick, a.note or "")
+    if not a.apply:
+        print("\n(dry run: nothing written. Re-run with --apply to make the change.)")
+        return
+    write_json(a.manifest, m2)
+    print(f"\napplied: {a.manifest} is now revision {m2['revision']}")
+
+
 def cmd_swap(a):
     m = load_manifest(a.manifest)
     spec = resolve_spec(a.new, load_catalog())
@@ -1262,7 +1480,18 @@ def main(argv=None):
     p.add_argument("--freq", default="Q"); p.add_argument("--class", dest="cls", default="medium")
     p.add_argument("--bricks", nargs="+", required=True); p.add_argument("--force", action="store_true"); p.set_defaults(fn=cmd_new)
     p = sub.add_parser("show"); p.add_argument("manifest"); p.add_argument("--html"); p.add_argument("--mermaid", action="store_true"); p.set_defaults(fn=cmd_show)
-    p = sub.add_parser("check"); p.add_argument("manifest"); p.set_defaults(fn=cmd_check)
+    p = sub.add_parser("check"); p.add_argument("manifest")
+    p.add_argument("--strict", action="store_true", help="warnings fail the check too (for release and automated runs)")
+    p.set_defaults(fn=cmd_check)
+    p = sub.add_parser("bridge-test", help="known-answer tests of each declared frequency bridge")
+    p.add_argument("manifest")
+    p.add_argument("--data", nargs="+", metavar="PORT=FILE.csv", help="also convert real data with the declared method")
+    p.add_argument("--apply", action="store_true", help="record the result in the manifest"); p.add_argument("--note")
+    p.set_defaults(fn=cmd_bridge_test)
+    p = sub.add_parser("approve", help="record the economist's sign-off on a validated brick")
+    p.add_argument("manifest"); p.add_argument("brick"); p.add_argument("--by")
+    p.add_argument("--revoke", action="store_true")
+    p.add_argument("--apply", action="store_true"); p.add_argument("--note"); p.set_defaults(fn=cmd_approve)
     for name, fn, extra in (("attach", cmd_attach, ["brick"]), ("detach", cmd_detach, ["brick"]), ("swap", cmd_swap, ["old", "new"])):
         p = sub.add_parser(name); p.add_argument("manifest")
         for x in extra:

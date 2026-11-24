@@ -2,7 +2,7 @@
 
 # Economic Modeling Studio
 
-**Version 2.2.1**
+**Version 2.4.0**
 
 A studio for building, estimating, validating and using economic models. **127 specialist agents** and **94 skills** (workflow commands such as `/build-dsge` or `/validate-model`) cover specification, building, estimation and independent validation for semi-structural projection and DSGE, input-output and CGE, trade and climate-economy models, deep learning, reinforcement learning, neural-network solvers, LLM-based tools, agent-based and game-theoretic models, and other econometric models. The studio also lets you work with every model as a **lego set**: a core model with plug-and-play components that can be added, swapped or removed, with explicit interfaces and the impact of every change checked first. It also **translates model code** between the languages and software economists use (Stata, R, Python, MATLAB, Dynare, EViews, SAS, GAMS, Fortran, COBOL and more), and tests the translation against the original's outputs. It works with any coding agent that reads `AGENTS.md`: Claude Code, Codex, Cursor, Grok Build, Gemini CLI and others.
 
@@ -264,7 +264,9 @@ Any model can be represented as a set of bricks, so you can see what it is made 
 | Swap a brick for an alternative, for example one monetary rule for another | `/lego-swap` |
 | Check that everything fits | `/lego-check` |
 | Build the picture as a stepped pyramid (positions only, never wiring) | `python tools/lego.py arrange` |
+| Test the bridges of bricks on another frequency (sum, average, last, split, ...) on known answers | `python tools/lego.py bridge-test` |
 | Record a brick's validation result (with the report as evidence) | `python tools/lego.py validate` |
+| Record the economist's sign-off, separately from wiring and numbers | `python tools/lego.py approve` |
 | Declare what a brick is made of (counted from a Dynare `.mod` file, or set by hand) | `python tools/lego.py elements` |
 | Create a brick that is not in the catalog | `/lego-brick` |
 
@@ -303,13 +305,14 @@ The studs on each brick are shared among its elements in proportion to their cou
 
 ## Quality controls
 - **You decide.** Agents advise; nothing is written without your approval.
+- **Known answers first.** Before trusting a model's numbers, the validator reproduces small synthetic cases with an exact answer (`tools/known_answer.py`): a quarterly flow that must sum to 10 while the same numbers as a stock give 4, a year with a duplicated quarter that must be refused, an AR(1) estimate, the impulse responses of a known VAR, a Solow and a debt steady state.
 - **Independent validation.** The agents or people who build a model do not validate it. Validation covers conceptual soundness, independent re-implementation of core outputs, benchmarks, sensitivity and stress cases, with a rating of PASS, PASS WITH CONDITIONS, FAIL or NOT ASSESSED.
 - **No fabrication.** Missing data, code or results yield `NOT ASSESSED — NO DATA` rather than invented numbers, citations or durations.
 - **Benchmark first.** Complex and AI models are compared with a simple transparent benchmark on the same data and split.
 - **Uncertainty is part of the result.** Forecasts, scenarios and estimates carry ranges and stated assumptions. Elasticities, closures and damage functions are varied, not assumed.
 - **Model-specific checks.** Accounting identities and steady-state residuals for DSGE and macro models; balance and benchmark-replication tests for IO, SAM and CGE models; determinacy and accuracy diagnostics for solutions; look-ahead and leakage checks for forecasting and AI.
 - **Reproducibility.** Seeds, software versions, data vintages and a one-command replication path for released results.
-- **Modular integrity.** For lego models: every exchanged variable is declared with a unit and timing, every input has a source or a documented stub, bricks on a different frequency need a bridge, and a brick changed since validation is marked stale until it is re-validated.
+- **Modular integrity.** For lego models: every exchanged variable is declared with a unit and timing, every input has a source or a documented stub, bricks on a different frequency need a bridge with a declared method for each variable, tested on known answers, and a brick changed since validation is marked stale until it is re-validated. Each brick keeps three separate records: wiring, numbers and the economist's sign-off, and a sign-off is withdrawn when the brick changes.
 - **Data protection.** Data classification levels, protected folders, command guards and a ban on restricted data in prompts.
 
 ## Repository layout
@@ -324,14 +327,16 @@ studio-config.yaml         rigor by model class, data classes, approved toolchai
 .githooks/                 git pre-commit guard (any tool)
 .claude/docs/              collaboration protocol, coordination, phase gates, risk levels, model classes, confidentiality and AI use
 docs/                      templates (23), lego guide, screenshots (docs/images), agent roster, command catalog, code translation guide with the language list and idioms (docs/translation); briefs, models, notes, references, training
-lego/                      brick catalog (20 reusable bricks), shared port definitions, two worked examples
+lego/                      brick catalog (20 reusable bricks), shared port definitions, two worked examples, a bridge exercise
 models/                    model code by family: semi-structural, fpas, financial-programming, dsge, multicountry,
                            io-sam, cge, trade, climate, sfc, abm, games, ai, llm, econometrics
                            (each model with its code, its model.lego.json and an output/ folder with one subfolder per run;
                            estimation-only econometric models need no manifest)
 translations/              code translation workspaces (uploaded source code goes to translations/incoming/, outside git)
 data/ forecasts/ validation/ production/ tests/ notebooks/ scripts/    working folders
-tools/lego.py              lego engine: catalog, new, show, check, attach, detach, swap, arrange, validate, elements
+tools/lego.py              lego engine: catalog, new, show, check, attach, detach, swap, arrange, bridge-test, validate, approve, elements
+tools/bridge.py            frequency bridges: conversion with a declared method, completeness checks, known-answer tests
+tools/known_answer.py      known-answer exercises for validators and teaching (bridges, AR(1), VAR impulse responses, steady states)
 tools/lego_view.py         isometric 3D picture of a lego set (self-contained HTML)
 tools/intake.py            reads research notes (numbered paragraphs), inventories data workbooks and shows the formulas behind them, for /research-plan
 tools/report.py            writes a Word report and a PowerPoint presentation from a Markdown results report, and collects all results in one folder and zip (standard library only)
@@ -365,6 +370,7 @@ Adapt `studio-config.yaml` and `.claude/docs/confidentiality-and-ai-use.md` to t
 Agents and skills are Markdown files with YAML frontmatter; edit them freely. After changes run `python tools/validate_studio.py`. To add an agent, create `.claude/agents/<name>.md` and list it as a peer in the related agents. To add a command, create `.claude/skills/<name>/SKILL.md`. Path-scoped standards live in `.claude/rules/`. After changing commands or rules, run `python tools/sync_agents.py` to update the copies for other coding agents.
 
 ## Version history
+- **2.4.0** — Known answers and separate sign-off. Bridges between frequencies now declare a method for each variable (`sum`, `average`, `last`, `first`, `split`, `repeat`, `interpolate`) instead of a text note, refuse incomplete or duplicated periods before converting, and are tested on known answers with `lego.py bridge-test` (1, 2, 3, 4 gives 10 as a flow, 4 as a stock, 2.5 as a rate). `check --strict` makes warnings fail. Each brick keeps three separate records: wiring, numbers (independent validation, which needs passing bridge tests) and the economist's sign-off (`lego.py approve`), which is withdrawn when the brick changes. New `tools/known_answer.py` with exercises for validators, now part of `/validate-model`, and a stand-alone bridge exercise. Thanks to the QuantEcon community for the suggestion.
 - **2.2.1** — No invented durations: model classes, the planner, `/model-brief` and `/select-model-class` no longer give fixed timelines such as "days to 2 weeks". Plans name what sets the calendar (data access, reviews, validation, sign-off), and dates come only from the user's deadlines, fixed dates or records of earlier projects.
 - **2.2.0** — Code translation between the languages and software used for economic models: 32 languages and tools listed with their pitfalls (Stata, R, Python, SAS, SPSS, EViews, RATS, gretl, MATLAB, Octave, Julia, Dynare, IRIS, RISE, TROLL, GAMS, GEMPACK, AMPL, Stan/JAGS, Fortran, C/C++, COBOL, GAUSS, Excel/VBA, FAME/AREMOS, SQL and others). Six agents (architect, source-code analyst, statistical, model and legacy translators, independent equivalence auditor), five commands (`/code-inventory`, `/translation-plan`, `/translate-code`, `/translate-model`, `/equivalence-test`), a rule for translation workspaces, a side-by-side idiom table, and `tools/translate.py` for inventories, plans, output comparison and source checks.
 - **2.1.1** — Every chart and table in a report comes from saved code: a model run, or a chart script saved next to the chart and listed in the report's annex.

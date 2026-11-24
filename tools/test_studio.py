@@ -473,6 +473,11 @@ class TestLego(unittest.TestCase):
         s["bridge"] = "annual benchmark, quarterly path by temporal disaggregation"
         _, rep2, _ = self.lego.plan_attach(self.manifest(), s)
         self.assertFalse(any("no bridge" in w for w in rep2["warnings"]))
+        self.assertTrue(any("only a note" in w for w in rep2["warnings"]))  # a text bridge cannot be tested
+        s["bridge"] = {"methods": {"gdp_growth": "average"}}
+        _, rep3, _ = self.lego.plan_attach(self.manifest(), s)
+        self.assertEqual(rep3["errors"], [])
+        self.assertTrue(any("not tested" in w for w in rep3["warnings"]))
 
     def test_undefined_port_in_a_new_brick_is_reported(self):
         s = {"id": "mystery", "kind": "sector", "freq": "Q", "provides": ["not_a_registered_port"], "requires": []}
@@ -1114,6 +1119,204 @@ end;
             self.assertIn("/lego-map", t, s)
         self.assertNotIn("/lego-map", read(os.path.join(ROOT, ".claude", "skills", "build-rag-kb", "SKILL.md")))
         self.assertTrue(os.path.exists(os.path.join(ROOT, ".claude", "rules", "lego-manifests.md")))
+
+
+class TestBridgesAndSignOff(unittest.TestCase):
+    """Frequency bridges with declared methods, known-answer tests, and the three records per brick."""
+
+    @classmethod
+    def setUpClass(cls):
+        sys.path.insert(0, os.path.join(ROOT, "tools"))
+        import bridge
+        import known_answer
+        import lego
+        cls.bridge, cls.ka, cls.lego = bridge, known_answer, lego
+        cls.example = os.path.join(ROOT, "lego", "examples", "small-open-economy.lego.json")
+
+    Q = [("2025Q1", 1), ("2025Q2", 2), ("2025Q3", 3), ("2025Q4", 4)]
+    METHODS = {"gdp_growth": "average", "output_gap": "average", "inflation_cpi": "average",
+               "policy_rate": "average", "fiscal_impulse": "split"}
+
+    def annual_fiscal(self, bridge="methods"):
+        m = json.loads(read(self.example))
+        b = [x for x in m["bricks"] if x["id"] == "fiscal-debt-rule"][0]
+        b["freq"] = "A"
+        if bridge == "methods":
+            b["bridge"] = {"methods": dict(self.METHODS)}
+        elif bridge:
+            b["bridge"] = bridge
+        return m
+
+    def temp(self, m):
+        d = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, d, True)
+        p = os.path.join(d, "model.lego.json")
+        write(p, json.dumps(m, indent=2))
+        return d, p
+
+    def cli(self, *args):
+        p = subprocess.run([sys.executable, os.path.join(ROOT, "tools", "lego.py")] + list(args), capture_output=True,
+                           text=True, encoding="utf-8", cwd=ROOT, timeout=60)
+        return p.returncode, p.stdout + p.stderr
+
+    # ---- tools/bridge.py
+    def test_same_numbers_give_three_annual_answers(self):
+        conv = lambda m: self.bridge.convert(self.Q, m, "Q", "A")[0][1]
+        self.assertEqual(conv("sum"), 10)
+        self.assertEqual(conv("last"), 4)
+        self.assertEqual(conv("average"), 2.5)
+        self.assertEqual(conv("first"), 1)
+
+    def test_duplicated_quarter_is_refused_before_aggregation(self):
+        bad = [("2025Q1", 1), ("2025Q2", 2), ("2025Q2", 3), ("2025Q4", 4)]
+        for m in ("sum", "last", "average", "first"):
+            with self.assertRaises(self.bridge.BridgeError) as e:
+                self.bridge.convert(bad, m, "Q", "A")
+            self.assertIn("2025Q2", str(e.exception))
+            self.assertIn("2025Q3", str(e.exception))
+        with self.assertRaises(self.bridge.BridgeError):
+            self.bridge.convert(self.Q[:3], "sum", "Q", "A")
+
+    def test_disaggregation_round_trips(self):
+        self.assertEqual([v for _, v in self.bridge.convert([("2025", 10)], "split", "A", "Q")], [2.5] * 4)
+        self.assertEqual([v for _, v in self.bridge.convert([("2024", 4), ("2025", 8)], "interpolate", "A", "Q")], [5, 6, 7, 8])
+        with self.assertRaises(self.bridge.BridgeError):
+            self.bridge.convert([("2024", 4), ("2026", 8)], "interpolate", "A", "Q")  # gap
+
+    def test_every_method_passes_its_known_answers(self):
+        for src, dst in (("Q", "A"), ("M", "Q"), ("M", "A"), ("A", "Q"), ("Q", "M")):
+            for meth, (direction, _) in self.bridge.METHODS.items():
+                if direction == self.bridge.direction(src, dst):
+                    for case in self.bridge.known_answers(meth, src, dst):
+                        self.assertTrue(case[3], (src, dst, meth, case))
+        self.assertIsNotNone(self.bridge.fits("sum", "A", "Q"))  # aggregation method used to disaggregate
+
+    # ---- bridges in the lego check
+    def test_missing_or_text_bridge_warns_and_strict_fails(self):
+        for br in (None, "annual fiscal data"):
+            rep = self.lego.check(self.annual_fiscal(br))
+            self.assertEqual(rep["errors"], [])
+            self.assertTrue(any("fiscal-debt-rule" in w and ("no bridge" in w or "only a note" in w) for w in rep["warnings"]))
+            self.assertIn("fiscal-debt-rule", rep["untestable"])
+            _, p = self.temp(self.annual_fiscal(br))
+            self.assertEqual(self.cli("check", p)[0], 0)
+            self.assertEqual(self.cli("check", p, "--strict")[0], 1)
+
+    def test_bridge_must_cover_every_crossing_port_in_the_right_direction(self):
+        m = self.annual_fiscal()
+        rep = self.lego.check(m)
+        self.assertEqual(rep["errors"], [])
+        crossing = {(e["port"], e["from"], e["to"]) for e in rep["bridges"]}
+        self.assertIn(("output_gap", "Q", "A"), crossing)
+        self.assertIn(("fiscal_impulse", "A", "Q"), crossing)
+        del [b for b in m["bricks"] if b["id"] == "fiscal-debt-rule"][0]["bridge"]["methods"]["output_gap"]
+        self.assertTrue(any("'output_gap' converts from Q to A" in e for e in self.lego.check(m)["errors"]))
+        m = self.annual_fiscal()
+        [b for b in m["bricks"] if b["id"] == "fiscal-debt-rule"][0]["bridge"]["methods"]["fiscal_impulse"] = "sum"
+        self.assertTrue(any("cannot go from A to Q" in e for e in self.lego.check(m)["errors"]))
+
+    def test_method_that_contradicts_the_port_measure_warns(self):
+        m = self.annual_fiscal()
+        [b for b in m["bricks"] if b["id"] == "fiscal-debt-rule"][0]["bridge"]["methods"]["policy_rate"] = "sum"
+        rep = self.lego.check(m)
+        self.assertTrue(any("'policy_rate' uses sum" in w and "rate or average" in w for w in rep["warnings"]))
+
+    def test_bridge_test_records_and_a_changed_method_needs_a_new_test(self):
+        d, p = self.temp(self.annual_fiscal())
+        self.assertTrue(any("not tested" in w for w in self.lego.check(json.loads(read(p)))["warnings"]))
+        code, out = self.cli("bridge-test", p, "--apply")
+        self.assertEqual(code, 0, out)
+        m = json.loads(read(p))
+        self.assertFalse(any("not tested" in w for w in self.lego.check(m)["warnings"]))
+        [b for b in m["bricks"] if b["id"] == "fiscal-debt-rule"][0]["bridge"]["methods"]["output_gap"] = "last"
+        self.assertTrue(any("not tested" in w for w in self.lego.check(m)["warnings"]))
+
+    def test_bridge_test_on_data_refuses_a_duplicated_quarter(self):
+        d, p = self.temp(self.annual_fiscal())
+        good, bad = os.path.join(d, "ok.csv"), os.path.join(d, "dup.csv")
+        write(good, "period,value\n2025Q1,1\n2025Q2,2\n2025Q3,3\n2025Q4,4\n")
+        write(bad, "period,value\n2025Q1,1\n2025Q2,2\n2025Q2,3\n2025Q4,4\n")
+        code, out = self.cli("bridge-test", p, "--data", f"output_gap={good}")
+        self.assertEqual(code, 0, out)
+        self.assertIn("2025 2.5", out)
+        code, out = self.cli("bridge-test", p, "--data", f"output_gap={bad}")
+        self.assertEqual(code, 1, out)
+        self.assertIn("duplicated: 2025Q2", out)
+
+    # ---- three records: wiring, numbers, sign-off
+    def test_numbers_need_a_passing_bridge_and_sign_off_needs_the_numbers(self):
+        d, p = self.temp(self.annual_fiscal())
+        report = os.path.join(d, "report.md")
+        write(report, "validation report")
+        code, out = self.cli("validate", p, "fiscal-debt-rule", "--report", report, "--apply")
+        self.assertNotEqual(code, 0)
+        self.assertIn("bridge", out)
+        code, out = self.cli("approve", p, "fiscal-debt-rule", "--by", "A. Economist", "--apply")
+        self.assertNotEqual(code, 0)
+        self.assertIn("sign-off comes after the numbers", out)
+        self.assertEqual(self.cli("bridge-test", p, "--apply")[0], 0)
+        self.assertEqual(self.cli("validate", p, "fiscal-debt-rule", "--report", report, "--apply")[0], 0)
+        code, out = self.cli("approve", p, "fiscal-debt-rule", "--apply")
+        self.assertNotEqual(code, 0)
+        self.assertIn("--by", out)
+        self.assertEqual(self.cli("approve", p, "fiscal-debt-rule", "--by", "A. Economist", "--apply")[0], 0)
+        m = json.loads(read(p))
+        rep = self.lego.check(m)
+        self.assertEqual(rep["wiring"]["fiscal-debt-rule"], "ok")
+        self.assertEqual(rep["signoff"]["approved"], 1)
+        text = self.lego.render_text(m, rep, self.lego.load_catalog())
+        self.assertIn("STATUS BY BRICK", text)
+        self.assertIn("approved by A. Economist", text)
+
+    def test_sign_off_is_withdrawn_when_a_neighbour_changes(self):
+        m = json.loads(read(self.example))
+        for b in m["bricks"]:
+            b["validation"] = "validated"
+        fb = [b for b in m["bricks"] if b["id"] == "fiscal-debt-rule"][0]
+        fb["approval"] = {"by": "A. Economist", "on": "2026-11-24", "note": ""}
+        cat = self.lego.load_catalog()
+        m2, rep, d = self.lego.plan_swap(m, "monetary-taylor", json.loads(json.dumps(cat["monetary-fx-managed"])))
+        fb2 = [b for b in m2["bricks"] if b["id"] == "fiscal-debt-rule"][0]
+        self.assertEqual(fb2["validation"], "stale")
+        self.assertNotIn("approval", fb2)
+        self.assertEqual(fb2["signoff_history"][-1]["by"], "A. Economist")
+        self.assertIn("approval", fb)  # input not mutated
+
+    def test_sign_off_on_unvalidated_numbers_is_flagged(self):
+        m = json.loads(read(self.example))
+        [b for b in m["bricks"] if b["id"] == "fiscal-debt-rule"][0]["approval"] = {"by": "X", "on": "2026-01-01"}
+        self.assertTrue(any("signed off by X but its numbers are not validated" in w for w in self.lego.check(m)["warnings"]))
+
+    # ---- known-answer exercises
+    def test_known_answer_cases_accept_the_right_answer_and_reject_others(self):
+        for case, c in self.ka.CASES.items():
+            want = c["expected"]()
+            self.assertTrue(all(r[3] for r in self.ka.check_result(case, want)), case)
+            self.assertFalse(all(r[3] for r in self.ka.check_result(case, {})), case)
+        self.assertEqual(self.ka.CASES["bridge-flow"]["expected"](), {"annual": 10})
+        self.assertEqual(self.ka.CASES["bridge-stock"]["expected"](), {"annual": 4})
+        self.assertEqual(self.ka.CASES["bridge-average"]["expected"](), {"annual": 2.5})
+        self.assertFalse(all(r[3] for r in self.ka.check_result("bridge-flow", {"annual": 4})))
+        self.assertFalse(all(r[3] for r in self.ka.check_result("bridge-incomplete", {"refused": False})))
+        self.assertAlmostEqual(self.ka.CASES["debt-steady-state"]["expected"]()["debt_ratio"], 0.525)
+
+    def test_known_answer_task_folder_has_inputs_but_not_the_answer(self):
+        d = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, d, True)
+        out = os.path.join(d, "ar1")
+        p = subprocess.run([sys.executable, os.path.join(ROOT, "tools", "known_answer.py"), "make", "ar1-ols", "--out", out],
+                           capture_output=True, text=True, encoding="utf-8", timeout=60)
+        self.assertEqual(p.returncode, 0, p.stderr)
+        self.assertTrue(os.path.exists(os.path.join(out, "series.csv")))
+        rho = self.ka.CASES["ar1-ols"]["expected"]()["rho_hat"]
+        task = read(os.path.join(out, "TASK.md"))
+        self.assertNotIn(f"{rho:.6f}", task)
+        self.assertNotIn("RESULT.json", os.listdir(out))
+
+    def test_the_bridge_exercise_is_documented(self):
+        text = read(os.path.join(ROOT, "lego", "examples", "bridge-exercise.md"))
+        for needle in ("bridge-flow", "bridge-incomplete", "bridge-test", "approve", "--strict"):
+            self.assertIn(needle, text)
 
 
 def find_status(m, bid):

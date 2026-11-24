@@ -49,7 +49,7 @@ Run these agents as subagents (the `Task` tool), in parallel where the steps are
 1. Ask what the brick does, which variables it needs and produces, and at which frequency
 2. Reuse port names from `lego/ports.json`. For a new variable, agree the name, unit and description with the user and add it to `lego/ports.json`
 3. For each required input, decide: hard requirement, or a stub with a documented fallback. For each lag, state whether the dependence is on the previous period
-4. Pick a slot if the brick is an alternative to another (monetary rule, sectoral structure). A different frequency from the usual core needs a bridge note
+4. Pick a slot if the brick is an alternative to another (monetary rule, sectoral structure). A different frequency from the usual core needs a bridge that names the method for each exchanged port (for example `{"methods": {"gov_debt": "interpolate", "primary_balance": "split"}}`), and new ports declare their `measure` (flow, stock or average) in `lego/ports.json` where it is unambiguous
 5. List the checks the brick must pass (identities, calibration targets, neutral-attachment test)
    - Once the component is built, its elements (variables, equations, parameters, shocks, data, constraints) are declared in the model manifest with `python tools/lego.py elements`; the catalog spec stays generic
 6. Write `lego/catalog/<id>.json` after approval, then verify with `python tools/lego.py catalog`. If the component itself still has to be built, point to the matching `/build-*` command

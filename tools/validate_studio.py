@@ -135,6 +135,8 @@ def main():
         for p, v in ports.items():
             if not v.get("unit"):
                 err(f"lego port {p}: missing unit")
+            if v.get("measure") not in (None, "flow", "stock", "average"):
+                err(f"lego port {p}: measure must be flow, stock or average")
         for ex in glob.glob(os.path.join(ROOT, "lego", "examples", "*.lego.json")):
             rep = lego.check(lego.read_json(ex))
             for e in rep["errors"]:

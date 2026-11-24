@@ -34,7 +34,7 @@ Every `/build-*` command now ends by registering the model as a lego set, so mod
 **Checked automatically** (`python tools/lego.py check`):
 - exactly one baseplate; no two bricks provide the same variable; exclusive slots filled once
 - every needed variable has a provider or a stub (otherwise an **OPEN stud** error)
-- ports have units; a brick on a different frequency (e.g. an annual CGE on a quarterly core) should declare a **bridge**; the check warns until it does
+- ports have units; a brick on a different frequency (e.g. an annual CGE on a quarterly core) declares a **bridge** that says how each exchanged port converts (see below). Without one, or with only a text note, the check warns; a bridge that leaves out a port or uses a method in the wrong direction is an error; a bridge not tested since it last changed is a warning
 - declared accounting identities (e.g. balance of payments) can be verified from the attached bricks and stubs
 - **simultaneous blocks**: bricks that depend on each other in the same period are listed, with the solve order
 - change history and revision count; bricks next to a changed brick are marked **stale** until re-validated
@@ -43,6 +43,41 @@ Every `/build-*` command now ends by registering the model as a lego set, so mod
 **Not guaranteed by the tool.** It checks the *wiring*, not the economics. It cannot tell you that the elasticities in a new trade brick are sensible, or that the code implements the variables it declares. That is what `/lego-check` (manifest against code), the neutral-attachment test, calibration and `/validate-model` are for:
 
 > **Neutral-attachment test.** After attaching a brick, set it to neutral values (no tariff change, elasticities that reproduce the old exogenous path). The baseline must match the pre-attachment baseline. If it does not, the joint is wrong.
+
+## Bridges between frequencies
+The same four quarterly numbers 1, 2, 3, 4 are an annual total of 10 for a flow, a year-end value of 4 for an end-of-quarter stock, and an annual average of 2.5 for a rate. So a bridge records the **method** for each port that crosses a frequency boundary, not just a note:
+
+```json
+"freq": "A",
+"bridge": {"methods": {"gdp_growth": "average", "output_gap": "average", "policy_rate": "average",
+                       "inflation_cpi": "average", "fiscal_impulse": "split"}}
+```
+
+| Direction | Method | For |
+|---|---|---|
+| to a lower frequency (Q to A) | `sum` | flows: GDP, deficits, trade in currency units |
+| | `average` | rates and averages: interest rates, gaps |
+| | `last` / `first` | end-of-period / start-of-period stocks: debt, reserves |
+| to a higher frequency (A to Q) | `split` | flows: each quarter gets an equal share |
+| | `repeat` | rates and averages: each quarter gets the annual value |
+| | `interpolate` | end-of-period stocks: a linear path between year-end values |
+
+`"method"` sets a default for all ports and `"methods"` overrides it per port. A port can declare its `measure` (`flow`, `stock` or `average`) in `lego/ports.json`; the check warns when a bridge treats it differently, for example summing a stock.
+
+**Testing.** `python tools/lego.py bridge-test <manifest>` runs known-answer cases for every declared method: 1, 2, 3, 4 must give 10, 4 or 2.5 depending on the method, and a year with Q2 twice and Q3 missing must be **refused before any arithmetic**, although it has four rows. `--data PORT=FILE.csv` also runs the declared method on real data with the same completeness rule. `--apply` records the result; changing a method later makes the record out of date. A bridged brick cannot be marked validated until its bridge passes. The conversion code is `tools/bridge.py` (`python tools/bridge.py convert IN.csv --method sum --from Q --to A`), which Python models can import.
+
+## Three records per brick: wiring, numbers, sign-off
+A clean technical check is not consent to move on, and a sign-off is not evidence. So each brick keeps three separate records, shown in a table by `check` and `show`:
+
+| Record | Set by | Means |
+|---|---|---|
+| **Wiring** | `lego.py check`, every time | ports, units, stubs, slots, identities and bridges fit together |
+| **Numbers** | `lego.py validate --report <file>` after `/validate-model` | an independent validator reproduced the brick's numbers, including known-answer exercises and, for bridged bricks, passing bridge tests |
+| **Sign-off** | `lego.py approve <manifest> <brick> --by NAME` | the economist accepts the brick for its intended use |
+
+Sign-off needs clean wiring and validated numbers first. It is withdrawn automatically, with a record of why, when the brick goes stale, is detached or swapped out, or its numbers are marked unvalidated. `check --strict` makes warnings fail too, for release and automated runs.
+
+**Known-answer exercises.** `python tools/known_answer.py list` shows small synthetic cases with an exact answer: the three bridge roles and the incomplete year, an AR(1) estimated by OLS, impulse responses of a known VAR(1), a Solow steady state and a steady-state debt ratio. `make <case> --out DIR` writes the inputs and a task without the answer; the validator solves it with the model's own code, then `check <case> RESULT.json` compares. They also work as stand-alone exercises; see [the bridge exercise](../lego/examples/bridge-exercise.md).
 
 ## The picture
 `python tools/lego.py show <manifest> --html view.html` writes a self-contained page (no scripts, no internet needed) with an isometric 3D scene:
@@ -65,7 +100,9 @@ Every `/build-*` command now ends by registering the model as a lego set, so mod
 | `lego/catalog/*.json` | reusable brick specs (interfaces and checks only; no code or parameters) |
 | `lego/ports.json` | shared variable names with units, so bricks agree on what a variable is |
 | `lego/examples/*.lego.json` and `.html` | worked examples: a starter set and the full small open-economy set, each built as a stepped pyramid |
-| `tools/lego.py` | the engine: catalog, new, show, check, attach, detach, swap, validate, arrange, elements |
+| `tools/lego.py` | the engine: catalog, new, show, check, attach, detach, swap, arrange, bridge-test, validate, approve, elements |
+| `tools/bridge.py` | frequency conversion with a declared method and completeness checks, with its known-answer tests |
+| `tools/known_answer.py` | known-answer exercises for validators and for teaching |
 | `tools/lego_view.py` | the 3D picture renderer (isometric SVG inside a self-contained HTML page) |
 
 ## Command-line use
@@ -73,7 +110,9 @@ Every `/build-*` command now ends by registering the model as a lego set, so mod
 python tools/lego.py catalog [--kind sector]
 python tools/lego.py new models/dsge/my-model/model.lego.json --name "My model" --freq Q --class medium --bricks core-gap-open world-exogenous monetary-taylor
 python tools/lego.py show  <manifest> [--html view.html] [--mermaid]
-python tools/lego.py check <manifest>
+python tools/lego.py check <manifest> [--strict]                         # --strict: warnings fail too
+python tools/lego.py bridge-test <manifest> [--data output_gap=gap.csv] --apply
+python tools/lego.py approve <manifest> fiscal-debt-rule --by "A. Economist" --apply
 python tools/lego.py attach <manifest> trade-sector-armington            # plan only
 python tools/lego.py attach <manifest> trade-sector-armington --apply    # make the change
 python tools/lego.py detach <manifest> financial-accelerator --apply
@@ -111,6 +150,8 @@ Changes are shown as a plan and are written only with `--apply`. A change that i
 - `requires` entries are a port name, or an object with `lag` (1 = uses the previous period) and `stub` (the documented fallback; no stub means a hard requirement).
 - `kind` is one of: baseplate, environment, policy, fiscal, external, financial, sector, climate, household, satellite, output.
 - `status` is `attached` or `detached`; `validation` is `validated`, `unvalidated` or `stale`; a validated brick also records `validation_report` and `validated_on`.
+- `bridge` is null, or `{"method": ..., "methods": {port: method}}` for a brick on another frequency; `bridge_test` records the last `bridge-test --apply` (result, date and the methods it covered). A text bridge from earlier versions still loads, but the check reports it as untestable.
+- `approval` records a sign-off (`by`, `on`, `note`); `signoff_history` keeps withdrawn ones with the date and reason.
 - An identity with a `brick` belongs to that brick and is checked only while the brick is attached.
 - `elements` is optional. Each element is a whole number or an object with its status fields: variables (`endogenous`, `exogenous`), parameters (`estimated`, `calibrated`, `assumed`), data (`series`, plus a free-text `vintage`), constraints (`verified`, `unverified`); equations and shocks are whole numbers. `elements_source` records the file they were counted from.
 

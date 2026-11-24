@@ -40,10 +40,10 @@ Run these agents as subagents (the `Task` tool), in parallel where the steps are
 1. Run `python tools/lego.py check <manifest>` and report errors, warnings and notes
 2. Compare the manifest with the code: every declared provided variable exists in the code with that unit; no variable crosses a brick boundary without being declared
 3. Check timing: lagged joints are really lagged in the code; same-period joints sit in a simultaneous block that the solver handles jointly
-4. Check frequencies: each brick on a different frequency has a declared bridge, and the bridge is implemented and tested
+4. Check frequencies: each brick on a different frequency declares a method for every exchanged port; run `python tools/lego.py bridge-test <manifest>` (with `--data PORT=FILE.csv` on real series where available) and confirm the model code uses the same methods
 5. Check identities: each declared accounting identity holds numerically in a run, not only on paper
    - Recount each brick's elements from its code (`python tools/lego.py elements <manifest> <brick> --from-mod <file>`) and compare with the declared counts; explain any non-square brick and mark constraints verified only after a run confirms them
-6. List bricks that are unvalidated or stale and block release until they are validated
+6. Report the three records per brick separately (wiring, numbers, sign-off) and block release until every brick has clean wiring, validated numbers and a sign-off; finish with `python tools/lego.py check <manifest> --strict`
 
 ## Checkpoints with the user
 - After the tool output: review errors before the manifest-to-code comparison

@@ -41,7 +41,7 @@ Each agent is defined in `.claude/agents/<name>.md`. If your tool runs subagents
 |---|---|---|
 | Brick | catalog brick, new brick spec | Effort and reuse |
 | Joint timing | same-period (simultaneous block), lagged | Solver structure |
-| Frequency | same as base, different with bridge | Bridge implementation and testing |
+| Frequency | same as base, different with bridge | A method per exchanged port (sum, average, last, first, split, repeat, interpolate) and `lego.py bridge-test` |
 | Calibration scope | new brick only, new brick and touched neighbour parameters | Size of baseline change |
 
 ## Workflow

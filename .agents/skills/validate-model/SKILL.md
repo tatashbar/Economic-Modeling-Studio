@@ -50,10 +50,12 @@ Each agent is defined in `.claude/agents/<name>.md`. If your tool runs subagents
 2. Conceptual soundness: assumptions, literature, limitations
    - Check intended use against the design domain
 3. Implementation: independent re-implementation of core outputs; unit tests; identity checks
+   - Known answers first: run the relevant cases from `python tools/known_answer.py list` with the model's own code (`make <case> --out validation/<model>/known-answer/<case>`, solve, then `check <case> RESULT.json --report validation/<model>/validation-report.md`). A failed known-answer case means FAIL for that part until it is explained and fixed
+   - For bricks on another frequency, run `python tools/lego.py bridge-test <manifest> --apply`; a brick whose bridge has not passed cannot be recorded as validated
    - For lego models, check each brick's declared elements against the code: equations match endogenous variables, unsourced (assumed) parameters appear in sensitivity runs, and constraints are verified in a run
 4. Outcomes: backtests, benchmark comparison, sensitivity and stress cases
 5. Issue findings with severity (High/Medium/Low) and a rating: PASS / PASS WITH CONDITIONS / FAIL / NOT ASSESSED
-6. If the model has a model.lego.json, validate each brick and each joint separately (interfaces, units, timing, neutral-attachment test); treat stale bricks as unvalidated. For each brick rated PASS (or PASS WITH CONDITIONS, with the conditions in the report), record it with `python tools/lego.py validate <manifest> <brick> --report validation/<model>/validation-report.md --apply`
+6. If the model has a model.lego.json, validate each brick and each joint separately (interfaces, units, timing, neutral-attachment test); treat stale bricks as unvalidated. For each brick rated PASS (or PASS WITH CONDITIONS, with the conditions in the report), record it with `python tools/lego.py validate <manifest> <brick> --report validation/<model>/validation-report.md --apply`. Validation records the numbers only; the economist's sign-off is separate (`python tools/lego.py approve <manifest> <brick> --by NAME --apply`), and the validator never records it
 
 ## Checkpoints with the user
 - After scope: confirm depth and benchmarks
@@ -71,7 +73,7 @@ Each agent is defined in `.claude/agents/<name>.md`. If your tool runs subagents
 The report states independence, scope, findings with evidence and severity, the rating, conditions of use, and per-brick and per-joint results for lego models.
 
 ## Gate / verdict
-- PASS requires: no open High findings, core outputs independently reproduced, benchmark comparison shown
+- PASS requires: no open High findings, core outputs independently reproduced, relevant known-answer cases passed, benchmark comparison shown
 - Findings cite evidence (code, data, results)
 - Conditions of use state the design domain
 
