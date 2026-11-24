@@ -540,6 +540,16 @@ class TestEconomy(unittest.TestCase):
             self.assertTrue(r["ok"], r)
             self.assertLess(r["r"]["accounting_error"], 1e-9)
 
+    def test_money_can_be_created_or_destroyed_on_purpose(self):
+        cfg = dict(self.small, entities=[{"type": "money_issuer"},
+                                         {"type": "custom", "name": "burner", "flows": {"issue": "-0.5"}}])
+        r = H("economy.run", d=cfg)
+        self.assertTrue(r["ok"], r)
+        self.assertNotIn("e", r)                                  # deliberate creation is not a bookkeeping error
+        self.assertGreater(r["r"]["entities"]["money_issuer"]["issued"], 0)
+        self.assertAlmostEqual(r["r"]["entities"]["burner"]["issued"], -0.5 * self.small["periods"])
+        self.assertTrue(H("economy.run", d=dict(cfg, money_check=False))["ok"])
+
     def test_bad_entities_are_refused(self):
         for bad in ({"type": "dragon"}, {"type": "foreign", "count": 0},
                     {"type": "custom", "flows": {"levy": "__import__('os')"}},

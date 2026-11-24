@@ -163,7 +163,7 @@ Agents cannot post constraints, freezes, pauses, vetoes or answers (code 104), a
 
 **Who is in it.** Households, each with its own productivity, job or unemployment, reservation wage, income and deposits; firms that plan output from demand, hire and fire, set wages and prices, pay dividends and can default; a bank that lends to firms and the government; a government that taxes, pays unemployment benefits and buys goods under a debt rule; and a monetary authority that sets the policy rate. Each quarter: the policy rate and interest, hiring, production, wages, taxes and benefits, prices, the goods market, profits and defaults.
 
-**Money adds up.** Every payment moves money from one account to another. The sum of all accounts is checked every quarter, and the largest error is reported with each run (about 1e-15, rounding only). Code 603 flags a run where it is not.
+**A bookkeeping check, not a limit.** Every payment moves money from one account to another, and money can also be created or destroyed on purpose: an entity's `issue` formula does that, and the built-in `money_issuer` creates money and spends it on goods. Each run compares the sum of all accounts with the money that was there at the start plus what was created on purpose, every period, and reports the largest gap (about 1e-15, rounding only). A larger gap means money appeared or vanished without a recorded flow: a mistake in a rule or in the engine (code 603). `"money_check": false` turns the check off.
 
 **Other entities.** Households, firms, the bank, the government and the monetary authority are in every economy. Any economy can add other entities under `"entities"`, as many of each kind as needed. Each kind is a set of parameters and three flow formulas, evaluated every quarter for each entity:
 
@@ -172,6 +172,7 @@ Agents cannot post constraints, freezes, pauses, vetoes or answers (code 104), a
 | `levy` | money the entity collects from households, in proportion to their deposits (never more than they hold) |
 | `pay` | money it pays to households in equal parts: to all of them, the employed or the unemployed (`pay_to`) |
 | `buy` | money it spends on goods, bought from firms' stocks after the government |
+| `issue` | money it creates in its own account each period (negative: money it destroys) |
 
 The formulas can use `gdp` (last quarter's nominal output), `cons` (household spending), `wages`, `dep` (household deposits), `bal` (the entity's own balance), `u`, `pi`, `r`, `t`, `share` (1/count) and `shock`, plus the economy's and the entity's parameters. Built-in kinds:
 
@@ -180,6 +181,7 @@ The formulas can use `gdp` (last quarter's nominal output), `cons` (household sp
 | `foreign` | imports, a share of household spending | nothing | exports, a share of output that varies each quarter |
 | `pension_fund` | contributions, a share of the wage bill | part of its assets, to all households | nothing |
 | `charity` | donations, a share of deposits | all it holds, to the unemployed | nothing |
+| `money_issuer` | nothing (it creates new money, a share of output) | nothing | goods, with all it holds |
 | `custom` | whatever its formulas say | whatever its formulas say | whatever its formulas say |
 
 ```json

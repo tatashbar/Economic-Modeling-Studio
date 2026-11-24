@@ -79,13 +79,14 @@ def _economy_objective(spec, states, seeds, workers):
             out[i].append(r)
     scored = []
     targets = {k: tuple(v) for k, v in spec["targets"].items()}
-    for runs in out:
+    for i, runs in enumerate(out):
         bad = [r["error"] for r in runs if "error" in r]
         if bad:
             scored.append((float("inf"), {}, f"invalid: {bad[0]}"))
             continue
-        if max(r["accounting_error"] for r in runs) > spec.get("max_accounting_error", 1e-9):
-            scored.append((float("inf"), {}, "money not conserved"))
+        if states[i].get("money_check", True) and \
+                max(r["accounting_error"] for r in runs) > spec.get("max_accounting_error", 1e-9):
+            scored.append((float("inf"), {}, "bookkeeping error: money appeared or vanished without a recorded flow"))
             continue
         m = economy.average(runs)
         scored.append((_loss(m, targets), m, ""))

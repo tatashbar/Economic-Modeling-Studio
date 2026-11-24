@@ -170,13 +170,14 @@ def compile_formula(name, expr, variables, params, env=None):
 #   levy  money it collects from households (in proportion to their deposits, never more than they hold)
 #   pay   money it pays to households (all, the employed or the unemployed, in equal parts)
 #   buy   money it spends on goods, bought from firms' stocks after the government
+#   issue new money it creates in its own account (negative: money it destroys), for example a money issuer
 # Every flow moves money between accounts, so the accounting check covers entities too. An entity's balance earns
 # the deposit rate or, if negative, pays the loan rate to the bank, like the government's.
 ENTITY_VARS = ("gdp", "cons", "wages", "dep", "bal", "u", "pi", "r", "t", "share", "shock")
 ENTITY_VAR_DOC = ("gdp nominal output last quarter, cons household spending last quarter, wages the wage bill this "
                   "quarter, dep household deposits, bal the entity's own balance, u unemployment, pi inflation (annual), "
                   "r policy rate (annual), t the quarter, share 1/count for entities of one kind, shock uniform 0-1")
-FLOWS = ("levy", "pay", "buy")
+FLOWS = ("levy", "pay", "buy", "issue")
 PAY_TO = ("all", "employed", "unemployed")
 ENTITY_TYPES = {}
 
@@ -203,6 +204,9 @@ entity_type("pension_fund", "a fund that collects contributions on wages and pay
 entity_type("charity", "collects donations from households and pays them to the unemployed",
             {"donation": (0.002, 0.0, 0.1, "donations as a share of household deposits")},
             {"levy": "share * donation * dep", "pay": "max(0, bal)", "buy": "0"}, pay_to="unemployed")
+entity_type("money_issuer", "creates new money and spends it on goods, for example to finance purchases",
+            {"issue_share": (0.01, 0.0, 0.5, "new money created each period, as a share of last period's output")},
+            {"issue": "share * issue_share * gdp", "buy": "max(0, bal)", "levy": "0", "pay": "0"})
 entity_type("custom", "an entity defined entirely by its own parameters and flow formulas in the configuration",
             {}, {"levy": "0", "pay": "0", "buy": "0"})
 
@@ -277,7 +281,7 @@ def _build_entities(cfg, P):
         for i in range(count):
             out.append({"name": e.get("name", e["type"]), "type": e["type"], "bal": float(e.get("start", typ["start"])),
                         "share": 1.0 / count, "pay_to": e.get("pay_to", typ["pay_to"]), "fns": fns, "budget": 0.0,
-                        "levied": 0.0, "paid": 0.0, "bought": 0.0, "env": e_env, "own": own})
+                        "levied": 0.0, "paid": 0.0, "bought": 0.0, "issued": 0.0, "env": e_env, "own": own})
     return out
 
 
@@ -607,6 +611,11 @@ def run(cfg, series=False):
                     e["bal"] -= each * len(to)
                     e["paid"] += each * len(to)
                 e["budget"] = max(0.0, e["fns"]["buy"](*v))
+                new_money = e["fns"]["issue"](*v)
+                if new_money:                        # money created (or destroyed) on purpose is recorded,
+                    e["bal"] += new_money            # so the bookkeeping check still finds any created by mistake
+                    e["issued"] += new_money
+                    total0 += new_money
         # 5. prices
         pbar = sum(price) / F
         for j in range(F):
@@ -747,11 +756,11 @@ def run(cfg, series=False):
         summary = {}
         for e in ents + retired:
             s = summary.setdefault(e["name"], {"type": e["type"], "count": 0, "levied": 0.0, "paid": 0.0,
-                                               "bought": 0.0, "balance": 0.0})
+                                               "bought": 0.0, "issued": 0.0, "balance": 0.0})
             s["count"] += 1
             if "removed_at" in e:
                 s["removed_at"] = e["removed_at"]
-            for key in ("levied", "paid", "bought"):
+            for key in ("levied", "paid", "bought", "issued"):
                 s[key] += e[key]
             s["balance"] += e["bal"]
         res_["entities"] = summary
@@ -923,7 +932,7 @@ def register(api):
         if a.get("series"):
             out["series"] = res[0]["series"]
         resp = ok(out, h=h)
-        if err > 1e-9:
+        if err > 1e-9 and cfg.get("money_check", True):
             resp["e"] = [[603, "", f"accounts off by {err:.2e}"]]
         return resp
 
