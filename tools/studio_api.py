@@ -167,7 +167,7 @@ def op(name, summary, args=None, mutates=False, human=False, group=None):
 
 
 def code(n, slug, meaning):
-    """Extensions add finding codes here (use 600-999)."""
+    """Extensions add finding codes here (use 900-999; 5xx workspace, 6xx economy and 7xx loop are taken)."""
     if n in CODES and CODES[n][0] != slug:
         raise ValueError(f"code {n} is already used by {CODES[n][0]}")
     CODES[n] = (slug, meaning)
@@ -925,8 +925,8 @@ LOADED = []
 
 
 def load_extensions(folders=None):
-    """Built-in modules first (workspace, evolve, abm), then extensions/*.py and STUDIO_EXTENSIONS folders."""
-    for mod in ("workspace", "evolve", "abm", "swarm"):
+    """Built-in modules first (workspace, economy, evolve, swarm), then extensions/*.py and STUDIO_EXTENSIONS folders."""
+    for mod in ("workspace", "economy", "evolve", "swarm"):
         path = os.path.join(TOOLS, mod + ".py")
         if os.path.exists(path) and mod not in LOADED:
             m = importlib.import_module(mod)

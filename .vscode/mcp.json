@@ -1,0 +1,5 @@
+{
+  "servers": {
+    "economic-modeling-studio": {"type": "stdio", "command": "python", "args": ["${workspaceFolder}/tools/mcp_server.py"], "cwd": "${workspaceFolder}"}
+  }
+}

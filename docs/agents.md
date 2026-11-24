@@ -6,6 +6,7 @@ People use the studio through commands and readable reports. AI agents need some
 - [The studio as an MCP server](#the-studio-as-an-mcp-server)
 - [Many MCP servers through one gateway](#many-mcp-servers-through-one-gateway)
 - [A shared workspace for many agents, with people in charge](#a-shared-workspace-for-many-agents-with-people-in-charge)
+- [An economy of a thousand households](#an-economy-of-a-thousand-households)
 
 ## The studio protocol
 `tools/studio_api.py` is one interface to the studio for programs and agents. A message is a JSON object with an operation and its arguments; a response says whether it worked, gives the result, the findings as numbered codes, a fingerprint of the state and, where the studio knows one, the operations that would fix each finding.
@@ -29,7 +30,10 @@ python tools/studio_api.py hello
 | 2xx | wiring errors | 206 baseplate count, 210 open stud, 211 bridge without a method, 218 change blocked, 219 state changed |
 | 3xx | warnings | 301 no bridge, 303 method contradicts the port's measure, 304 bridge untested, 309 not square |
 | 4xx | validation | 401 known answer failed, 402 untestable, 403 bridge not passed, 404 data refused |
-| 600-999 | extensions | added with `api.code(...)` |
+| 5xx | the shared workspace | 501 paused, 502 frozen, 503 unread message from a person, 504 lease held |
+| 6xx | the economy engine | 601 bad rule, 602 parameter out of bounds, 603 money not conserved, 604 known answer failed |
+| 7xx | the improvement loop | see below |
+| 900-999 | extensions | added with `api.code(...)` |
 
 **Fixes come with the finding.** Where the studio knows the fix, the response carries it as an operation: send it back unchanged. For the bridge exercise, an agent that changes the fiscal brick to annual gets warning 301 and the fix `{"op": "lego.bridge", "a": {"b": "fiscal-debt-rule", "auto": true}}`, which declares a method for each crossing variable from its measure (a flow is summed, a stock takes the last value, a rate is averaged). The next response carries warning 304 (untested) and the fix `lego.bridge_test` with `apply`, after which `lego.check` with `strict` passes.
 
@@ -66,7 +70,7 @@ A Python file in `extensions/` (or in a folder listed in the `STUDIO_EXTENSIONS`
 
 ```python
 def register(api):
-    api.code(601, "too_many_lags", "a brick reads a variable with more than four lags")
+    api.code(901, "too_many_lags", "a brick reads a variable with more than four lags")
 
     @api.op("mytools.lags", "list the lags each brick reads", {"m": "str manifest path (or d, or t)"})
     def lags(a, ctx):
@@ -86,7 +90,21 @@ Extensions can also add checks that run before or after every operation (`api.ho
 - **Compact mode.** `--compact` offers a single tool, `studio_call`, that takes protocol messages and batches: one tool description instead of twenty, and many operations per call.
 - **Fewer tools.** `--tools lego,ka` offers only some groups.
 
-Claude Code picks up the server from `.mcp.json` in the repository and asks you to approve it the first time. For other clients, register the command `python tools/mcp_server.py` with the repository as the working folder. To see the tools: `python tools/mcp_server.py --list`.
+To see the tools: `python tools/mcp_server.py --list`.
+
+### Connecting MCP clients
+The server is plain MCP over standard input and output, so any MCP client can use it. The command is `python tools/mcp_server.py`, run from the repository folder.
+
+| Client | Where it is set up |
+|---|---|
+| Claude Code | `.mcp.json` (included); approve the server the first time |
+| Cursor | `.cursor/mcp.json` (included) |
+| VS Code with GitHub Copilot (agent mode) | `.vscode/mcp.json` (included) |
+| Gemini CLI | `.gemini/settings.json` (included) |
+| Codex | `~/.codex/config.toml`: `[mcp_servers.economic-modeling-studio]` with `command = "python"`, `args = ["tools/mcp_server.py"]` and `cwd` set to the repository |
+| Claude Desktop, Windsurf, others | the client's MCP settings, with the command above and the repository as the working folder |
+
+Each agent can carry its own name into the shared workspace with `--agent NAME` or the `STUDIO_AGENT` environment variable.
 
 ## Many MCP servers through one gateway
 An agent connected directly to 100 MCP servers would carry thousands of tool descriptions in its context and call the servers one at a time. `tools/mcp_gateway.py` stands in front of them as one MCP server:
@@ -135,3 +153,24 @@ The servers are listed in `mcp/servers.json`, in the same form as `.mcp.json`:
 Agents cannot post constraints, freezes, pauses, vetoes or answers (code 104), and they cannot sign off. Every response to an agent that has unread messages carries `inbox` with their number.
 
 **Over MCP.** `python tools/mcp_server.py --agent builder-7` (or `STUDIO_AGENT`) gives each agent its name in the workspace; the `ws_*` tools are there with the others.
+
+## An economy of a thousand households
+`tools/economy.py` is an agent-based economy, standard library only, for agents and people to build models on and test them at scale.
+
+**Who is in it.** Households, each with its own productivity, job or unemployment, reservation wage, income and deposits; firms that plan output from demand, hire and fire, set wages and prices, pay dividends and can default; a bank that lends to firms and the government; a government that taxes, pays unemployment benefits and buys goods under a debt rule; and a monetary authority that sets the policy rate. Each quarter: the policy rate and interest, hiring, production, wages, taxes and benefits, prices, the goods market, profits and defaults.
+
+**Money adds up.** Every payment moves money from one account to another. The sum of all accounts is checked every quarter, and the largest error is reported with each run (about 1e-15, rounding only). Code 603 flags a run where it is not.
+
+**Rules are formulas.** How households spend, how firms set prices and wages and how the policy rate responds are short formulas, for example the default spending rule
+
+    min(w + y, mpc_y * y + mpc_w * w * max(0, 1 - rate_sens * (r - pi - rstar)))
+
+A person or an agent can replace any of them in the configuration (`"rules": {"consume": "..."}`) without writing code. A formula may use only its listed variables, the parameters, numbers and `min`, `max`, `abs`, `exp`, `log`, `sqrt`; anything else is refused before it runs (code 601). Parameters have bounds (code 602). `python tools/economy.py rules` and `params` list them.
+
+**Known answers.** `python tools/economy.py known`: money conserved every quarter; the same seed gives the same economy and another seed another draw; with one type of household and no frictions, deposits settle at the level the spending rule implies, (1 - mpc_y) y / mpc_w; the policy rule at known points; and a formula that tries to call anything outside the list is refused.
+
+**Scale.** A thousand households, 50 firms and 200 quarters take about three seconds on a laptop; ten thousand households about fifteen seconds per hundred quarters. Several seeds or scenarios run in parallel processes (`--seeds 8`, or `seeds` in `economy.run`). Shocks change a parameter from a given quarter (`"shocks": [{"param": "g_share", "value": 0.25, "at": 80}]`).
+
+**For agents.** `economy.new`, `economy.params`, `economy.rules`, `economy.check`, `economy.run` and `economy.known`. An economy can live on a workspace track (`ws.track` with `kind: "economy"`), where many agents try changes on their own tracks and the report shows people the parameters and the last results.
+
+**What it is not.** A stylized model for experiments, teaching and testing agents' work, not a calibrated model of any country. Its default parameters give a stable economy with low unemployment and moderate inflation; matching a country's facts is a calibration task (see the improvement loop).

@@ -140,17 +140,17 @@ class TestProtocol(unittest.TestCase):
         try:
             with open(os.path.join(d, "lags.py"), "w", encoding="utf-8") as f:
                 f.write("def register(api):\n"
-                        "    api.code(601, 'too_many_lags', 'a brick reads a variable with more than four lags')\n"
+                        "    api.code(901, 'too_many_lags', 'a brick reads a variable with more than four lags')\n"
                         "    @api.op('mytools.lags', 'list lags', {'m': 'str manifest'})\n"
                         "    def lags(a, ctx):\n"
                         "        src = api.resolve(a)\n"
                         "        return api.ok({'n': sum(len(api.lego.reqs(b)) for b in api.lego.attached(src.doc))})\n")
             S.load_extensions([d])
             self.assertGreater(H("mytools.lags", m=EXAMPLE)["r"]["n"], 0)
-            self.assertIn("601", H("hello")["r"]["codes"])
+            self.assertIn("901", H("hello")["r"]["codes"])
         finally:
             S.OPS.pop("mytools.lags", None)
-            S.CODES.pop(601, None)
+            S.CODES.pop(901, None)
             shutil.rmtree(d)
 
 
@@ -419,6 +419,65 @@ class TestWorkspace(unittest.TestCase):
         [t.join() for t in threads]
         [p.wait(timeout=300) for p in procs]
         self.assertEqual(self.W("ws.get", t="count")["r"]["d"]["n"], 40 * 3 + 4 * 5)
+
+
+class TestEconomy(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        import economy
+        cls.E = economy
+        cls.small = economy.default_config(households=300, firms=15, periods=60)
+
+    def test_known_answers_of_the_engine(self):
+        r = H("economy.known")
+        self.assertTrue(r["r"]["pass"], r)
+        self.assertGreaterEqual(len(r["r"]["tests"]), 7)
+
+    def test_money_is_conserved_and_moments_are_sane(self):
+        r = H("economy.run", d=self.small)
+        self.assertTrue(r["ok"], r)
+        self.assertLess(r["r"]["accounting_error"], 1e-9)
+        m = r["r"]["moments"]
+        self.assertTrue(0 <= m["unemployment"] <= 1)
+        self.assertTrue(0 < m["cons_share"] < 1.2)
+        self.assertTrue(0 <= m["wealth_gini"] < 1)
+
+    def test_a_thousand_households(self):
+        r = self.E.run(self.E.default_config(households=1000, firms=50, periods=40))
+        self.assertEqual(r["households"], 1000)
+        self.assertLess(r["accounting_error"], 1e-9)
+
+    def test_rules_are_formulas_from_a_short_list(self):
+        cfg = dict(self.small, rules={"consume": "min(w + y, 0.9 * y)"})
+        self.assertTrue(H("economy.check", d=cfg)["r"]["pass"])
+        self.assertNotEqual(H("economy.run", d=cfg)["r"]["moments"], H("economy.run", d=self.small)["r"]["moments"])
+        for bad in ("__import__('os').getcwd()", "open('x')", "y.__class__", "[y for y in w]", "lambda: 1", "'a'"):
+            r = H("economy.check", d=dict(self.small, rules={"consume": bad}))
+            self.assertEqual(r["e"][0][0], 601, bad)
+        r = H("economy.run", d=dict(self.small, params=dict(self.small["params"], tau=3)))
+        self.assertEqual(r["e"][0][0], 602)
+
+    def test_seeds_average_and_shocks_apply(self):
+        r = H("economy.run", d=self.small, seeds=[1, 2], workers=1)
+        self.assertEqual(r["r"]["runs"], 2)
+        shocked = dict(self.small, shocks=[{"param": "g_share", "value": 0.3, "at": 20}])
+        self.assertNotEqual(H("economy.run", d=shocked)["r"]["moments"], H("economy.run", d=self.small)["r"]["moments"])
+
+    def test_an_economy_on_a_workspace_track(self):
+        d = tempfile.mkdtemp()
+        try:
+            ws = os.path.join(d, "ws.db")
+            S.handle({"op": "ws.track", "a": {"name": "eco", "d": self.small, "kind": "economy", "ws": ws}})
+            r = S.handle({"op": "economy.run", "a": {"t": "eco", "ws": ws}})
+            self.assertTrue(r["ok"], r)
+            text = S.handle({"op": "ws.report", "a": {"t": "eco", "ws": ws}}, PERSON)["r"]["text"]
+            self.assertIn("300 households", text)
+        finally:
+            import workspace
+            for c in getattr(workspace._local, "conns", {}).values():
+                c.close()
+            workspace._local.conns = {}
+            shutil.rmtree(d, ignore_errors=True)
 
 
 if __name__ == "__main__":
