@@ -34,7 +34,7 @@ python tools/studio_api.py hello
 | 3xx | warnings | 301 no bridge, 303 method contradicts the port's measure, 304 bridge untested, 309 not square |
 | 4xx | validation | 401 known answer failed, 402 untestable, 403 bridge not passed, 404 data refused |
 | 5xx | the shared workspace | 501 paused, 502 frozen, 503 unread message from a person, 504 lease held |
-| 6xx | the economy engine | 601 bad rule, 602 parameter out of bounds, 603 money not conserved, 604 known answer failed |
+| 6xx | the economy engine | 601 bad rule, 602 parameter out of bounds, 603 money not conserved, 604 known answer failed, 606 bad entity |
 | 7xx | the improvement loop | 701 outside the study, 702 overfit, 703 budget spent, 704 study stopped |
 | 900-999 | extensions | added with `api.code(...)` |
 
@@ -164,17 +164,45 @@ Agents cannot post constraints, freezes, pauses, vetoes or answers (code 104), a
 
 **Money adds up.** Every payment moves money from one account to another. The sum of all accounts is checked every quarter, and the largest error is reported with each run (about 1e-15, rounding only). Code 603 flags a run where it is not.
 
+**Other entities.** Households, firms, the bank, the government and the monetary authority are in every economy. Any economy can add other entities under `"entities"`, as many of each kind as needed. Each kind is a set of parameters and three flow formulas, evaluated every quarter for each entity:
+
+| Flow | What it does |
+|---|---|
+| `levy` | money the entity collects from households, in proportion to their deposits (never more than they hold) |
+| `pay` | money it pays to households in equal parts: to all of them, the employed or the unemployed (`pay_to`) |
+| `buy` | money it spends on goods, bought from firms' stocks after the government |
+
+The formulas can use `gdp` (last quarter's nominal output), `cons` (household spending), `wages`, `dep` (household deposits), `bal` (the entity's own balance), `u`, `pi`, `r`, `t`, `share` (1/count) and `shock`, plus the economy's and the entity's parameters. Built-in kinds:
+
+| Kind | Collects | Pays | Buys |
+|---|---|---|---|
+| `foreign` | imports, a share of household spending | nothing | exports, a share of output that varies each quarter |
+| `pension_fund` | contributions, a share of the wage bill | part of its assets, to all households | nothing |
+| `charity` | donations, a share of deposits | all it holds, to the unemployed | nothing |
+| `custom` | whatever its formulas say | whatever its formulas say | whatever its formulas say |
+
+```json
+"entities": [
+  {"type": "foreign"},
+  {"type": "pension_fund", "count": 3, "params": {"contrib": 0.06}},
+  {"type": "custom", "name": "sovereign_fund", "params": {"rate": 0.01},
+   "flows": {"levy": "rate * dep", "pay": "0.02 * max(0, bal)", "buy": "0"}, "pay_to": "all"}
+]
+```
+
+A new kind needs no code: `custom` with a name, parameters and formulas. Extensions add kinds in code with `economy.entity_type(name, doc, params, flows, pay_to)`. Every flow moves money between accounts, so the accounting check covers entities. An entity's balance earns the deposit rate or, if negative, pays the loan rate to the bank. Formulas are checked against the same whitelist as the rules, and a bad entity is refused with code 606 before anything runs. `python tools/economy.py entities` lists the kinds; `python tools/economy.py run --entity foreign --entity pension_fund:3` adds them to a run; the result reports what each entity collected, paid and bought, and its balance.
+
 **Rules are formulas.** How households spend, how firms set prices and wages and how the policy rate responds are short formulas, for example the default spending rule
 
     min(w + y, mpc_y * y + mpc_w * w * max(0, 1 - rate_sens * (r - pi - rstar)))
 
 A person or an agent can replace any of them in the configuration (`"rules": {"consume": "..."}`) without writing code. A formula may use only its listed variables, the parameters, numbers and `min`, `max`, `abs`, `exp`, `log`, `sqrt`; anything else is refused before it runs (code 601). Parameters have bounds (code 602). `python tools/economy.py rules` and `params` list them.
 
-**Known answers.** `python tools/economy.py known`: money conserved every quarter; the same seed gives the same economy and another seed another draw; with one type of household and no frictions, deposits settle at the level the spending rule implies, (1 - mpc_y) y / mpc_w; the policy rule at known points; and a formula that tries to call anything outside the list is refused.
+**Known answers.** `python tools/economy.py known`: money conserved every quarter; an entity added by configuration collects exactly what its formula says, with money still conserved; the same seed gives the same economy and another seed another draw; with one type of household and no frictions, deposits settle at the level the spending rule implies, (1 - mpc_y) y / mpc_w; the policy rule at known points; and a formula that tries to call anything outside the list is refused.
 
 **Scale.** A thousand households, 50 firms and 200 quarters take about three seconds on a laptop; 10,000 households and 1,000 firms about 17 seconds per hundred quarters. Larger economies (up to a million households) are allowed; time grows roughly in proportion to the number of households. Several seeds or scenarios run in parallel processes (`--seeds 8`, or `seeds` in `economy.run`). Shocks change a parameter from a given quarter (`"shocks": [{"param": "g_share", "value": 0.25, "at": 80}]`).
 
-**For agents.** `economy.new`, `economy.params`, `economy.rules`, `economy.check`, `economy.run` and `economy.known`. An economy can live on a workspace track (`ws.track` with `kind: "economy"`), where many agents try changes on their own tracks and the report shows people the parameters and the last results.
+**For agents.** `economy.new`, `economy.params`, `economy.rules`, `economy.entities`, `economy.check`, `economy.run` and `economy.known`. An economy can live on a workspace track (`ws.track` with `kind: "economy"`), where many agents try changes on their own tracks and the report shows people the parameters and the last results.
 
 **What it is not.** A stylized model for experiments, teaching and testing agents' work, not a calibrated model of any country. Its default parameters give a stable economy with low unemployment and moderate inflation; matching a country's facts is a calibration task (see the improvement loop).
 

@@ -519,6 +519,10 @@ def report(a):
         if doc.get("params"):
             lines.append("Parameters: " + ", ".join(f"{k} = {v:.4g}" if isinstance(v, (int, float)) else f"{k} = {v}"
                                                    for k, v in sorted(doc["params"].items())))
+        if doc.get("entities"):
+            lines.append("Other entities: " + ", ".join(
+                f"{e.get('name', e.get('type'))} ({e.get('type')}" + (f", {e['count']}" if e.get("count", 1) != 1 else "")
+                + ")" for e in doc["entities"]) + ".")
         if doc.get("moments"):
             lines.append("Last run: " + ", ".join(f"{k} {v:.4g}" for k, v in sorted(doc["moments"].items())
                                                   if isinstance(v, (int, float))))

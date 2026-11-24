@@ -463,6 +463,43 @@ class TestEconomy(unittest.TestCase):
         shocked = dict(self.small, shocks=[{"param": "g_share", "value": 0.3, "at": 20}])
         self.assertNotEqual(H("economy.run", d=shocked)["r"]["moments"], H("economy.run", d=self.small)["r"]["moments"])
 
+    def test_other_entities_join_and_money_still_adds_up(self):
+        cfg = dict(self.small, entities=[
+            {"type": "foreign"}, {"type": "pension_fund", "count": 3}, {"type": "charity"},
+            {"type": "custom", "name": "fund", "params": {"take": 2}, "flows": {"levy": "take", "pay": "0.5 * bal"},
+             "pay_to": "employed"}])
+        self.assertTrue(H("economy.check", d=cfg)["r"]["pass"])
+        r = H("economy.run", d=cfg)
+        self.assertTrue(r["ok"], r)
+        self.assertLess(r["r"]["accounting_error"], 1e-9)
+        ents = r["r"]["entities"]
+        self.assertEqual(ents["pension_fund"]["count"], 3)
+        self.assertGreater(ents["foreign"]["bought"], 0)
+        self.assertAlmostEqual(ents["fund"]["levied"], 2 * self.small["periods"], places=6)
+        self.assertNotEqual(r["r"]["moments"], H("economy.run", d=self.small)["r"]["moments"])
+        self.assertIn("foreign", H("economy.entities")["r"]["types"])
+
+    def test_bad_entities_are_refused(self):
+        for bad in ({"type": "dragon"}, {"type": "foreign", "count": 0},
+                    {"type": "custom", "flows": {"levy": "__import__('os')"}},
+                    {"type": "custom", "flows": {"steal": "1"}}, {"type": "custom", "pay_to": "nobody"},
+                    {"type": "custom", "params": {"bal": 1}}):
+            r = H("economy.check", d=dict(self.small, entities=[bad]))
+            self.assertIn(r["e"][0][0], (601, 606), bad)
+        r = H("economy.check", d=dict(self.small, entities=[{"type": "foreign", "params": {"export_share": 3}}]))
+        self.assertEqual(r["e"][0][0], 602)
+        r = H("economy.check", d=dict(self.small, entities=[{"type": "foreign"}, {"type": "foreign"}]))
+        self.assertEqual(r["e"][0][0], 606)                      # two of one kind need their own names
+
+    def test_extensions_can_add_entity_types(self):
+        self.E.entity_type("exporter_union", "test kind", {"cut": (0.1, 0, 1, "share")}, {"levy": "cut * wages"})
+        try:
+            r = self.E.run(dict(self.small, entities=[{"type": "exporter_union"}]))
+            self.assertGreater(r["entities"]["exporter_union"]["levied"], 0)
+            self.assertLess(r["accounting_error"], 1e-9)
+        finally:
+            self.E.ENTITY_TYPES.pop("exporter_union", None)
+
     def test_an_economy_on_a_workspace_track(self):
         d = tempfile.mkdtemp()
         try:

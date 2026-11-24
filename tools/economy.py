@@ -10,7 +10,9 @@ writing code: a formula is checked against a short list of allowed names and fun
 
     python tools/economy.py run [--households 1000] [--firms 50] [--periods 200] [--seed 1] [--set mpc_y=0.7]
     python tools/economy.py run --config economy.json --out run.json
+    python tools/economy.py run --entity foreign --entity pension_fund:3    with other entities added
     python tools/economy.py rules                     the behaviour rules, their formulas and variables
+    python tools/economy.py entities                  the kinds of entities that can be added, and how to define new ones
     python tools/economy.py known                     known-answer tests of the engine
     python tools/economy.py scale                     households from 1,000 to 100,000: time per run
 
@@ -94,7 +96,12 @@ class RuleError(ValueError):
 
 def compile_rule(name, expr, params):
     """A formula becomes a fast function, after checking that it uses only allowed names and operations."""
-    spec = RULES[name]
+    return compile_formula(name, expr, RULES[name]["vars"], params)
+
+
+def compile_formula(name, expr, variables, params):
+    """Check a formula against the whitelist (its variables, the parameters, numbers and FUNCS), then compile it."""
+    spec = {"vars": tuple(variables)}
     if not isinstance(expr, str) or len(expr) > 2000:
         raise RuleError(f"{name}: a rule is a formula of at most 2000 characters")
     try:
@@ -122,9 +129,117 @@ def compile_rule(name, expr, params):
     return eval(code, env)  # noqa: S307 - the tree was checked against a whitelist above
 
 
+# ------------------------------------------------------------------ entity types
+# Households, firms, the bank, the government and the monetary authority are always there. Other kinds of entities
+# are added per economy under "entities". Each kind is a set of parameters and three flow formulas, evaluated every
+# quarter for each entity of that kind:
+#   levy  money it collects from households (in proportion to their deposits, never more than they hold)
+#   pay   money it pays to households (all, the employed or the unemployed, in equal parts)
+#   buy   money it spends on goods, bought from firms' stocks after the government
+# Every flow moves money between accounts, so the accounting check covers entities too. An entity's balance earns
+# the deposit rate or, if negative, pays the loan rate to the bank, like the government's.
+ENTITY_VARS = ("gdp", "cons", "wages", "dep", "bal", "u", "pi", "r", "t", "share", "shock")
+ENTITY_VAR_DOC = ("gdp nominal output last quarter, cons household spending last quarter, wages the wage bill this "
+                  "quarter, dep household deposits, bal the entity's own balance, u unemployment, pi inflation (annual), "
+                  "r policy rate (annual), t the quarter, share 1/count for entities of one kind, shock uniform 0-1")
+FLOWS = ("levy", "pay", "buy")
+PAY_TO = ("all", "employed", "unemployed")
+ENTITY_TYPES = {}
+
+
+def entity_type(name, doc, params, flows, pay_to="all", start=0.0):
+    """Register a kind of entity. params: {name: (default, low, high, meaning)}; flows: formulas for levy, pay, buy.
+    Extensions can call this to add kinds; agents and people can also define one in a configuration ('custom')."""
+    if not str(name).replace("_", "").isalnum():
+        raise ValueError("an entity type name uses letters, digits and _ only")
+    ENTITY_TYPES[name] = {"doc": doc, "params": dict(params), "flows": {f: flows.get(f, "0") for f in FLOWS},
+                          "pay_to": pay_to, "start": float(start)}
+
+
+entity_type("foreign", "the rest of the world: buys exports from firms and sells imports to households",
+            {"export_share": (0.12, 0.0, 1.0, "exports as a share of last quarter's nominal output"),
+             "import_share": (0.12, 0.0, 1.0, "imports as a share of last quarter's household spending"),
+             "export_var": (0.2, 0.0, 2.0, "how much export demand varies from quarter to quarter")},
+            {"buy": "share * export_share * gdp * (1 + export_var * (shock - 0.5))",
+             "levy": "share * import_share * cons", "pay": "0"})
+entity_type("pension_fund", "a fund that collects contributions on wages and pays out part of its assets to all households",
+            {"contrib": (0.05, 0.0, 0.5, "contributions as a share of the wage bill"),
+             "payout": (0.08, 0.0, 1.0, "share of its assets paid out each quarter")},
+            {"levy": "share * contrib * wages", "pay": "payout * max(0, bal)", "buy": "0"})
+entity_type("charity", "collects donations from households and pays them to the unemployed",
+            {"donation": (0.002, 0.0, 0.1, "donations as a share of household deposits")},
+            {"levy": "share * donation * dep", "pay": "max(0, bal)", "buy": "0"}, pay_to="unemployed")
+entity_type("custom", "an entity defined entirely by its own parameters and flow formulas in the configuration",
+            {}, {"levy": "0", "pay": "0", "buy": "0"})
+
+
+def _entity_params(spec, P):
+    typ = ENTITY_TYPES[spec["type"]]
+    names = dict(P)
+    names.update({k: v[0] for k, v in typ["params"].items()})
+    names.update(spec.get("params") or {})
+    return names
+
+
+def check_entities(cfg):
+    probs = []
+    P = dict({k: v[0] for k, v in PARAMS.items()}, **(cfg.get("params") or {}))
+    seen = set()
+    for n, e in enumerate(cfg.get("entities") or []):
+        label = f"entities[{n}]"
+        if not isinstance(e, dict) or e.get("type") not in ENTITY_TYPES:
+            probs.append([606, label, f"{label}: type must be one of {', '.join(sorted(ENTITY_TYPES))}"])
+            continue
+        typ = ENTITY_TYPES[e["type"]]
+        name = e.get("name", e["type"])
+        if name in seen:
+            probs.append([606, label, f"{label}: two entities are named '{name}'; give each a name"])
+        seen.add(name)
+        c = e.get("count", 1)
+        if not isinstance(c, int) or not 1 <= c <= 100000:
+            probs.append([606, label, f"{label}: count must be a whole number from 1 to 100,000"])
+        for k, v in (e.get("params") or {}).items():
+            if not str(k).isidentifier() or k in ENTITY_VARS or k in FUNCS:
+                probs.append([606, label, f"{label}: '{k}' cannot be a parameter name"])
+            elif not isinstance(v, (int, float)) or abs(v) > 1e12 or v != v:
+                probs.append([606, label, f"{label}: parameter {k} must be a number"])
+            elif k in typ["params"] and not typ["params"][k][1] <= v <= typ["params"][k][2]:
+                lo, hi = typ["params"][k][1], typ["params"][k][2]
+                probs.append([602, label, f"{label}: {k} = {v} is outside [{lo}, {hi}]"])
+        if e.get("pay_to", typ["pay_to"]) not in PAY_TO:
+            probs.append([606, label, f"{label}: pay_to must be one of {', '.join(PAY_TO)}"])
+        for f, expr in (e.get("flows") or {}).items():
+            if f not in FLOWS:
+                probs.append([606, label, f"{label}: flows are {', '.join(FLOWS)}, not '{f}'"])
+        if probs and probs[-1][1] == label:
+            continue
+        names = _entity_params(e, P)
+        for f in FLOWS:
+            try:
+                compile_formula(f"{name}.{f}", (e.get("flows") or {}).get(f, typ["flows"][f]), ENTITY_VARS, names)
+            except RuleError as x:
+                probs.append([601, label, str(x)])
+    return probs
+
+
+def _build_entities(cfg, P):
+    out = []
+    for e in cfg.get("entities") or []:
+        typ = ENTITY_TYPES[e["type"]]
+        names = _entity_params(e, P)
+        fns = {f: compile_formula(f, (e.get("flows") or {}).get(f, typ["flows"][f]), ENTITY_VARS, names)
+               for f in FLOWS}
+        count = e.get("count", 1)
+        for i in range(count):
+            out.append({"name": e.get("name", e["type"]), "type": e["type"], "bal": float(e.get("start", typ["start"])),
+                        "share": 1.0 / count, "pay_to": e.get("pay_to", typ["pay_to"]), "fns": fns, "budget": 0.0,
+                        "levied": 0.0, "paid": 0.0, "bought": 0.0})
+    return out
+
+
 def default_config(households=1000, firms=50, periods=200, seed=1):
     return {"economy_version": 1, "households": households, "firms": firms, "periods": periods, "burn": 50,
-            "seed": seed, "params": {k: v[0] for k, v in PARAMS.items()}, "rules": {}, "shocks": []}
+            "seed": seed, "params": {k: v[0] for k, v in PARAMS.items()}, "rules": {}, "shocks": [], "entities": []}
 
 
 def check_config(cfg):
@@ -155,7 +270,7 @@ def check_config(cfg):
     for s in cfg.get("shocks") or []:
         if s.get("param") not in PARAMS or not isinstance(s.get("at"), int):
             probs.append([605, "shocks", f"a shock needs a known param, a value and a period 'at': {s}"])
-    return probs
+    return probs + check_entities(cfg)
 
 
 def _gini(xs):
@@ -207,13 +322,15 @@ def run(cfg, series=False):
         workers[j].append(i)
         eff[j] += z[i]
     gov = -P["debt_target"] * 4 * sum(eff) * P["prod"]     # the government starts at its debt target
-    total0 = sum(hh) + sum(firm) + gov + bank
+    ents = _build_entities(cfg, P)
+    total0 = sum(hh) + sum(firm) + gov + bank + sum(e["bal"] for e in ents)
 
     pi, u, pbar_prev = P["pistar"], 1 - sum(1 for e in employer if e >= 0) / H, sum(price) / F
     gdp_nom_prev = sum(eff) * P["prod"] * pbar_prev
     dividends_hh = 0.0
+    cons_prev = 0.8 * gdp_nom_prev
     out = {k: [] for k in ("gdp", "u", "pi", "rate", "pbar", "wage", "cons", "debt_gdp", "gini", "defaults",
-                           "err", "deposits", "income", "firms_dep", "gov", "bank", "inv", "emp_eff")}
+                           "err", "deposits", "income", "firms_dep", "gov", "bank", "inv", "emp_eff", "entities")}
     max_err, defaults_total = 0.0, 0
     for t in range(T):
         for s in shocks.get(t, []):
@@ -237,6 +354,10 @@ def run(cfg, series=False):
         x = gov * (rd if gov > 0 else rl)
         gov += x + tax
         paid += x
+        for e in ents:
+            x = e["bal"] * (rd if e["bal"] > 0 else rl)
+            e["bal"] += x
+            paid += x
         bank -= paid
         # 2. firms plan output and hire or fire
         for j in range(F):
@@ -303,6 +424,32 @@ def run(cfg, series=False):
             hh[i] += gross - tx
             income[i] = gross - tx
         gov += taxes - benefits
+        # 4b. other entities: levies on and payments to households, and their purchases this quarter
+        if ents:
+            wages_total = sum(wage_bill)
+            for e in ents:
+                dep_total = sum(hh)
+                v = (gdp_nom_prev, cons_prev, wages_total, dep_total, e["bal"], u, pi, rate, t, e["share"], rng.random())
+                levy = min(max(0.0, e["fns"]["levy"](*v)), dep_total)
+                if levy > 0:
+                    f = levy / dep_total
+                    got = 0.0
+                    for i in range(H):
+                        x = hh[i] * f
+                        hh[i] -= x
+                        got += x
+                    e["bal"] += got
+                    e["levied"] += got
+                pay = max(0.0, e["fns"]["pay"](*v))
+                to = [i for i in range(H) if e["pay_to"] == "all" or (employer[i] >= 0) == (e["pay_to"] == "employed")]
+                if pay > 0 and to:
+                    each = pay / len(to)
+                    for i in to:
+                        hh[i] += each
+                        income[i] += each
+                    e["bal"] -= each * len(to)
+                    e["paid"] += each * len(to)
+                e["budget"] = max(0.0, e["fns"]["buy"](*v))
         # 5. prices
         pbar = sum(price) / F
         for j in range(F):
@@ -329,6 +476,21 @@ def run(cfg, series=False):
                 sales[j] += q
                 revenue[j] += q * price[j]
                 gov -= q * price[j]
+        for e in ents:                               # other entities buy after the government
+            stock = sum(inv)
+            if e["budget"] <= 0 or stock <= 0:
+                continue
+            for j in range(F):
+                if inv[j] <= 0:
+                    continue
+                want = e["budget"] * inv[j] / stock / price[j]
+                q = min(inv[j], want)
+                unmet[j] += want - q
+                inv[j] -= q
+                sales[j] += q
+                revenue[j] += q * price[j]
+                e["bal"] -= q * price[j]
+                e["bought"] += q * price[j]
         hh_order = list(range(H))
         rng.shuffle(hh_order)
         F_list = range(F)
@@ -388,13 +550,15 @@ def run(cfg, series=False):
         pbar_prev = pbar_new
         u = 1 - sum(1 for e in employer if e >= 0) / H
         gdp_nom_prev = gdp * pbar_new
-        total = sum(hh) + sum(firm) + gov + bank + dividends_hh
+        cons_prev = cons_total
+        total = sum(hh) + sum(firm) + gov + bank + dividends_hh + sum(e["bal"] for e in ents)
         err = abs(total - total0) / max(1.0, abs(total0))
         max_err = max(max_err, err)
         for key, val in (("gdp", gdp), ("u", u), ("pi", pi), ("rate", rate), ("pbar", pbar_new), ("wage", avg_wage),
                          ("cons", cons_total), ("debt_gdp", -gov / (4 * gdp_nom_prev) if gdp_nom_prev else 0.0),
                          ("defaults", defaults), ("err", err), ("deposits", sum(hh) / H),
-                         ("income", sum(income) / H), ("firms_dep", sum(firm)), ("gov", gov), ("bank", bank), ("inv", sum(inv)), ("emp_eff", sum(eff))):
+                         ("income", sum(income) / H), ("firms_dep", sum(firm)), ("gov", gov), ("bank", bank), ("inv", sum(inv)), ("emp_eff", sum(eff)),
+                         ("entities", sum(e["bal"] for e in ents))):
             out[key].append(val)
         out["gini"].append(_gini(hh) if (t == T - 1 or series) else (out["gini"][-1] if out["gini"] else 0.0))
 
@@ -419,6 +583,16 @@ def run(cfg, series=False):
                "default_rate": defaults_total / (F * T), "output": mean(g)}
     res_ = {"moments": moments, "accounting_error": max_err, "seconds": round(time.perf_counter() - t_start, 3),
             "households": H, "firms": F, "periods": T}
+    if ents:
+        summary = {}
+        for e in ents:
+            s = summary.setdefault(e["name"], {"type": e["type"], "count": 0, "levied": 0.0, "paid": 0.0,
+                                               "bought": 0.0, "balance": 0.0})
+            s["count"] += 1
+            for key in ("levied", "paid", "bought"):
+                s[key] += e[key]
+            s["balance"] += e["bal"]
+        res_["entities"] = summary
     if series:
         res_["series"] = {k: [round(x, 6) for x in v] for k, v in out.items()}
     return res_
@@ -471,6 +645,16 @@ def known_answers():
     expected = (1 - 0.8) * y / 0.1
     rows.append(("stationary deposits equal (1 - mpc_y) y / mpc_w", abs(got - expected) <= 0.01 * expected,
                  f"expected {expected:.4f}, got {got:.4f}"))
+    # an entity added by configuration: it collects exactly 10 a quarter, and money is still conserved
+    cfg = default_config(households=200, firms=10, periods=50)
+    cfg["params"]["dep_share"] = 0.0
+    cfg["entities"] = [{"type": "custom", "name": "collector", "params": {"take": 10}, "flows": {"levy": "take"}},
+                       {"type": "foreign"}, {"type": "pension_fund", "count": 2}]
+    r = run(cfg)
+    got = r["entities"]["collector"]["balance"]
+    rows.append(("an entity added by configuration collects exactly what its formula says",
+                 abs(got - 500) < 1e-9 and r["accounting_error"] < 1e-9,
+                 f"expected 500, got {got:.9f}; accounts off by {r['accounting_error']:.1e}"))
     # the policy rule at known points
     pol = compile_rule("policy", RULES["policy"]["default"], {k: v[0] for k, v in PARAMS.items()})
     want = 0.02 + 0.02 + 1.5 * (0.04 - 0.02) + 0.5 * (0.06 - 0.08)
@@ -491,6 +675,7 @@ def register(api):
     api.code(602, "bad_param", "a parameter is unknown or outside its bounds")
     api.code(603, "not_conserved", "money was created or destroyed: the accounts do not add up")
     api.code(605, "bad_economy", "the economy's structure is not valid")
+    api.code(606, "bad_entity", "an entity in the economy is not valid: unknown type, bad count, parameter or flow")
     op, ok, E = api.op, api.ok, api.OpError
 
     def cfg_of(a):
@@ -501,12 +686,25 @@ def register(api):
 
     @op("economy.new", "a new economy configuration with the default parameters and rules", {
         "households": "int? default 1000", "firms": "int? default 50", "periods": "int? quarters, default 200",
-        "seed": "int? default 1", "params": "obj? parameters to change"})
+        "seed": "int? default 1", "params": "obj? parameters to change",
+        "entities": "list? other entities, e.g. [{\"type\": \"foreign\"}, {\"type\": \"custom\", \"name\": ..., "
+                    "\"params\": {...}, \"flows\": {\"levy\": ..., \"pay\": ..., \"buy\": ...}}]"})
     def new(a, ctx):
         cfg = default_config(a.get("households", 1000), a.get("firms", 50), a.get("periods", 200), a.get("seed", 1))
         cfg["params"].update(a.get("params") or {})
+        cfg["entities"] = list(a.get("entities") or [])
         probs = check_config(cfg)
         return ok({"d": cfg}, e=[[c, s, m] for c, s, m in probs] or None, h=api.fingerprint(cfg))
+
+    @op("economy.entities", "the kinds of entities an economy can add, with their parameters and flow formulas", {})
+    def entities(a, ctx):
+        return ok({"vars": ENTITY_VAR_DOC, "flows": {"levy": "collected from households, in proportion to deposits",
+                                                     "pay": "paid to households in equal parts (pay_to: all, employed "
+                                                            "or unemployed)",
+                                                     "buy": "spent on goods from firms' stocks, after the government"},
+                   "types": {k: {"doc": v["doc"], "params": {p: {"v": d[0], "lo": d[1], "hi": d[2], "s": d[3]}
+                                                             for p, d in v["params"].items()},
+                                 "flows": v["flows"], "pay_to": v["pay_to"]} for k, v in ENTITY_TYPES.items()}})
 
     @op("economy.params", "the parameters: default, lower and upper bound, meaning", {})
     def params(a, ctx):
@@ -540,6 +738,8 @@ def register(api):
         err = max(r["accounting_error"] for r in res)
         out = {"moments": average(res), "accounting_error": err, "runs": len(res),
                "seconds": round(sum(r["seconds"] for r in res), 3)}
+        if res[0].get("entities"):
+            out["entities"] = res[0]["entities"]
         if len(res) > 1:
             out["by_seed"] = [r["moments"] for r in res]
         if a.get("series"):
@@ -574,9 +774,12 @@ def main(argv=None):
     p.add_argument("--seed", type=int, default=1)
     p.add_argument("--seeds", type=int, help="run this many seeds in parallel and average")
     p.add_argument("--set", nargs="*", default=[], metavar="PARAM=VALUE")
+    p.add_argument("--entity", action="append", default=[], metavar="TYPE[:COUNT]",
+                   help="add entities of a kind, e.g. --entity foreign --entity pension_fund:3")
     p.add_argument("--out")
     sub.add_parser("rules")
     sub.add_parser("params")
+    sub.add_parser("entities")
     sub.add_parser("known")
     p = sub.add_parser("scale")
     p.add_argument("--max", type=int, default=100000)
@@ -584,6 +787,15 @@ def main(argv=None):
     if a.cmd == "rules":
         for k, v in RULES.items():
             print(f"{k}: {v['doc']}\n    {v['default']}\n")
+    elif a.cmd == "entities":
+        print(f"Variables in flow formulas: {ENTITY_VAR_DOC}\n")
+        for k, v in ENTITY_TYPES.items():
+            print(f"{k}: {v['doc']} (pays: {v['pay_to']})")
+            for f in FLOWS:
+                print(f"    {f:<5} {v['flows'][f]}")
+            for p_, d in v["params"].items():
+                print(f"    {p_} = {d[0]:g} [{d[1]:g}, {d[2]:g}]  {d[3]}")
+            print()
     elif a.cmd == "params":
         for k, v in PARAMS.items():
             print(f"{k:<14} {v[0]:<8g} [{v[1]:g}, {v[2]:g}]  {v[3]}")
@@ -609,6 +821,13 @@ def main(argv=None):
         for kv in a.set:
             k, _, v = kv.partition("=")
             cfg["params"][k] = float(v)
+        for spec in a.entity:
+            typ, _, n = spec.partition(":")
+            cfg.setdefault("entities", []).append({"type": typ, "count": int(n or 1)})
+        probs = check_config(cfg)
+        if probs:
+            print("\n".join(p[2] for p in probs))
+            return 1
         cfgs = [dict(cfg, seed=cfg["seed"] + s) for s in range(a.seeds)] if a.seeds else [cfg]
         res = run_many(cfgs, series=not a.seeds)
         m = average(res)
@@ -617,6 +836,9 @@ def main(argv=None):
         for k, v in m.items():
             print(f"  {k:<14} {v:.4f}")
         print(f"  accounts off by at most {max(r['accounting_error'] for r in res):.1e} (relative)")
+        for name, s in (res[0].get("entities") or {}).items():
+            print(f"  {name} ({s['type']}, {s['count']}): collected {s['levied']:.1f}, paid {s['paid']:.1f}, "
+                  f"bought {s['bought']:.1f}, balance {s['balance']:.1f}")
         if a.out:
             with open(a.out, "w", encoding="utf-8") as f:
                 json.dump({"config": cfg, "results": res}, f, indent=1)
