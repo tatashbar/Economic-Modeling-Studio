@@ -7,6 +7,7 @@ People use the studio through commands and readable reports. AI agents need some
 - [Many MCP servers through one gateway](#many-mcp-servers-through-one-gateway)
 - [A shared workspace for many agents, with people in charge](#a-shared-workspace-for-many-agents-with-people-in-charge)
 - [An economy of a thousand households](#an-economy-of-a-thousand-households)
+- [The improvement loop](#the-improvement-loop)
 
 ## The studio protocol
 `tools/studio_api.py` is one interface to the studio for programs and agents. A message is a JSON object with an operation and its arguments; a response says whether it worked, gives the result, the findings as numbered codes, a fingerprint of the state and, where the studio knows one, the operations that would fix each finding.
@@ -32,7 +33,7 @@ python tools/studio_api.py hello
 | 4xx | validation | 401 known answer failed, 402 untestable, 403 bridge not passed, 404 data refused |
 | 5xx | the shared workspace | 501 paused, 502 frozen, 503 unread message from a person, 504 lease held |
 | 6xx | the economy engine | 601 bad rule, 602 parameter out of bounds, 603 money not conserved, 604 known answer failed |
-| 7xx | the improvement loop | see below |
+| 7xx | the improvement loop | 701 outside the study, 702 overfit, 703 budget spent, 704 study stopped |
 | 900-999 | extensions | added with `api.code(...)` |
 
 **Fixes come with the finding.** Where the studio knows the fix, the response carries it as an operation: send it back unchanged. For the bridge exercise, an agent that changes the fiscal brick to annual gets warning 301 and the fix `{"op": "lego.bridge", "a": {"b": "fiscal-debt-rule", "auto": true}}`, which declares a method for each crossing variable from its measure (a flow is summed, a stock takes the last value, a rate is averaged). The next response carries warning 304 (untested) and the fix `lego.bridge_test` with `apply`, after which `lego.check` with `strict` passes.
@@ -174,3 +175,23 @@ A person or an agent can replace any of them in the configuration (`"rules": {"c
 **For agents.** `economy.new`, `economy.params`, `economy.rules`, `economy.check`, `economy.run` and `economy.known`. An economy can live on a workspace track (`ws.track` with `kind: "economy"`), where many agents try changes on their own tracks and the report shows people the parameters and the last results.
 
 **What it is not.** A stylized model for experiments, teaching and testing agents' work, not a calibrated model of any country. Its default parameters give a stable economy with low unemployment and moderate inflation; matching a country's facts is a calibration task (see the improvement loop).
+
+## The improvement loop
+`tools/evolve.py` lets many agents improve a model together, round after round, without fooling themselves.
+
+**A study says what better means.** It names a workspace track (the model to improve), targets for the model's results with weights (for example unemployment 6% and inflation 2%), what candidates may change (parameters within ranges and, if allowed, behaviour rules), the training cases (seeds) agents can see, a budget of model runs, and how many variations the loop adds each round.
+
+**Hidden cases.** When a study starts, the studio draws hidden seeds that no agent ever sees. A candidate that beats the champion on the training cases becomes the new champion only if it also holds up on the hidden cases (within the study's tolerance). One that does not is marked overfit (code 702). Agents see only whether a candidate held up, never its hidden score, so they cannot tune to the hidden cases by trial and error. People see the hidden scores in `evolve.status` and in the report.
+
+**Each round.** Every waiting candidate is scored: those proposed by agents (`evolve.propose`, with a note on why) and the loop's own variations of the best so far. They run in parallel processes, are ranked, and a new champion is written to the study's track (a compare-and-swap, as for any agent). The loop runs with `evolve.step` from any agent, or from the command line:
+
+```
+python tools/evolve.py start calib --track eco --target unemployment=0.06 --target inflation=0.02 --free search=1:8 --free theta_w=0:0.1 --budget 400
+python tools/evolve.py run calib --rounds 10
+```
+
+**People in charge.** A freeze on a parameter (`python tools/workspace.py freeze eco theta_w`) stops agents and the loop from changing it. A pause on the track stops the rounds (code 501). Constraints left in the inbox are read and reported by the loop before it promotes a champion. Only people stop or reopen a study (`python tools/evolve.py stop calib`). The track's report lists each study, its champion, how many candidates each agent proposed and how many were refused as overfit.
+
+**Scores.** The distance to the targets is a weighted sum of squared relative gaps. A run in which money is not conserved, or a candidate that breaks a parameter bound or a rule, is rejected. Models other than the economy plug in with `evolve.objective("kind")`; a lego model can be scored on its errors and warnings.
+
+In a test with 200 households, eight rounds of twelve candidates each cut the distance to the targets from 1.47 to 0.21 in about 25 seconds, and the hidden cases refused several candidates along the way.

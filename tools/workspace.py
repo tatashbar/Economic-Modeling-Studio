@@ -455,7 +455,7 @@ def register(api):
 VERBS = {"lego.attach": "added brick {brick}", "lego.detach": "took out brick {b}", "lego.swap": "swapped {b} for {brick}",
          "lego.patch": "changed {b} ({fields})", "lego.bridge": "declared the bridge of {b}",
          "lego.bridge_test": "ran the bridge tests", "lego.validate": "recorded validation of {b}",
-         "ws.track": "started track {name}", "ws.put": "wrote a new state", "ws.promote": "promoted it into {into}",
+         "ws.track": "started track {name}", "ws.put": "wrote a new state (score {score})", "ws.promote": "promoted it into {into}",
          "ws.post": "posted a {kind}: {text}", "evolve.step": "ran a round of the improvement loop",
          "evolve.propose": "proposed a candidate", "economy.run": "ran the economy"}
 
@@ -537,6 +537,30 @@ def report(a):
     for seq, ts, agent, op, args, ok, codes in rows[::-1]:
         lines.append(f"- [{seq}] {time.strftime('%H:%M:%S', time.localtime(ts))} {agent}: "
                      f"{_sentence(op, args, ok, json.loads(codes or '[]'))}")
+    try:
+        studies = c.execute("SELECT name, status, round, evals, spec, champion FROM studies WHERE track = ?",
+                            (a["t"],)).fetchall()
+    except sqlite3.OperationalError:
+        studies = []
+    if studies:
+        lines += ["", "## Improvement studies on this track"]
+        for name, status, rnd, evals, spec, champ in studies:
+            spec = json.loads(spec)
+            by = c.execute("SELECT by, COUNT(*), MIN(loss) FROM candidates WHERE study = ? AND loss IS NOT NULL "
+                           "GROUP BY by ORDER BY 3", (name,)).fetchall()
+            over = c.execute("SELECT COUNT(*) FROM candidates WHERE study = ? AND status = 'overfit'", (name,)).fetchone()[0]
+            targets = ", ".join(f"{k} {v[0]:g}" for k, v in spec["targets"].items())
+            lines.append(f"- {name} ({status}): aims at {targets}; round {rnd}, {evals} of {spec['budget']} evaluations "
+                         f"used; {over} candidate(s) refused because they did worse on the hidden cases.")
+            if champ:
+                ch = c.execute("SELECT by, loss, hidden_loss, params FROM candidates WHERE id = ?", (champ,)).fetchone()
+                lines.append(f"  Champion: candidate {champ} by {ch[0]}, distance to targets {ch[1]:.4g} "
+                             f"(hidden cases {ch[2]:.4g}), with " + ", ".join(
+                                 f"{k} = {v:.4g}" if isinstance(v, float) else f"{k} = {v}"
+                                 for k, v in sorted(json.loads(ch[3]).items())) + ".")
+            if by:
+                lines.append("  Candidates by proposer (best distance): " + ", ".join(
+                    f"{b} {n} ({m:.3g})" if m is not None and m < 1e300 else f"{b} {n}" for b, n, m in by) + ".")
     busiest = c.execute("SELECT agent, COUNT(*) FROM events WHERE track = ? GROUP BY agent ORDER BY 2 DESC LIMIT 5",
                         (a["t"],)).fetchall()
     if busiest:

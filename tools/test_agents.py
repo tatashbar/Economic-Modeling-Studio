@@ -480,5 +480,97 @@ class TestEconomy(unittest.TestCase):
             shutil.rmtree(d, ignore_errors=True)
 
 
+def _toy(spec, states, seeds, workers):
+    """A model whose training cases reward x up to 1, but whose hidden cases (seeds of 10000 and more) punish x > 0.5:
+    a candidate that chases the training cases past 0.5 is overfitting."""
+    out = []
+    for s in states:
+        x, y = s["params"]["x"], s["params"].get("y", 0.0)
+        losses = [(x - 1) ** 2 + y ** 2 + (10 * max(0, x - 0.5) if sd >= 10000 else 0) for sd in seeds]
+        out.append((sum(losses) / len(losses), {"x": x}, ""))
+    return out
+
+
+class TestEvolve(unittest.TestCase):
+    def setUp(self):
+        import evolve
+        evolve.OBJECTIVES["toy"] = _toy
+        self.dir = tempfile.mkdtemp()
+        self.ws = os.path.join(self.dir, "ws.db")
+        self.W("ws.track", name="toy", d={"params": {"x": 0.0, "y": 0.5}}, kind="toy")
+
+    def tearDown(self):
+        import workspace
+        for c in getattr(workspace._local, "conns", {}).values():
+            c.close()
+        workspace._local.conns = {}
+        shutil.rmtree(self.dir, ignore_errors=True)
+
+    def W(self, op, ctx=None, **a):
+        return S.handle({"op": op, "a": dict(a, ws=self.ws)}, ctx if ctx is not None else {"agent": "a1"})
+
+    def start(self, **kw):
+        r = self.W("evolve.start", name="s", t="toy", targets={"x": [1, 1]}, free={"x": [0, 1], "y": [0, 1]},
+                   budget=kw.pop("budget", 400), pop=kw.pop("pop", 6), tolerance=0.2, **kw)
+        self.assertTrue(r["ok"], r)
+
+    def test_proposals_are_checked_against_the_study(self):
+        self.start()
+        self.assertEqual(self.W("evolve.propose", name="s", params={"z": 1})["e"][0][0], 701)
+        self.assertEqual(self.W("evolve.propose", name="s", params={"x": 2})["e"][0][0], 701)
+        self.assertEqual(self.W("evolve.propose", name="s", rules={"consume": "y"})["e"][0][0], 701)
+        self.assertTrue(self.W("evolve.propose", name="s", params={"x": 0.4, "y": 0.1}, note="closer")["ok"])
+
+    def test_the_loop_improves_and_refuses_overfitting(self):
+        self.start()
+        self.W("evolve.propose", name="s", params={"x": 0.45, "y": 0.0})
+        self.W("evolve.propose", name="s", params={"x": 1.0, "y": 0.0})       # best on training, bad on hidden
+        r = self.W("evolve.step", name="s")["r"]
+        self.assertIn(3, r["overfit_refused"])
+        self.assertEqual(r["champion"]["params"], {"x": 0.45, "y": 0.0})
+        for _ in range(6):
+            self.W("evolve.step", name="s")
+        st = self.W("evolve.status", name="s")["r"]
+        self.assertLessEqual(st["champion"]["params"]["x"], 0.55)   # never far past the limit the hidden cases set
+        self.assertNotIn("hidden", json.dumps(st))                            # agents never see the hidden results
+        self.assertIn("hidden_loss", self.W("evolve.status", PERSON, name="s")["r"]["champion"])   # people do
+        self.assertEqual(self.W("ws.get", t="toy")["r"]["d"]["params"], st["champion"]["params"])
+        text = self.W("ws.report", PERSON, t="toy")["r"]["text"]
+        self.assertIn("refused because they did worse on the hidden cases", text)
+
+    def test_people_freeze_pause_and_stop(self):
+        self.start()
+        self.W("ws.post", PERSON, kind="freeze", t="toy", b="y")
+        self.assertEqual(self.W("evolve.propose", name="s", params={"y": 0.0})["e"][0][0], 502)
+        self.W("evolve.step", name="s")
+        for _ in range(3):
+            self.W("evolve.step", name="s")
+        self.assertEqual(self.W("ws.get", t="toy")["r"]["d"]["params"]["y"], 0.5)   # the loop leaves y alone too
+        self.W("ws.post", PERSON, kind="pause", t="toy")
+        self.assertEqual(self.W("evolve.step", name="s")["e"][0][0], 501)
+        self.W("ws.post", PERSON, kind="resume", t="toy")
+        self.assertEqual(self.W("evolve.stop", name="s")["e"][0][0], 104)           # agents cannot stop a study
+        self.assertTrue(self.W("evolve.stop", PERSON, name="s")["ok"])
+        self.assertEqual(self.W("evolve.step", name="s")["e"][0][0], 704)
+
+    def test_budget(self):
+        self.start(budget=10, pop=4)
+        self.W("evolve.step", name="s")
+        self.W("evolve.step", name="s")
+        codes = [self.W("evolve.step", name="s").get("e", [[0]])[0][0] for _ in range(3)]
+        self.assertIn(703, codes)
+
+    def test_economy_study_runs(self):
+        import economy
+        cfg = economy.default_config(households=120, firms=8, periods=40)
+        self.W("ws.track", name="eco", d=cfg, kind="economy")
+        r = self.W("evolve.start", name="cal", t="eco", targets={"unemployment": [0.06, 1]},
+                   free={"search": [1, 8], "res_decay": [0, 0.5]}, budget=60, pop=3, seeds=[1])
+        self.assertTrue(r["ok"], r)
+        r = self.W("evolve.step", name="cal", workers=1)
+        self.assertTrue(r["ok"], r)
+        self.assertIn("champion", r["r"])
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

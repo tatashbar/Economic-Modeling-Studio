@@ -2,7 +2,7 @@
 
 # Economic Modeling Studio
 
-**Version 2.8.0**
+**Version 2.9.0**
 
 A studio for building, estimating, validating and using economic models. **127 specialist agents** and **94 skills** (workflow commands such as `/build-dsge` or `/validate-model`) cover specification, building, estimation and independent validation for semi-structural projection and DSGE, input-output and CGE, trade and climate-economy models, deep learning, reinforcement learning, neural-network solvers, LLM-based tools, agent-based and game-theoretic models, and other econometric models. The studio also lets you work with every model as a **lego set**: a core model with plug-and-play components that can be added, swapped or removed, with explicit interfaces and the impact of every change checked first. It also **translates model code** between the languages and software economists use (Stata, R, Python, MATLAB, Dynare, EViews, SAS, GAMS, Fortran, COBOL and more), and tests the translation against the original's outputs. It works with any coding agent that reads `AGENTS.md`: Claude Code, Codex, Cursor, Grok Build, Gemini CLI and others.
 
@@ -175,6 +175,8 @@ python tools/workspace.py freeze main monetary-taylor
 ```
 python tools/economy.py run --households 1000 --seeds 8
 ```
+
+**Agents improving models, round after round.** `tools/evolve.py` runs an improvement loop: agents propose changes, the loop adds its own variations, all are scored in parallel against targets, and a new best is accepted only if it also holds up on hidden cases the agents never see. People can freeze parameters, pause or stop it at any time.
 
 The economist's sign-off stays with people: agents are refused it. New operations, finding codes and places a model can live are added as extensions in `extensions/`. See [docs/agents.md](docs/agents.md).
 
@@ -372,6 +374,7 @@ tools/mcp_server.py        the studio as an MCP server: operations as tools, ski
 tools/mcp_gateway.py       one MCP server in front of many: parallel start, tool search, parallel calls, allow and deny lists
 tools/workspace.py         shared workspace for many agents: tracks, safe concurrent writes, log, inbox, leases, plain-language reports, people's notes, constraints, freezes, pauses and vetoes
 tools/economy.py           agent-based economy: households, firms, a bank, a government and a monetary authority; money conserved; rules as formulas; known-answer tests
+tools/evolve.py            the improvement loop: studies with targets, agents' proposals and the loop's own, parallel scoring, hidden cases against overfitting
 tools/lego_view.py         isometric 3D picture of a lego set (self-contained HTML)
 tools/intake.py            reads research notes (numbered paragraphs), inventories data workbooks and shows the formulas behind them, for /research-plan
 tools/report.py            writes a Word report and a PowerPoint presentation from a Markdown results report, and collects all results in one folder and zip (standard library only)
@@ -406,6 +409,7 @@ Adapt `studio-config.yaml` and `.claude/docs/confidentiality-and-ai-use.md` to t
 Agents and skills are Markdown files with YAML frontmatter; edit them freely. After changes run `python tools/validate_studio.py`. To add an agent, create `.claude/agents/<name>.md` and list it as a peer in the related agents. To add a command, create `.claude/skills/<name>/SKILL.md`. Path-scoped standards live in `.claude/rules/`. After changing commands or rules, run `python tools/sync_agents.py` to update the copies for other coding agents.
 
 ## Version history
+- **2.9.0** — For agents that improve models by themselves, over many rounds, with people in charge. An improvement loop (`tools/evolve.py`): a study sets targets for a model's results (for example unemployment and inflation), what may change and a budget. Agents propose changes with a reason, the loop adds its own variations of the best so far, and every candidate is scored in parallel. A better candidate is accepted only if it also holds up on hidden cases that no agent can see, so agents cannot win by fitting the cases they were shown. People can freeze parameters, pause, stop, and read in the report who proposed what and what was refused.
 - **2.8.0** — An economy of agents, for agents and people to build on. `tools/economy.py` simulates an economy of 1,000 households (or 100,000) with firms, a bank, a government and a monetary authority, each household with its own productivity, job, income and savings. Every payment moves money between accounts, so money is never created or lost by mistake: each run checks this every quarter. Behaviour rules (how households spend, how firms set prices and wages, how the policy rate responds) are short formulas that a person or an agent can replace without writing code, checked against a list of allowed names before they run. Known-answer tests, many runs in parallel, and the same operations for agents through the protocol, MCP and the shared workspace. Setup files for Cursor, VS Code and Gemini CLI join the one for Claude Code, so the studio's MCP server works in each of them out of the box.
 - **2.7.0** — For many AI agents working at the same time, with people in charge. Until now the studio assumed one user at a time. A shared workspace (`tools/workspace.py`) lets many agents work on the same model at once, tested with 100, without any agent overwriting another's change. Everything they do is logged. At any moment a person can ask for a plain-language report of where the work stands and what each agent did, and steer the agents: leave notes, set constraints the agents must read before they change anything else, freeze parts of the model, pause the work, undo a change, or answer an agent's question.
 - **2.6.0** — For any AI tool that speaks MCP (Model Context Protocol), the open standard for connecting AI tools to other software. It is supported by Claude Code, Claude Desktop, Cursor, VS Code with GitHub Copilot, Gemini CLI, Codex, Windsurf and others; nothing here is specific to one of them. The studio runs as an MCP server (`tools/mcp_server.py`), so these tools can call its operations directly, run its 94 skills as prompts and read its registries and guides. A gateway (`tools/mcp_gateway.py`) connects one agent to many MCP servers at once (tested with 100): it starts them in parallel, lets the agent search all their tools by keyword, and runs many calls in parallel in one request.
