@@ -2,14 +2,14 @@
 
 # Economic Modeling Studio
 
-**Version 2.4.0**
+**Version 2.5.0**
 
 A studio for building, estimating, validating and using economic models. **127 specialist agents** and **94 skills** (workflow commands such as `/build-dsge` or `/validate-model`) cover specification, building, estimation and independent validation for semi-structural projection and DSGE, input-output and CGE, trade and climate-economy models, deep learning, reinforcement learning, neural-network solvers, LLM-based tools, agent-based and game-theoretic models, and other econometric models. The studio also lets you work with every model as a **lego set**: a core model with plug-and-play components that can be added, swapped or removed, with explicit interfaces and the impact of every change checked first. It also **translates model code** between the languages and software economists use (Stata, R, Python, MATLAB, Dynare, EViews, SAS, GAMS, Fortran, COBOL and more), and tests the translation against the original's outputs. It works with any coding agent that reads `AGENTS.md`: Claude Code, Codex, Cursor, Grok Build, Gemini CLI and others.
 
 > The repository contains the studio (agents, commands, rules, templates and guardrails), not a library of finished models. Models are built in your own copy.
 
 ## Contents
-- [How it works](#how-it-works) · [Setup](#setup) · [Quick start](#quick-start) · [Demo](#demo-building-a-draft-model) · [Typical uses](#typical-uses) · [Works with your coding agent](#works-with-your-coding-agent) · [What it covers](#what-it-covers)
+- [How it works](#how-it-works) · [Setup](#setup) · [Quick start](#quick-start) · [Demo](#demo-building-a-draft-model) · [Typical uses](#typical-uses) · [Works with your coding agent](#works-with-your-coding-agent) · [For AI agents](#for-ai-agents) · [What it covers](#what-it-covers)
 - [The agents](#the-agents) · [The skills](#the-skills) ([commands](#commands), [workflows](#typical-workflows)) · [Models as lego sets](#models-as-lego-sets) · [Quality controls](#quality-controls) · [Repository layout](#repository-layout)
 - [Intended use: public data only](#intended-use-public-data-only) · [Limitations](#limitations) · [Customizing](#customizing) · [Version history](#version-history)
 
@@ -150,6 +150,17 @@ The studio is not tied to one assistant. Instructions, commands and rules are pl
 - **Guardrails everywhere.** The guard scripts (destructive commands, restricted data, secrets, immutable raw data) run as hooks in Claude Code and Cursor. For every tool, the git pre-commit guard stops restricted data, raw data and secrets from being committed: enable it with `git config core.hooksPath .githooks`.
 
 Tool conventions change quickly. If a tool moves its folders, update `tools/sync_agents.py` and regenerate.
+
+## For AI agents
+Agents can also use the studio directly, without the readable reports people need. `tools/studio_api.py` speaks a compact protocol: JSON messages, numbered findings, fixes an agent can send back unchanged, and a fingerprint of the state so that many writers never overwrite each other. One call, `hello`, teaches an agent the whole protocol, and `say` turns any response back into plain language for a person.
+
+```
+python tools/studio_api.py hello
+python tools/studio_api.py call '{"op":"lego.check","a":{"m":"lego/examples/small-open-economy.lego.json"}}'
+python tools/studio_api.py serve        # JSON lines on standard input and output
+```
+
+The economist's sign-off stays with people: agents are refused it. New operations, finding codes and places a model can live are added as extensions in `extensions/`. See [docs/agents.md](docs/agents.md).
 
 ## What it covers
 
@@ -326,7 +337,8 @@ studio-config.yaml         rigor by model class, data classes, approved toolchai
 .agents/ .grok/ .cursor/   generated copies of commands and rules for other coding agents; Cursor hooks
 .githooks/                 git pre-commit guard (any tool)
 .claude/docs/              collaboration protocol, coordination, phase gates, risk levels, model classes, confidentiality and AI use
-docs/                      templates (23), lego guide, screenshots (docs/images), agent roster, command catalog, code translation guide with the language list and idioms (docs/translation); briefs, models, notes, references, training
+docs/                      templates (23), lego guide, guide for AI agents (docs/agents.md), screenshots (docs/images), agent roster, command catalog, code translation guide with the language list and idioms (docs/translation); briefs, models, notes, references, training
+extensions/                operations, codes and model stores added to the studio protocol (register(api))
 lego/                      brick catalog (20 reusable bricks), shared port definitions, two worked examples, a bridge exercise
 models/                    model code by family: semi-structural, fpas, financial-programming, dsge, multicountry,
                            io-sam, cge, trade, climate, sfc, abm, games, ai, llm, econometrics
@@ -337,12 +349,14 @@ data/ forecasts/ validation/ production/ tests/ notebooks/ scripts/    working f
 tools/lego.py              lego engine: catalog, new, show, check, attach, detach, swap, arrange, bridge-test, validate, approve, elements
 tools/bridge.py            frequency bridges: conversion with a declared method, completeness checks, known-answer tests
 tools/known_answer.py      known-answer exercises for validators and teaching (bridges, AR(1), VAR impulse responses, steady states)
+tools/studio_api.py        the studio protocol for agents and programs: handshake, operations, finding codes and fixes, safe writes, extensions
 tools/lego_view.py         isometric 3D picture of a lego set (self-contained HTML)
 tools/intake.py            reads research notes (numbered paragraphs), inventories data workbooks and shows the formulas behind them, for /research-plan
 tools/report.py            writes a Word report and a PowerPoint presentation from a Markdown results report, and collects all results in one folder and zip (standard library only)
 tools/translate.py         code translation: languages, idioms, inventory of a code folder, translation workspace and plan, output comparison, source check
 tools/validate_studio.py   integrity check (counts, references, hooks, settings, lego catalog and examples)
 tools/test_studio.py       tests for hooks, guards, lego engine, agent adapters and documentation consistency
+tools/test_agents.py       tests for the machine side: protocol, and the parts built on it (run with test_studio.py)
 tools/sync_agents.py       regenerates the copies for other coding agents from .claude/
 tools/precommit_guard.py   git pre-commit guard for restricted data, raw data and secrets
 ```
@@ -370,6 +384,7 @@ Adapt `studio-config.yaml` and `.claude/docs/confidentiality-and-ai-use.md` to t
 Agents and skills are Markdown files with YAML frontmatter; edit them freely. After changes run `python tools/validate_studio.py`. To add an agent, create `.claude/agents/<name>.md` and list it as a peer in the related agents. To add a command, create `.claude/skills/<name>/SKILL.md`. Path-scoped standards live in `.claude/rules/`. After changing commands or rules, run `python tools/sync_agents.py` to update the copies for other coding agents.
 
 ## Version history
+- **2.5.0** — A protocol for AI agents. `tools/studio_api.py` gives agents and programs one interface to the studio: compact JSON messages, single or in batches; findings as stable numbered codes; ready-made fixes that an agent sends back unchanged; plans in memory on inline models; writes that are refused if the model changed since the agent read it; and a handshake (`hello`) that teaches the whole protocol in one call. `say` turns any response into plain language for a person, and the economist's sign-off is refused to agents. Three transports (command line, a JSON-lines server, Python) and extensions that add operations and codes. New guide `docs/agents.md`.
 - **2.4.0** — Known answers and separate sign-off. Bridges between frequencies now declare a method for each variable (`sum`, `average`, `last`, `first`, `split`, `repeat`, `interpolate`) instead of a text note, refuse incomplete or duplicated periods before converting, and are tested on known answers with `lego.py bridge-test` (1, 2, 3, 4 gives 10 as a flow, 4 as a stock, 2.5 as a rate). `check --strict` makes warnings fail. Each brick keeps three separate records: wiring, numbers (independent validation, which needs passing bridge tests) and the economist's sign-off (`lego.py approve`), which is withdrawn when the brick changes. New `tools/known_answer.py` with exercises for validators, now part of `/validate-model`, and a stand-alone bridge exercise. Thanks to the QuantEcon community for the suggestion.
 - **2.2.1** — No invented durations: model classes, the planner, `/model-brief` and `/select-model-class` no longer give fixed timelines such as "days to 2 weeks". Plans name what sets the calendar (data access, reviews, validation, sign-off), and dates come only from the user's deadlines, fixed dates or records of earlier projects.
 - **2.2.0** — Code translation between the languages and software used for economic models: 32 languages and tools listed with their pitfalls (Stata, R, Python, SAS, SPSS, EViews, RATS, gretl, MATLAB, Octave, Julia, Dynare, IRIS, RISE, TROLL, GAMS, GEMPACK, AMPL, Stan/JAGS, Fortran, C/C++, COBOL, GAUSS, Excel/VBA, FAME/AREMOS, SQL and others). Six agents (architect, source-code analyst, statistical, model and legacy translators, independent equivalence auditor), five commands (`/code-inventory`, `/translation-plan`, `/translate-code`, `/translate-model`, `/equivalence-test`), a rule for translation workspaces, a side-by-side idiom table, and `tools/translate.py` for inventories, plans, output comparison and source checks.

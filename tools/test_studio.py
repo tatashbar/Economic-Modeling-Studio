@@ -1742,5 +1742,7 @@ class TestTranslate(unittest.TestCase):
         self.assertIn("translate-code", read(os.path.join(ROOT, "AGENTS.md")))
 
 
+from test_agents import *  # noqa: E402,F401,F403  (protocol, MCP, workspace, loop and economy tests)
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
