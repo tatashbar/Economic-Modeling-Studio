@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The studio as an MCP server (Model Context Protocol), standard library only.
+"""Connects the studio to MCP clients (Model Context Protocol), standard library only.
 
 Every operation of the studio protocol (tools/studio_api.py) is an MCP tool: lego.check becomes lego_check,
 and so on, including operations added by extensions. Skills are MCP prompts, and the protocol, the port
@@ -235,7 +235,7 @@ def _error(rid, code, msg):
 
 
 def main(argv=None):
-    ap = argparse.ArgumentParser(description="The studio as an MCP server (stdio)")
+    ap = argparse.ArgumentParser(description="Connects the studio to MCP clients (stdio)")
     ap.add_argument("--tools", help="comma-separated operation groups to offer (default: all)")
     ap.add_argument("--compact", action="store_true", help="one tool, studio_call, taking protocol messages")
     ap.add_argument("--list", action="store_true", help="print the tools and exit")

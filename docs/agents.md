@@ -3,7 +3,7 @@
 People use the studio through commands and readable reports. From version 3.0 the studio and its agents can also be used by outside agents: any AI agent or system of agents, on any model or framework. They need something else: short messages, numbered findings they can act on, fixes they can send back unchanged, and safe ways for many of them to work on the same model. This guide covers the machine side of the studio.
 
 - [The studio protocol](#the-studio-protocol)
-- [The studio as an MCP server](#the-studio-as-an-mcp-server)
+- [Connecting the studio through MCP](#connecting-the-studio-through-mcp)
 - [Many MCP servers through one gateway](#many-mcp-servers-through-one-gateway)
 - [A shared workspace for many agents, with people in charge](#a-shared-workspace-for-many-agents-with-people-in-charge)
 - [The Agent Economy Lab (AEL)](#the-agent-economy-lab-ael)
@@ -85,8 +85,8 @@ def register(api):
 
 Extensions can also add checks that run before or after every operation (`api.hooks["before"]`, `api.hooks["after"]`). The protocol, the MCP server and the workspace pick up new operations without changes.
 
-## The studio as an MCP server
-`tools/mcp_server.py` offers the studio to any client of the Model Context Protocol (Claude Code, Claude Desktop, Cursor, Codex, Gemini CLI, VS Code and others). It uses only the standard library and the stdio transport.
+## Connecting the studio through MCP
+People use the studio as before. In addition, the studio can be connected to any client of the Model Context Protocol (Claude Code, Claude Desktop, Cursor, Codex, Gemini CLI, VS Code and others), so that agents in that client can use it. `tools/mcp_server.py` is the connection, set up once in the client. It uses only the standard library and the stdio transport.
 
 - **Tools.** Every operation of the protocol is a tool: `lego.check` is `lego_check`, `hello` is `studio_hello`. Operations added by extensions appear without changes. The sign-off is not offered at all. Tools that change a model are marked as such and change it only with `apply: true`. Each result carries the protocol response as structured content, so an agent reads codes, fixes and fingerprints directly.
 - **Prompts.** The 94 skills are prompts: `/lego-check`, `/validate-model` and the rest, with the full instructions.
