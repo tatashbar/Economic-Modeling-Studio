@@ -5,6 +5,7 @@ People use the studio through commands and readable reports. AI agents need some
 - [The studio protocol](#the-studio-protocol)
 - [The studio as an MCP server](#the-studio-as-an-mcp-server)
 - [Many MCP servers through one gateway](#many-mcp-servers-through-one-gateway)
+- [A shared workspace for many agents, with people in charge](#a-shared-workspace-for-many-agents-with-people-in-charge)
 
 ## The studio protocol
 `tools/studio_api.py` is one interface to the studio for programs and agents. A message is a JSON object with an operation and its arguments; a response says whether it worked, gives the result, the findings as numbered codes, a fingerprint of the state and, where the studio knows one, the operations that would fix each finding.
@@ -105,3 +106,32 @@ The servers are listed in `mcp/servers.json`, in the same form as `.mcp.json`:
 ```
 
 `python tools/mcp_gateway.py --status` starts them all and prints their state. In a test on a laptop, 100 small servers and the studio started in about three seconds, and a batch of 102 calls across them came back in a few hundredths of a second. The tests in `tools/test_agents.py` start 30 servers, one of which cannot start, and check search, parallel calls, order, and refusal of denied tools.
+
+## A shared workspace for many agents, with people in charge
+`tools/workspace.py` is where many agents build models together. It is one SQLite file (standard library), safe for many processes at once, kept in `production/session-state/` (outside git) unless `STUDIO_WORKSPACE` or the `ws` argument names another.
+
+**Tracks.** Agents work on tracks: named lines of work, each pointing at the current state of a model, a lego manifest, an economy or any JSON. `ws.track` starts one from a manifest, an inline model or another track (a fork). Wherever an operation expects a model, `t` names a track: `{"op": "lego.attach", "a": {"t": "main", "brick": "trade-sector-armington", "apply": true}}`.
+
+**No write is lost.** Every state is stored once, by its fingerprint. Every write to a track is a compare-and-swap on the track's head: if another agent wrote first, the write is refused with code 219 and the agent reads the track again and retries. In a test, 100 agents writing to one track at once made 500 writes, every one of them counted, with 12 conflicts retried. `ws.put` writes any JSON state the same way, and `ws.promote` moves a track to another track's state, also only if it has not moved on.
+
+**Coordination.** `ws.join` registers an agent and its role. `ws.lease` gives an agent a resource (a brick, a task) for some seconds, so a swarm can divide the work without colliding. `ws.post` lets agents leave notes, questions, proposals and progress for each other and for people.
+
+**Everything is logged.** Every write and every refusal is an event: who, what, on which track, the finding codes, and the states before and after. `ws.log` reads them.
+
+**People can look in at any time.** `ws.report` (or `python tools/workspace.py report <track>`) turns a track into plain language: its goal and state, the model's errors and warnings now, what people have set, what each agent did, oldest first, with refusals marked, and the questions waiting for a person.
+
+**People steer, agents listen.**
+
+| A person runs | Effect on agents |
+|---|---|
+| `python tools/workspace.py note "..."` | a note in every agent's inbox |
+| `python tools/workspace.py constraint "no brick may remove the fiscal rule" --to track:main` | agents cannot write until they have read it (code 503), and it stays in every inbox reply |
+| `python tools/workspace.py freeze main fiscal-debt-rule` | no agent can change that brick on that track (code 502) |
+| `python tools/workspace.py pause main` / `resume main` | no writes on the track until it resumes (code 501); reading still works |
+| `python tools/workspace.py veto main <event>` | the track goes back to its state before that event |
+| `python tools/workspace.py answer <id> "..."` | answers an agent's question |
+| `python tools/workspace.py status` | tracks, agents, operations, open questions |
+
+Agents cannot post constraints, freezes, pauses, vetoes or answers (code 104), and they cannot sign off. Every response to an agent that has unread messages carries `inbox` with their number.
+
+**Over MCP.** `python tools/mcp_server.py --agent builder-7` (or `STUDIO_AGENT`) gives each agent its name in the workspace; the `ws_*` tools are there with the others.

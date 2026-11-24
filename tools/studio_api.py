@@ -342,6 +342,7 @@ def handle(msg, ctx=None):
     ctx = ctx if ctx is not None else {}
     mid = msg.get("id") if isinstance(msg, dict) else None
     t0 = time.perf_counter()
+    name, a = None, {}
     try:
         if not isinstance(msg, dict) or not isinstance(msg.get("op"), str):
             raise OpError(100, "a message is an object with an 'op' string")
@@ -358,8 +359,6 @@ def handle(msg, ctx=None):
         for h in HOOKS["before"]:
             h(name, a, ctx)
         resp = spec["fn"](a, ctx)
-        for h in HOOKS["after"]:
-            h(name, a, resp, ctx)
     except OpError as x:
         resp = {"ok": False, "e": [[x.code, x.msg]]}
         if x.data is not None:
@@ -372,6 +371,12 @@ def handle(msg, ctx=None):
         resp = {"ok": False, "e": [[107, f"{type(x).__name__}: {x}"]]}
         if ctx.get("debug"):
             resp["trace"] = traceback.format_exc()
+    if name in OPS and isinstance(a, dict):
+        for h in HOOKS["after"]:          # after-hooks see refusals too, so the log is complete
+            try:
+                h(name, a, resp, ctx)
+            except Exception:  # noqa: BLE001
+                pass
     if mid is not None:
         resp = dict({"id": mid}, **resp)
     if ctx.get("timing"):
@@ -911,6 +916,8 @@ class _Api:
     handle = staticmethod(handle)
     ROOT = ROOT
     lego = lego
+    ops = OPS
+    codes = CODES
 
 
 api = _Api()

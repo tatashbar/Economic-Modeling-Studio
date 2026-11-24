@@ -308,5 +308,118 @@ class TestGateway(unittest.TestCase):
         self.assertIn("ar1-ols", r["structuredContent"]["r"])
 
 
+PERSON = {"human": True, "agent": "economist"}
+
+WORKER = """import sys
+sys.path.insert(0, sys.argv[1])
+import studio_api as S
+S.load_extensions()
+ws, who, k = sys.argv[2], sys.argv[3], int(sys.argv[4])
+done = 0
+while done < k:
+    g = S.handle({"op": "ws.get", "a": {"t": "count", "ws": ws}}, {"agent": who})
+    d = g["r"]["d"]; d["n"] += 1
+    r = S.handle({"op": "ws.put", "a": {"t": "count", "d": d, "base": g["h"], "ws": ws}}, {"agent": who})
+    done += bool(r["ok"])
+"""
+
+
+class TestWorkspace(unittest.TestCase):
+    def setUp(self):
+        self.dir = tempfile.mkdtemp()
+        self.ws = os.path.join(self.dir, "ws.db")
+
+    def tearDown(self):
+        import workspace
+        for c in getattr(workspace._local, "conns", {}).values():
+            c.close()
+        workspace._local.conns = {}
+        shutil.rmtree(self.dir, ignore_errors=True)
+
+    def W(self, op, ctx=None, **a):
+        return S.handle({"op": op, "a": dict(a, ws=self.ws)}, ctx if ctx is not None else {"agent": "b1"})
+
+    def test_track_edits_are_logged_and_reported(self):
+        self.assertTrue(self.W("ws.track", name="main", m=EXAMPLE, goal="annual fiscal rule")["ok"])
+        r = self.W("lego.patch", t="main", b="fiscal-debt-rule", set={"freq": "A"}, apply=True)
+        self.assertTrue(r["r"]["applied"])
+        fx = r["fix"][0]
+        self.assertTrue(self.W(fx["op"], t="main", **dict(fx["a"], apply=True))["ok"])
+        self.assertTrue(self.W("lego.bridge_test", t="main", apply=True)["r"]["pass"])
+        self.assertTrue(self.W("lego.check", t="main", strict=True)["r"]["pass"])
+        events = self.W("ws.log", t="main")["r"]["events"]
+        self.assertEqual([e[3] for e in events][:4], ["ws.track", "lego.patch", "lego.bridge", "lego.bridge_test"])
+        text = self.W("ws.report", PERSON, t="main")["r"]["text"]
+        for s in ("Goal: annual fiscal rule", "changed fiscal-debt-rule (freq)", "ran the bridge tests", "0 error(s)"):
+            self.assertIn(s, text)
+
+    def test_people_steer_agents_must_listen(self):
+        self.W("ws.track", name="main", m=EXAMPLE)
+        self.assertEqual(self.W("ws.post", kind="pause", t="main")["e"][0][0], 104)      # agents cannot pause
+        self.W("ws.post", PERSON, kind="constraint", text="keep world-exogenous", to="track:main")
+        r = self.W("lego.patch", t="main", b="fiscal-debt-rule", set={"summary": "x"}, apply=True)
+        self.assertEqual(r["e"][0][0], 503)                                           # unread message from a person
+        msgs = self.W("ws.inbox")["r"]
+        self.assertEqual(msgs["constraints"], ["keep world-exogenous"])
+        self.assertTrue(self.W("lego.patch", t="main", b="fiscal-debt-rule", set={"summary": "x"}, apply=True)["ok"])
+        self.W("ws.post", PERSON, kind="freeze", t="main", b="monetary-taylor")
+        self.W("ws.inbox")
+        r = self.W("lego.patch", t="main", b="monetary-taylor", set={"summary": "y"}, apply=True)
+        self.assertEqual(r["e"][0][0], 502)
+        self.W("ws.post", PERSON, kind="pause", t="main")
+        self.W("ws.inbox")
+        r = self.W("lego.patch", t="main", b="fiscal-debt-rule", set={"summary": "z"}, apply=True)
+        self.assertEqual(r["e"][0][0], 501)
+        self.assertTrue(self.W("lego.check", t="main")["ok"])                         # reading is still allowed
+        self.W("ws.post", PERSON, kind="resume", t="main")
+        self.W("ws.inbox")
+        self.assertTrue(self.W("lego.patch", t="main", b="fiscal-debt-rule", set={"summary": "z"}, apply=True)["ok"])
+
+    def test_veto_rolls_a_track_back(self):
+        h0 = self.W("ws.track", name="main", m=EXAMPLE)["h"]
+        r = self.W("lego.detach", t="main", b="fan-chart-output", apply=True)
+        self.assertTrue(r["r"]["applied"], r)
+        seq = self.W("ws.log", t="main")["r"]["events"][-1][0]
+        self.assertTrue(self.W("ws.post", PERSON, kind="veto", ref=seq, text="keep the fan chart")["ok"])
+        self.assertEqual(self.W("ws.get", t="main")["h"], h0)
+
+    def test_questions_wait_for_a_person(self):
+        self.W("ws.track", name="main", m=EXAMPLE)
+        q = self.W("ws.post", kind="question", text="swap the Taylor rule?", to="track:main")["r"]["id"]
+        self.assertIn("swap the Taylor rule?", self.W("ws.report", PERSON, t="main")["r"]["text"])
+        self.W("ws.post", PERSON, kind="answer", ref=q, text="no", to="agent:b1")
+        self.assertNotIn("Waiting for a person", self.W("ws.report", PERSON, t="main")["r"]["text"])
+        self.assertEqual(self.W("ws.inbox")["r"]["msgs"][-1]["text"], "no")
+
+    def test_leases_and_promotion(self):
+        self.W("ws.track", name="main", m=EXAMPLE)
+        self.W("ws.track", name="try", **{"from": "main"})
+        self.assertTrue(self.W("ws.lease", resource="brick:fiscal", ttl=30)["ok"])
+        r = self.W("ws.lease", {"agent": "b2"}, resource="brick:fiscal")
+        self.assertEqual(r["e"][0][0], 504)
+        self.W("lego.patch", t="try", b="fiscal-debt-rule", set={"summary": "better"}, apply=True)
+        head = self.W("ws.get", t="main")["h"]
+        self.assertEqual(self.W("ws.promote", t="try", into="main", base="0" * 12)["e"][0][0], 219)
+        self.assertTrue(self.W("ws.promote", t="try", into="main", base=head)["ok"])
+        self.assertEqual(self.W("ws.get", t="main")["h"], self.W("ws.get", t="try")["h"])
+
+    def test_no_write_is_lost_with_many_writers(self):
+        import threading
+        self.W("ws.track", name="count", d={"n": 0}, kind="json")
+
+        def worker(i):
+            done = 0
+            while done < 3:
+                g = self.W("ws.get", {"agent": f"t{i}"}, t="count")
+                d = dict(g["r"]["d"], n=g["r"]["d"]["n"] + 1)
+                done += bool(self.W("ws.put", {"agent": f"t{i}"}, t="count", d=d, base=g["h"])["ok"])
+        threads = [threading.Thread(target=worker, args=(i,)) for i in range(40)]
+        [t.start() for t in threads]
+        procs = [subprocess.Popen([sys.executable, "-c", WORKER, TOOLS, self.ws, f"p{i}", "5"]) for i in range(4)]
+        [t.join() for t in threads]
+        [p.wait(timeout=300) for p in procs]
+        self.assertEqual(self.W("ws.get", t="count")["r"]["d"]["n"], 40 * 3 + 4 * 5)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

@@ -8,6 +8,7 @@ registry, the brick catalog and the guides are MCP resources.
 Run (stdio transport; MCP clients start it for you, see .mcp.json):
     python tools/mcp_server.py
     python tools/mcp_server.py --tools lego,ka        only these groups of operations
+    python tools/mcp_server.py --agent builder-7      the agent's name in the shared workspace (tools/workspace.py)
     python tools/mcp_server.py --compact              one tool, studio_call, that takes protocol messages and
                                                       batches: for agents that drive many operations at once
 
@@ -232,12 +233,14 @@ def main(argv=None):
     ap.add_argument("--tools", help="comma-separated operation groups to offer (default: all)")
     ap.add_argument("--compact", action="store_true", help="one tool, studio_call, taking protocol messages")
     ap.add_argument("--list", action="store_true", help="print the tools and exit")
+    ap.add_argument("--agent", default=os.environ.get("STUDIO_AGENT"),
+                    help="the agent's name in the shared workspace (default: STUDIO_AGENT)")
     a = ap.parse_args(argv)
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8", newline="\n")
     if hasattr(sys.stdin, "reconfigure"):
         sys.stdin.reconfigure(encoding="utf-8")
-    srv = Server(a.tools.split(",") if a.tools else None, a.compact)
+    srv = Server(a.tools.split(",") if a.tools else None, a.compact, ctx={"agent": a.agent} if a.agent else {})
     if a.list:
         for t in srv.tools():
             print(f"{t['name']:<24} {t['description']}")
