@@ -127,7 +127,7 @@ The servers are listed in `mcp/servers.json`, in the same form as `.mcp.json`:
 }}
 ```
 
-`python tools/mcp_gateway.py --status` starts them all and prints their state. In a test on a laptop, 100 small servers and the studio started in about three seconds, and a batch of 102 calls across them came back in a few hundredths of a second. The tests in `tools/test_agents.py` start 30 servers, one of which cannot start, and check search, parallel calls, order, and refusal of denied tools.
+`python tools/mcp_gateway.py --status` starts them all and prints their state. In a test, 100 small servers and the studio started together, and a batch of 102 calls across them came back in one request. The tests in `tools/test_agents.py` start 30 servers, one of which cannot start, and check search, parallel calls, order, and refusal of denied tools.
 
 ## A shared workspace for many agents, with people in charge
 `tools/workspace.py` is where many agents build models together. It is one SQLite file (standard library), safe for many processes at once, kept in `production/session-state/` (outside git) unless `STUDIO_WORKSPACE` or the `ws` argument names another.
@@ -238,7 +238,7 @@ A formula may use only its listed variables, the parameters, numbers and `min`, 
 
 **Known answers.** `python tools/economy.py known`: money conserved every period; an entity added by configuration collects exactly what its formula says, with money still conserved; a scheduled change and a parameter rule apply from exactly the period they name; the same seed gives the same economy and another seed another draw; with one type of household and no frictions, deposits settle at the level the spending rule implies, (1 - mpc_y) y / mpc_w; the policy rule at known points; and a formula that tries to call anything outside the list is refused.
 
-**Scale.** A thousand households, 50 firms and 200 quarters take about three seconds on a laptop; 10,000 households and 1,000 firms about 17 seconds per hundred quarters. Larger economies (up to a million households) are allowed; time grows roughly in proportion to the number of households. Several seeds or scenarios run in parallel processes (`--seeds 8`, or `seeds` in `economy.run`). Shocks change a parameter from a given quarter (`"shocks": [{"param": "g_share", "value": 0.25, "at": 80}]`).
+**Scale.** The number of households, firms and other entities is yours to set, for example 1,000 households and 50 firms, or 10,000 households and 1,000 firms; up to a million households are allowed. Run time grows roughly in proportion to the number of agents and with the complexity of the rules. Several seeds or scenarios run in parallel processes (`--seeds 8`, or `seeds` in `economy.run`). Shocks change a parameter from a given quarter (`"shocks": [{"param": "g_share", "value": 0.25, "at": 80}]`).
 
 **For agents.** `economy.new`, `economy.params`, `economy.rules`, `economy.entities`, `economy.check`, `economy.run` and `economy.known`. An economy can live on a workspace track (`ws.track` with `kind: "economy"`), where many agents try changes on their own tracks and the report shows people the parameters and the last results.
 
@@ -262,7 +262,7 @@ python tools/evolve.py run calib --rounds 10
 
 **Scores.** The distance to the targets is a weighted sum of squared relative gaps. A run in which money is not conserved, or a candidate that breaks a parameter bound or a rule, is rejected. Models other than the economy plug in with `evolve.objective("kind")`; a lego model can be scored on its errors and warnings.
 
-In a test with 200 households, eight rounds of twelve candidates each cut the distance to the targets from 1.47 to 0.21 in about 25 seconds, and the hidden cases refused several candidates along the way.
+In a test with 200 households, eight rounds of twelve candidates each cut the distance to the targets from 1.47 to 0.21, and the hidden cases refused several candidates along the way.
 
 ## A swarm in one command
 `tools/swarm.py` shows all of the above working together. It starts a workspace with an economy of 1,000 households, opens a study (unemployment 6%, inflation 2%, a wealth Gini of 0.35) and runs 100 built-in agents:
@@ -282,7 +282,7 @@ python tools/swarm.py --agents 100 --households 1000 --rounds 6 --person-at 3 "k
 
 With `--person-at`, a person steps in after the given round: they read the report, leave a constraint and freeze `theta_w`. From that moment every agent must read the message before it can propose again, and nothing changes `theta_w`. While the swarm runs, anyone can do the same from another terminal with `tools/workspace.py`.
 
-In a test on a 16-core laptop, 100 agents exchanged about 28,000 protocol messages in 81 seconds (about 340 a second). Four rounds of 32 candidates on the 1,000-household economy each took about 15 seconds. The distance to the targets fell from 1.58 to 0.73, every champion held up on the hidden cases, and the person's constraint and freeze were obeyed from the round they were set.
+In a test, 100 agents exchanged about 28,000 protocol messages over four rounds of 32 candidates on the 1,000-household economy. The distance to the targets fell from 1.58 to 0.73, every champion held up on the hidden cases, and the person's constraint and freeze were obeyed from the round they were set.
 
 ## Putting it together
 A typical setup for a team of agents:
