@@ -154,5 +154,159 @@ class TestProtocol(unittest.TestCase):
             shutil.rmtree(d)
 
 
+TINY = """import json, sys
+n = sys.argv[1]
+for line in sys.stdin:
+    r = json.loads(line); i = r.get("id")
+    if i is None:
+        continue
+    m = r["method"]
+    if m == "initialize":
+        res = {"protocolVersion": "2025-06-18", "capabilities": {"tools": {}}, "serverInfo": {"name": n, "version": "1"}}
+    elif m == "tools/list":
+        res = {"tools": [{"name": "series_" + n, "description": "statistics series " + n, "inputSchema": {"type": "object"}},
+                         {"name": "delete_all", "description": "remove everything", "inputSchema": {"type": "object"}}]}
+    elif m == "tools/call":
+        res = {"content": [{"type": "text", "text": json.dumps({"server": n, "args": r["params"]["arguments"]})}]}
+    else:
+        res = {}
+    print(json.dumps({"jsonrpc": "2.0", "id": i, "result": res}), flush=True)
+"""
+
+
+def rpc(i, method, params=None):
+    return {"jsonrpc": "2.0", "id": i, "method": method, "params": params or {}}
+
+
+class TestMCP(unittest.TestCase):
+    def setUp(self):
+        import mcp_server
+        self.M = mcp_server
+        self.srv = mcp_server.Server()
+
+    def ask(self, method, params=None):
+        return self.srv.dispatch(rpc(1, method, params))
+
+    def test_initialize_and_capabilities(self):
+        r = self.ask("initialize", {"protocolVersion": "2025-03-26", "capabilities": {}, "clientInfo": {"name": "t"}})
+        self.assertEqual(r["result"]["protocolVersion"], "2025-03-26")
+        for cap in ("tools", "resources", "prompts"):
+            self.assertIn(cap, r["result"]["capabilities"])
+        self.assertIn("studio_hello", r["result"]["instructions"])
+        self.assertIsNone(self.srv.dispatch({"jsonrpc": "2.0", "method": "notifications/initialized"}))
+
+    def test_every_operation_is_a_tool_except_sign_off(self):
+        tools = self.ask("tools/list")["result"]["tools"]
+        names = {t["name"] for t in tools}
+        for opname, spec in S.OPS.items():
+            (self.assertNotIn if spec["human"] else self.assertIn)(self.M.tool_name(opname), names)
+        for t in tools:
+            self.assertEqual(t["inputSchema"]["type"], "object")
+
+    def test_tool_call_returns_structured_protocol_response(self):
+        r = self.ask("tools/call", {"name": "lego_check", "arguments": {"m": EXAMPLE}})["result"]
+        self.assertFalse(r["isError"])
+        self.assertTrue(r["structuredContent"]["r"]["pass"])
+        r = self.ask("tools/call", {"name": "lego_detach", "arguments": {"m": EXAMPLE, "b": "world-exogenous",
+                                                                         "apply": True}})["result"]
+        self.assertTrue(r["isError"])
+        self.assertEqual(r["structuredContent"]["e"][0][0], 218)
+
+    def test_compact_mode_takes_batches(self):
+        srv = self.M.Server(compact=True)
+        tools = srv.dispatch(rpc(1, "tools/list"))["result"]["tools"]
+        self.assertEqual([t["name"] for t in tools], ["studio_call"])
+        r = srv.dispatch(rpc(2, "tools/call", {"name": "studio_call", "arguments": {"msg": [
+            {"op": "hello", "a": {"brief": True}}, {"op": "lego.check", "a": {"m": EXAMPLE}}]}}))["result"]
+        self.assertEqual(len(r["structuredContent"]["batch"]), 2)
+
+    def test_skills_are_prompts_and_guides_are_resources(self):
+        prompts = self.ask("prompts/list")["result"]["prompts"]
+        self.assertEqual(len(prompts), len(os.listdir(os.path.join(ROOT, ".claude", "skills"))))
+        r = self.ask("prompts/get", {"name": "lego-check", "arguments": {"request": "my model"}})["result"]
+        self.assertIn("my model", r["messages"][0]["content"]["text"])
+        uris = [x["uri"] for x in self.ask("resources/list")["result"]["resources"]]
+        self.assertIn("studio://protocol", uris)
+        proto = json.loads(self.ask("resources/read", {"uri": "studio://protocol"})["result"]["contents"][0]["text"])
+        self.assertEqual(proto["protocol"], "esp/1")
+        self.assertIn("error", self.ask("resources/read", {"uri": "studio://nothing"}))
+        self.assertIn("error", self.ask("no/such/method"))
+
+    def test_stdio_server(self):
+        msgs = [rpc(1, "initialize", {"protocolVersion": "2025-06-18", "capabilities": {}, "clientInfo": {"name": "t"}}),
+                {"jsonrpc": "2.0", "method": "notifications/initialized"},
+                rpc(2, "tools/call", {"name": "ka_check", "arguments": {"case": "bridge-flow", "result": {"annual": 10}}})]
+        p = subprocess.run([sys.executable, os.path.join(TOOLS, "mcp_server.py")],
+                           input="\n".join(json.dumps(m) for m in msgs) + "\n", capture_output=True, text=True,
+                           timeout=60, cwd=ROOT)
+        out = [json.loads(x) for x in p.stdout.splitlines()]
+        self.assertEqual([o["id"] for o in out], [1, 2])
+        self.assertTrue(out[1]["result"]["structuredContent"]["r"]["pass"])
+
+    def test_project_mcp_config_points_at_the_server(self):
+        with open(os.path.join(ROOT, ".mcp.json"), encoding="utf-8") as f:
+            cfg = json.load(f)
+        spec = list(cfg["mcpServers"].values())[0]
+        self.assertTrue(os.path.exists(os.path.join(ROOT, spec["args"][0])))
+
+
+class TestGateway(unittest.TestCase):
+    N = 30
+
+    @classmethod
+    def setUpClass(cls):
+        import mcp_gateway
+        cls.G = mcp_gateway
+        cls.dir = tempfile.mkdtemp()
+        tiny = os.path.join(cls.dir, "tiny.py")
+        with open(tiny, "w", encoding="utf-8") as f:
+            f.write(TINY)
+        servers = {f"s{i}": {"command": "python", "args": [tiny, str(i)], "deny": ["delete_*"]} for i in range(cls.N)}
+        servers["studio"] = {"command": "python", "args": ["tools/mcp_server.py"]}
+        servers["broken"] = {"command": "no-such-program-for-the-studio-test"}
+        cls.cfg = os.path.join(cls.dir, "servers.json")
+        with open(cls.cfg, "w", encoding="utf-8") as f:
+            json.dump({"mcpServers": servers}, f)
+        cls.gw = mcp_gateway.Gateway(mcp_gateway.load_config(cls.cfg), workers=32)
+        cls.gw.start()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.gw.stop()
+        shutil.rmtree(cls.dir, ignore_errors=True)
+
+    def test_many_servers_start_and_a_broken_one_does_not_stop_them(self):
+        rows = {r["server"]: r for r in self.gw.servers()}
+        self.assertEqual(sum(r["up"] for r in rows.values()), self.N + 1)
+        self.assertFalse(rows["broken"]["up"])
+        self.assertIn("error", rows["broken"])
+        self.assertEqual(rows["s3"]["tools"], 1)          # delete_all is denied by the configuration
+
+    def test_search_finds_tools_across_servers(self):
+        found = [x["tool"] for x in self.gw.search("bridge frequency", 5)]
+        self.assertIn("studio__bridge_convert", found)
+        self.assertEqual(self.gw.search("series 7", 1)[0]["tool"], "s7__series_7")
+
+    def test_batch_runs_in_parallel_and_keeps_order(self):
+        calls = [{"tool": f"s{i}__series_{i}", "arguments": {"k": i}} for i in range(self.N)]
+        calls += [{"tool": "studio__lego_check", "arguments": {"m": EXAMPLE}}, {"tool": "s1__delete_all"},
+                  {"tool": "nobody__x"}]
+        out = self.gw.batch(calls)
+        for i in range(self.N):
+            self.assertEqual(json.loads(out[i]["result"]["content"][0]["text"])["args"], {"k": i})
+        self.assertTrue(out[self.N]["result"]["structuredContent"]["r"]["pass"])
+        self.assertIn("not allowed", out[self.N + 1]["error"])
+        self.assertIn("no server", out[self.N + 2]["error"])
+
+    def test_router_and_flat_tool_lists(self):
+        names = [t["name"] for t in self.gw.list_tools()]
+        self.assertEqual(names, ["gateway_servers", "gateway_search", "gateway_call", "gateway_batch"])
+        flat = self.G.Gateway({}, flat=True)
+        flat.ups, flat._started = self.gw.ups, True
+        self.assertIn("studio__lego_check", [t["name"] for t in flat.list_tools()])
+        r = self.gw.call_tool("gateway_call", {"tool": "studio__ka_list"})
+        self.assertIn("ar1-ols", r["structuredContent"]["r"])
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

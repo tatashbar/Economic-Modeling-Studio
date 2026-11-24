@@ -2,7 +2,7 @@
 
 # Economic Modeling Studio
 
-**Version 2.5.0**
+**Version 2.6.0**
 
 A studio for building, estimating, validating and using economic models. **127 specialist agents** and **94 skills** (workflow commands such as `/build-dsge` or `/validate-model`) cover specification, building, estimation and independent validation for semi-structural projection and DSGE, input-output and CGE, trade and climate-economy models, deep learning, reinforcement learning, neural-network solvers, LLM-based tools, agent-based and game-theoretic models, and other econometric models. The studio also lets you work with every model as a **lego set**: a core model with plug-and-play components that can be added, swapped or removed, with explicit interfaces and the impact of every change checked first. It also **translates model code** between the languages and software economists use (Stata, R, Python, MATLAB, Dynare, EViews, SAS, GAMS, Fortran, COBOL and more), and tests the translation against the original's outputs. It works with any coding agent that reads `AGENTS.md`: Claude Code, Codex, Cursor, Grok Build, Gemini CLI and others.
 
@@ -159,6 +159,8 @@ python tools/studio_api.py hello
 python tools/studio_api.py call '{"op":"lego.check","a":{"m":"lego/examples/small-open-economy.lego.json"}}'
 python tools/studio_api.py serve        # JSON lines on standard input and output
 ```
+
+**As an MCP server.** `tools/mcp_server.py` offers every operation as a tool, the 94 skills as prompts, and the protocol, port registry, catalog and guides as resources, to any MCP client. Claude Code finds it in `.mcp.json`. **Many servers at once:** `tools/mcp_gateway.py` puts tens or hundreds of MCP servers (the studio, data sources, other tools) behind one, starts them in parallel, lets the agent search all their tools by keyword and call many of them in parallel in one request, and keeps working when one of them fails.
 
 The economist's sign-off stays with people: agents are refused it. New operations, finding codes and places a model can live are added as extensions in `extensions/`. See [docs/agents.md](docs/agents.md).
 
@@ -338,6 +340,8 @@ studio-config.yaml         rigor by model class, data classes, approved toolchai
 .githooks/                 git pre-commit guard (any tool)
 .claude/docs/              collaboration protocol, coordination, phase gates, risk levels, model classes, confidentiality and AI use
 docs/                      templates (23), lego guide, guide for AI agents (docs/agents.md), screenshots (docs/images), agent roster, command catalog, code translation guide with the language list and idioms (docs/translation); briefs, models, notes, references, training
+.mcp.json                  registers the studio's MCP server for Claude Code
+mcp/servers.json           the MCP servers behind the gateway
 extensions/                operations, codes and model stores added to the studio protocol (register(api))
 lego/                      brick catalog (20 reusable bricks), shared port definitions, two worked examples, a bridge exercise
 models/                    model code by family: semi-structural, fpas, financial-programming, dsge, multicountry,
@@ -350,6 +354,8 @@ tools/lego.py              lego engine: catalog, new, show, check, attach, detac
 tools/bridge.py            frequency bridges: conversion with a declared method, completeness checks, known-answer tests
 tools/known_answer.py      known-answer exercises for validators and teaching (bridges, AR(1), VAR impulse responses, steady states)
 tools/studio_api.py        the studio protocol for agents and programs: handshake, operations, finding codes and fixes, safe writes, extensions
+tools/mcp_server.py        the studio as an MCP server: operations as tools, skills as prompts, guides and registries as resources
+tools/mcp_gateway.py       one MCP server in front of many: parallel start, tool search, parallel calls, allow and deny lists
 tools/lego_view.py         isometric 3D picture of a lego set (self-contained HTML)
 tools/intake.py            reads research notes (numbered paragraphs), inventories data workbooks and shows the formulas behind them, for /research-plan
 tools/report.py            writes a Word report and a PowerPoint presentation from a Markdown results report, and collects all results in one folder and zip (standard library only)
@@ -384,6 +390,7 @@ Adapt `studio-config.yaml` and `.claude/docs/confidentiality-and-ai-use.md` to t
 Agents and skills are Markdown files with YAML frontmatter; edit them freely. After changes run `python tools/validate_studio.py`. To add an agent, create `.claude/agents/<name>.md` and list it as a peer in the related agents. To add a command, create `.claude/skills/<name>/SKILL.md`. Path-scoped standards live in `.claude/rules/`. After changing commands or rules, run `python tools/sync_agents.py` to update the copies for other coding agents.
 
 ## Version history
+- **2.6.0** — MCP. The studio is an MCP server (`tools/mcp_server.py`, standard library only): every protocol operation is a tool with structured results, the skills are prompts, and the protocol, port registry, catalog, examples and guides are resources; a compact mode takes whole batches in one tool. A gateway (`tools/mcp_gateway.py`) puts many MCP servers behind one: it starts them in parallel, indexes their tools for keyword search, runs many calls in parallel, applies allow and deny lists, and keeps going when a server fails. `.mcp.json` registers the studio for Claude Code.
 - **2.5.0** — A protocol for AI agents. `tools/studio_api.py` gives agents and programs one interface to the studio: compact JSON messages, single or in batches; findings as stable numbered codes; ready-made fixes that an agent sends back unchanged; plans in memory on inline models; writes that are refused if the model changed since the agent read it; and a handshake (`hello`) that teaches the whole protocol in one call. `say` turns any response into plain language for a person, and the economist's sign-off is refused to agents. Three transports (command line, a JSON-lines server, Python) and extensions that add operations and codes. New guide `docs/agents.md`.
 - **2.4.0** — Known answers and separate sign-off. Bridges between frequencies now declare a method for each variable (`sum`, `average`, `last`, `first`, `split`, `repeat`, `interpolate`) instead of a text note, refuse incomplete or duplicated periods before converting, and are tested on known answers with `lego.py bridge-test` (1, 2, 3, 4 gives 10 as a flow, 4 as a stock, 2.5 as a rate). `check --strict` makes warnings fail. Each brick keeps three separate records: wiring, numbers (independent validation, which needs passing bridge tests) and the economist's sign-off (`lego.py approve`), which is withdrawn when the brick changes. New `tools/known_answer.py` with exercises for validators, now part of `/validate-model`, and a stand-alone bridge exercise. Thanks to the QuantEcon community for the suggestion.
 - **2.2.1** — No invented durations: model classes, the planner, `/model-brief` and `/select-model-class` no longer give fixed timelines such as "days to 2 weeks". Plans name what sets the calendar (data access, reviews, validation, sign-off), and dates come only from the user's deadlines, fixed dates or records of earlier projects.
