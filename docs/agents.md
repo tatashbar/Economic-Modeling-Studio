@@ -1,6 +1,6 @@
 # The studio for AI agents
 
-People use the studio through commands and readable reports. AI agents, including agents from outside the studio (any AI agent or system of agents, on any model or framework), can use it too, and need something else: short messages, numbered findings they can act on, fixes they can send back unchanged, and safe ways for many of them to work on the same model. This guide covers the machine side of the studio.
+People use the studio through commands and readable reports. From version 3.0 the studio and its agents can also be used by outside agents: any AI agent or system of agents, on any model or framework. They need something else: short messages, numbered findings they can act on, fixes they can send back unchanged, and safe ways for many of them to work on the same model. This guide covers the machine side of the studio.
 
 - [The studio protocol](#the-studio-protocol)
 - [The studio as an MCP server](#the-studio-as-an-mcp-server)
@@ -58,6 +58,7 @@ python tools/studio_api.py hello
 | lego | `lego.catalog`, `lego.ports`, `lego.get`, `lego.check`, `lego.text`, `lego.new`, `lego.attach`, `lego.detach`, `lego.swap`, `lego.patch`, `lego.bridge`, `lego.bridge_test`, `lego.validate`, `lego.approve` (people only) |
 | bridges | `bridge.methods`, `bridge.convert` |
 | known answers | `ka.list`, `ka.task` (inputs inline, never the answer), `ka.check` |
+| the studio's agents and skills | `agents.list`, `agents.get` (a specialist's full instructions), `agents.brief` (those instructions plus your task, ready for your own model or subagent), `skills.list`, `skills.get` |
 
 ### Transports
 The same messages travel in three ways:
@@ -89,7 +90,7 @@ Extensions can also add checks that run before or after every operation (`api.ho
 
 - **Tools.** Every operation of the protocol is a tool: `lego.check` is `lego_check`, `hello` is `studio_hello`. Operations added by extensions appear without changes. The sign-off is not offered at all. Tools that change a model are marked as such and change it only with `apply: true`. Each result carries the protocol response as structured content, so an agent reads codes, fixes and fingerprints directly.
 - **Prompts.** The 94 skills are prompts: `/lego-check`, `/validate-model` and the rest, with the full instructions.
-- **Resources.** The protocol (`studio://protocol`), the port registry, the brick catalog, the example models, `AGENTS.md`, the guides, and each skill (`studio://skills/<name>`).
+- **Resources.** The protocol (`studio://protocol`), the port registry, the brick catalog, the example models, `AGENTS.md`, the guides, each skill (`studio://skills/<name>`) and each specialist agent (`studio://agents/<name>`).
 - **Compact mode.** `--compact` offers a single tool, `studio_call`, that takes protocol messages and batches: one tool description instead of twenty, and many operations per call.
 - **Fewer tools.** `--tools lego,ka` offers only some groups.
 

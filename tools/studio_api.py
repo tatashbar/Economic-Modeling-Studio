@@ -901,6 +901,80 @@ def _ka_check(a, ctx):
     return resp
 
 
+# ------------------------------------------------------------------ the studio's specialist agents and skills
+def _md_files(kind):
+    """{name: (description, body)} for .claude/agents/*.md or .claude/skills/*/SKILL.md."""
+    pattern = os.path.join(ROOT, ".claude", "agents", "*.md") if kind == "agents" else \
+        os.path.join(ROOT, ".claude", "skills", "*", "SKILL.md")
+    out = {}
+    for path in sorted(glob.glob(pattern)):
+        with open(path, encoding="utf-8") as f:
+            text = f.read()
+        name = os.path.basename(path)[:-3] if kind == "agents" else os.path.basename(os.path.dirname(path))
+        mt = re.search(r'^description:\s*"?(.*?)"?\s*$', text, re.M)
+        body = re.sub(r"^---\n.*?\n---\n", "", text, flags=re.S).strip()
+        out[name] = (mt.group(1) if mt else "", body)
+    return out
+
+
+def _find(kind, a):
+    items = _md_files(kind)
+    words = [w for w in re.split(r"\W+", (a.get("query") or "").lower()) if w]
+    rows = []
+    for name, (desc, _) in items.items():
+        hay = f"{name} {desc}".lower()
+        score = sum(hay.count(w) for w in words)
+        if score or not words:
+            rows.append((-score, name, desc))
+    rows.sort()
+    return {n: d for _, n, d in rows[: int(a.get("limit", 200))]}
+
+
+@op("agents.list", "the studio's specialist agents (an outside agent can take on any of them); query filters them", {
+    "query": "str? words to look for in names and descriptions", "limit": "int? most results"})
+def _agents_list(a, ctx):
+    return _ok(_find("agents", a))
+
+
+@op("agents.get", "a specialist's full instructions: what it knows, the checks it runs, the mistakes it watches for", {
+    "name": "str the agent's name, from agents.list"})
+def _agents_get(a, ctx):
+    items = _md_files("agents")
+    if a["name"] not in items:
+        raise OpError(106, f"no agent '{a['name']}' (agents.list lists them)")
+    desc, body = items[a["name"]]
+    return _ok({"name": a["name"], "description": desc, "instructions": body})
+
+
+@op("agents.brief", "a ready-to-use brief: a specialist's instructions plus your task, to give to your own model or "
+    "subagent", {"name": "str the agent's name", "task": "str what you want the specialist to do"})
+def _agents_brief(a, ctx):
+    items = _md_files("agents")
+    if a["name"] not in items:
+        raise OpError(106, f"no agent '{a['name']}' (agents.list lists them)")
+    desc, body = items[a["name"]]
+    brief = (f"Act as the studio's specialist '{a['name']}' ({desc}). Follow these instructions, then do the task.\n\n"
+             f"{body}\n\n## Task\n{a['task']}\n\nUse the studio's operations (hello lists them) to check your work: "
+             "findings come back as codes with fixes. The economist's sign-off is given by a person, never by you.")
+    return _ok({"brief": brief})
+
+
+@op("skills.list", "the studio's skills (workflow commands such as /build-dsge); query filters them", {
+    "query": "str? words to look for", "limit": "int? most results"})
+def _skills_list(a, ctx):
+    return _ok(_find("skills", a))
+
+
+@op("skills.get", "a skill's full workflow: the steps, where it stops for approval, which agents do the work", {
+    "name": "str the skill's name, from skills.list"})
+def _skills_get(a, ctx):
+    items = _md_files("skills")
+    if a["name"] not in items:
+        raise OpError(106, f"no skill '{a['name']}' (skills.list lists them)")
+    desc, body = items[a["name"]]
+    return _ok({"name": a["name"], "description": desc, "workflow": body})
+
+
 # ------------------------------------------------------------------ extensions
 class _Api:
     """What an extension's register(api) receives."""

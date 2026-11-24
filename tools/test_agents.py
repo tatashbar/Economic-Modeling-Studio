@@ -89,6 +89,21 @@ class TestProtocol(unittest.TestCase):
         self.assertEqual(r["e"][0][0], 404)
         self.assertIn("2025Q3", r["e"][0][1])
 
+    def test_outside_agents_reach_the_studio_agents_and_skills(self):
+        n_agents = len([f for f in os.listdir(os.path.join(ROOT, ".claude", "agents")) if f.endswith(".md")])
+        self.assertEqual(len(H("agents.list")["r"]), n_agents)
+        found = H("agents.list", query="translation equivalence", limit=3)["r"]
+        self.assertIn("translation-equivalence-auditor", found)
+        r = H("agents.get", name="source-code-analyst")["r"]
+        self.assertIn("Source Code Analyst", r["instructions"])
+        self.assertNotIn("maxTurns", r["instructions"])                  # the frontmatter is left out
+        brief = H("agents.brief", name="source-code-analyst", task="map the do-files in folder X")["r"]["brief"]
+        self.assertIn("map the do-files in folder X", brief)
+        self.assertIn("never by you", brief)
+        self.assertEqual(H("agents.get", name="nobody")["e"][0][0], 106)
+        self.assertIn("lego-check", H("skills.list", query="lego")["r"])
+        self.assertIn("lego", H("skills.get", name="lego-check")["r"]["workflow"])
+
     def test_signoff_is_for_people_only(self):
         r = H("lego.approve", m=EXAMPLE, b="core-gap-open", by="agent")
         self.assertEqual(r["e"][0][0], 104)

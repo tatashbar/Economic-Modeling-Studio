@@ -129,6 +129,10 @@ class Server:
         if mt and os.path.isfile(os.path.join(ROOT, "lego", "examples", mt.group(1))):
             with open(os.path.join(ROOT, "lego", "examples", mt.group(1)), encoding="utf-8") as f:
                 return "application/json", f.read()
+        mt = re.match(r"studio://agents/([a-z0-9-]+)$", uri)
+        if mt and os.path.isfile(os.path.join(ROOT, ".claude", "agents", mt.group(1) + ".md")):
+            with open(os.path.join(ROOT, ".claude", "agents", mt.group(1) + ".md"), encoding="utf-8") as f:
+                return "text/markdown", f.read()
         mt = re.match(r"studio://skills/([a-z0-9-]+)$", uri)
         if mt and os.path.isfile(os.path.join(ROOT, ".claude", "skills", mt.group(1), "SKILL.md")):
             with open(os.path.join(ROOT, ".claude", "skills", mt.group(1), "SKILL.md"), encoding="utf-8") as f:
@@ -183,7 +187,9 @@ class Server:
                 result = {"resources": self.resources()}
             elif method == "resources/templates/list":
                 result = {"resourceTemplates": [{"uriTemplate": "studio://skills/{name}", "name": "Skill instructions",
-                                                 "mimeType": "text/markdown"}]}
+                                                 "mimeType": "text/markdown"},
+                                                {"uriTemplate": "studio://agents/{name}",
+                                                 "name": "A specialist agent's instructions", "mimeType": "text/markdown"}]}
             elif method == "resources/read":
                 try:
                     mime, text = self.read(params.get("uri", ""))
