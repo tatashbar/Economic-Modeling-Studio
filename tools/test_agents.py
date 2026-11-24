@@ -572,5 +572,29 @@ class TestEvolve(unittest.TestCase):
         self.assertIn("champion", r["r"])
 
 
+class TestSwarm(unittest.TestCase):
+    def test_a_small_swarm_with_a_person_stepping_in(self):
+        d = tempfile.mkdtemp()
+        try:
+            report = os.path.join(d, "report.md")
+            p = subprocess.run([sys.executable, os.path.join(TOOLS, "swarm.py"), "--agents", "20", "--households", "100",
+                                "--firms", "8", "--periods", "30", "--rounds", "2", "--per-round", "8", "--pace", "0.05",
+                                "--workers", "1", "--person-at", "1", "keep the tax rate", "--ws",
+                                os.path.join(d, "ws.db"), "--report", report],
+                               capture_output=True, text=True, timeout=600, cwd=ROOT)
+            self.assertEqual(p.returncode, 0, p.stderr[-2000:])
+            out = p.stdout
+            for s in ("20 agents", "round 1:", "round 2:", "a person stepped in", "protocol messages", "champion"):
+                self.assertIn(s, out)
+            self.assertNotIn("agent error", out)
+            with open(report, encoding="utf-8") as f:
+                text = f.read()
+            self.assertIn("Constraint: keep the tax rate", text)
+            self.assertIn("Frozen: theta_w", text)
+            self.assertIn("Improvement studies on this track", text)
+        finally:
+            shutil.rmtree(d, ignore_errors=True)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

@@ -8,6 +8,8 @@ People use the studio through commands and readable reports. AI agents need some
 - [A shared workspace for many agents, with people in charge](#a-shared-workspace-for-many-agents-with-people-in-charge)
 - [An economy of a thousand households](#an-economy-of-a-thousand-households)
 - [The improvement loop](#the-improvement-loop)
+- [A swarm in one command](#a-swarm-in-one-command)
+- [Putting it together](#putting-it-together)
 
 ## The studio protocol
 `tools/studio_api.py` is one interface to the studio for programs and agents. A message is a JSON object with an operation and its arguments; a response says whether it worked, gives the result, the findings as numbered codes, a fingerprint of the state and, where the studio knows one, the operations that would fix each finding.
@@ -177,7 +179,7 @@ A person or an agent can replace any of them in the configuration (`"rules": {"c
 **What it is not.** A stylized model for experiments, teaching and testing agents' work, not a calibrated model of any country. Its default parameters give a stable economy with low unemployment and moderate inflation; matching a country's facts is a calibration task (see the improvement loop).
 
 ## The improvement loop
-`tools/evolve.py` lets many agents improve a model together, round after round, without fooling themselves.
+`tools/evolve.py` lets many agents improve a model together, round after round, without fooling themselves. We call this recursive self-improvement modeling (RSIM): each round starts from the best model so far, and agents propose the next changes in light of what the previous rounds found.
 
 **A study says what better means.** It names a workspace track (the model to improve), targets for the model's results with weights (for example unemployment 6% and inflation 2%), what candidates may change (parameters within ranges and, if allowed, behaviour rules), the training cases (seeds) agents can see, a budget of model runs, and how many variations the loop adds each round.
 
@@ -195,3 +197,32 @@ python tools/evolve.py run calib --rounds 10
 **Scores.** The distance to the targets is a weighted sum of squared relative gaps. A run in which money is not conserved, or a candidate that breaks a parameter bound or a rule, is rejected. Models other than the economy plug in with `evolve.objective("kind")`; a lego model can be scored on its errors and warnings.
 
 In a test with 200 households, eight rounds of twelve candidates each cut the distance to the targets from 1.47 to 0.21 in about 25 seconds, and the hidden cases refused several candidates along the way.
+
+## A swarm in one command
+`tools/swarm.py` shows all of the above working together. It starts a workspace with an economy of 1,000 households, opens a study (unemployment 6%, inflation 2%, a wealth Gini of 0.35) and runs 100 built-in agents:
+
+| Role | What it does |
+|---|---|
+| explorers | read the leaderboard and propose candidates: a nudge to one parameter, a blend of two good candidates, or a long jump, each with a reason |
+| critics | read each new champion's results and leave a note on what is furthest from target; a lease makes sure only one critic writes about each champion |
+| validators | rerun the champion at small scale and the engine's known-answer tests, and report |
+| a runner | holds the loop's lease and runs its rounds: scoring in parallel, hidden cases, promotion |
+
+The built-in agents use no AI service; they use the protocol exactly as any agent does. Language-model agents join the same workspace over MCP (`python tools/mcp_server.py --agent NAME`, with `STUDIO_WORKSPACE` pointing at the same file) or the protocol, as more names on the same tracks.
+
+```
+python tools/swarm.py --agents 100 --households 1000 --rounds 6 --person-at 3 "keep the tax rate as it is" --report swarm-report.md
+```
+
+With `--person-at`, a person steps in after the given round: they read the report, leave a constraint and freeze `theta_w`. From that moment every agent must read the message before it can propose again, and nothing changes `theta_w`. While the swarm runs, anyone can do the same from another terminal with `tools/workspace.py`.
+
+In a test on a 16-core laptop, 100 agents exchanged about 28,000 protocol messages in 81 seconds (about 340 a second). Four rounds of 32 candidates on the 1,000-household economy each took about 15 seconds. The distance to the targets fell from 1.58 to 0.73, every champion held up on the hidden cases, and the person's constraint and freeze were obeyed from the round they were set.
+
+## Putting it together
+A typical setup for a team of agents:
+
+1. A person starts a track from a model (`python tools/workspace.py track main models/.../model.lego.json --goal "..."`) or an economy, and if it is to be improved, a study with targets (`python tools/evolve.py start ...`).
+2. Agents connect over MCP or the protocol, each with its own name, and read `hello` (or the `studio://protocol` resource). If they need data or other tools, the gateway gives them many MCP servers through one connection.
+3. Agents work on their own forks of the track, propose to the study, divide work with leases and leave notes. Their writes never collide.
+4. People look in whenever they like (`report`, `status`), answer questions, set constraints, freeze what must not change and pause or undo when needed.
+5. The model's numbers are validated independently, and the economist's sign-off (`python tools/lego.py approve`) is given by a person, never by an agent.

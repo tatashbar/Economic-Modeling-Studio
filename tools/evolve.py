@@ -231,6 +231,8 @@ def register(api):
         st = _study(c, a["name"])
         if st["status"] != "open":
             raise E(704, f"study {a['name']} is {st['status']}")
+        ws._before("evolve.propose", {"t": st["track"], "apply": True, **({"ws": a["ws"]} if a.get("ws") else {})},
+                   ctx)                            # paused track or unread messages from a person: refused
         _validate_candidate(st, a.get("params"), a.get("rules"), _frozen(c, st["track"]))
         if a.get("rules"):
             import economy

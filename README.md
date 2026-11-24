@@ -2,11 +2,21 @@
 
 # Economic Modeling Studio
 
-**Version 2.9.0**
+**Version 3.0.0**
 
 A studio for building, estimating, validating and using economic models. **127 specialist agents** and **94 skills** (workflow commands such as `/build-dsge` or `/validate-model`) cover specification, building, estimation and independent validation for semi-structural projection and DSGE, input-output and CGE, trade and climate-economy models, deep learning, reinforcement learning, neural-network solvers, LLM-based tools, agent-based and game-theoretic models, and other econometric models. The studio also lets you work with every model as a **lego set**: a core model with plug-and-play components that can be added, swapped or removed, with explicit interfaces and the impact of every change checked first. It also **translates model code** between the languages and software economists use (Stata, R, Python, MATLAB, Dynare, EViews, SAS, GAMS, Fortran, COBOL and more), and tests the translation against the original's outputs. It works with any coding agent that reads `AGENTS.md`: Claude Code, Codex, Cursor, Grok Build, Gemini CLI and others.
 
 > The repository contains the studio (agents, commands, rules, templates and guardrails), not a library of finished models. Models are built in your own copy.
+
+**From version 3.0 the users of the studio can be AI agents as well as people.**
+- **Agents use their own language.** Agents do not need the prose and reports people read. They talk to the studio in short JSON messages, with numbered findings and ready-made fixes. One call teaches an agent the whole language, and any message can be turned back into plain language for a person.
+- **Any MCP client, and hundreds of MCP servers.** The studio is an MCP server for any tool that speaks the Model Context Protocol (Claude Code, Cursor, VS Code with Copilot, Gemini CLI, Codex and others), and a gateway connects one agent to hundreds of MCP servers at once.
+- **Hundreds of agents in parallel.** Agents work on the same model at the same time in a shared workspace, and no agent's change is ever lost or silently overwritten. One command runs a swarm of 100 agents calibrating an economy.
+- **Agents that improve models.** In an improvement loop, agents propose changes and every proposal is scored in parallel. A change is kept only if it also holds up on hidden cases the agents never see.
+- **An economy of thousands of households.** An agent-based economy with households, firms, a bank, a government and a monetary authority. Money adds up to the last cent every quarter, and its behaviour rules are formulas agents can rewrite.
+- **People stay in charge.** At any moment a person can read a plain-language report of what the agents did. They can leave notes or constraints the agents must read, freeze parts of a model, pause the work or undo a change. The economist's sign-off is never given by an agent.
+
+See [For AI agents](#for-ai-agents) and [docs/agents.md](docs/agents.md).
 
 ## Contents
 - [How it works](#how-it-works) · [Setup](#setup) · [Quick start](#quick-start) · [Demo](#demo-building-a-draft-model) · [Typical uses](#typical-uses) · [Works with your coding agent](#works-with-your-coding-agent) · [For AI agents](#for-ai-agents) · [What it covers](#what-it-covers)
@@ -152,33 +162,43 @@ The studio is not tied to one assistant. Instructions, commands and rules are pl
 Tool conventions change quickly. If a tool moves its folders, update `tools/sync_agents.py` and regenerate.
 
 ## For AI agents
-Agents can also use the studio directly, without the readable reports people need. `tools/studio_api.py` speaks a compact protocol: JSON messages, numbered findings, fixes an agent can send back unchanged, and a fingerprint of the state so that many writers never overwrite each other. One call, `hello`, teaches an agent the whole protocol, and `say` turns any response back into plain language for a person.
+Everything above is built for people: commands, plans in prose and readable reports. The studio also has a machine side, for AI agents that use it directly to build, check and improve models. Many agents can do so at once, with people looking in and steering whenever they want. The full guide is [docs/agents.md](docs/agents.md).
+
+**A language of their own.** `tools/studio_api.py` speaks a compact protocol: JSON messages, single or in batches; findings as stable numbered codes (`[211, "fiscal-debt-rule", "output_gap", "Q", "A"]`: a variable crosses from quarterly to annual without a conversion method); and ready-made fixes the agent sends back unchanged. Changes are planned in memory before anything is written, and writes are refused if the model changed since the agent read it. The first call, `hello`, teaches an agent the whole language. `say` turns any message back into plain language for a person.
 
 ```
 python tools/studio_api.py hello
 python tools/studio_api.py call '{"op":"lego.check","a":{"m":"lego/examples/small-open-economy.lego.json"}}'
-python tools/studio_api.py serve        # JSON lines on standard input and output
+python tools/studio_api.py serve        # JSON lines on standard input and output, for programs
 ```
 
-**As an MCP server, for any MCP client.** `tools/mcp_server.py` offers every operation as a tool, the 94 skills as prompts, and the protocol, port registry, catalog and guides as resources. It works with any tool that speaks MCP. Setup files are included for Claude Code (`.mcp.json`), Cursor (`.cursor/mcp.json`), VS Code (`.vscode/mcp.json`) and Gemini CLI (`.gemini/settings.json`); for Codex, Claude Desktop, Windsurf and others, see [docs/agents.md](docs/agents.md#connecting-mcp-clients). **Many servers at once:** `tools/mcp_gateway.py` puts tens or hundreds of MCP servers (the studio, data sources, other tools) behind one, starts them in parallel, lets the agent search all their tools by keyword and call many of them in parallel in one request, and keeps working when one of them fails.
+**MCP, for any client.** `tools/mcp_server.py` makes the studio an MCP server. Every operation is a tool, the 94 skills are prompts, and the protocol, registries and guides are resources. Setup files are included for Claude Code (`.mcp.json`), Cursor (`.cursor/mcp.json`), VS Code (`.vscode/mcp.json`) and Gemini CLI (`.gemini/settings.json`); Codex, Claude Desktop, Windsurf and other clients take the same command (see [docs/agents.md](docs/agents.md#connecting-mcp-clients)). **Hundreds of MCP servers:** `tools/mcp_gateway.py` puts many MCP servers (the studio, data sources, other tools) behind one. It starts them in parallel and lets the agent search all their tools by keyword. It also runs many calls in parallel in one request and keeps working when a server fails. In a test, 100 servers started in about three seconds.
 
-**Many agents, one model, people in charge.** `tools/workspace.py` is a shared workspace where any number of agents work on tracks of a model at once. No write is ever lost or silently overwritten, every operation is logged, and a person can ask for a plain-language report of any track at any moment, and leave notes, constraints, freezes, pauses or vetoes that agents must read before they write again:
+**Many agents, one model.** `tools/workspace.py` is a shared workspace where agents work on tracks of a model. Each track is a line of work that can be forked and merged. Every write is checked against the version the agent read, so with 100 agents writing at once no write is lost. Agents divide work with leases, leave each other notes and ask people questions. Everything is logged.
+
+**People in charge.** At any moment a person can read what happened in plain language, and steer:
 
 ```
-python tools/workspace.py report main
+python tools/workspace.py report main                             # where the work stands and who did what
 python tools/workspace.py constraint "keep the debt rule annual" --to track:main
-python tools/workspace.py freeze main monetary-taylor
+python tools/workspace.py freeze main monetary-taylor             # no agent may change it
+python tools/workspace.py pause main                              # stop all writes; resume main to go on
+python tools/workspace.py veto main 42                            # undo event 42
 ```
 
-**An economy of a thousand households.** `tools/economy.py` simulates households, firms, a bank, a government and a monetary authority, with money conserved to the last cent and behaviour rules that agents can rewrite as formulas. It is where agents can build and test models at scale:
+Agents must read a person's messages before they can write again. They cannot pause, freeze or veto, and the economist's sign-off is refused to them.
+
+**Agents that improve models: recursive self-improvement modeling (RSIM).** `tools/evolve.py` runs an improvement loop in which each round builds on the best model of the last. A study sets targets for a model's results, what may change and a budget. Agents propose changes with a reason, the loop adds its own variations, and all candidates are scored in parallel. A better candidate becomes the champion only if it also holds up on hidden cases the agents never see.
+
+**An economy of a thousand households.** `tools/economy.py` simulates households, firms, a bank, a government and a monetary authority. Money adds up to the last cent every quarter. Behaviour rules are formulas agents can rewrite safely, and known-answer tests check the engine. A thousand households over 200 quarters take about three seconds, and runs go in parallel.
+
+**A swarm in one command.** `tools/swarm.py` runs 100 built-in agents (explorers, critics, validators and a runner) that calibrate the economy together through the protocol and the workspace. Language-model agents join the same tracks over MCP. With `--person-at`, a person steps in partway through: they read the report, leave a constraint and freeze a parameter. In a test, 100 agents exchanged about 28,000 messages in 80 seconds, and the loop roughly halved the distance to the targets in four rounds.
 
 ```
-python tools/economy.py run --households 1000 --seeds 8
+python tools/swarm.py --agents 100 --households 1000 --rounds 6 --person-at 3 "keep the tax rate as it is"
 ```
 
-**Agents improving models, round after round.** `tools/evolve.py` runs an improvement loop: agents propose changes, the loop adds its own variations, all are scored in parallel against targets, and a new best is accepted only if it also holds up on hidden cases the agents never see. People can freeze parameters, pause or stop it at any time.
-
-The economist's sign-off stays with people: agents are refused it. New operations, finding codes and places a model can live are added as extensions in `extensions/`. See [docs/agents.md](docs/agents.md).
+New operations, finding codes and places a model can live are added as extensions in `extensions/`, and every part above picks them up.
 
 ## What it covers
 
@@ -375,6 +395,7 @@ tools/mcp_gateway.py       one MCP server in front of many: parallel start, tool
 tools/workspace.py         shared workspace for many agents: tracks, safe concurrent writes, log, inbox, leases, plain-language reports, people's notes, constraints, freezes, pauses and vetoes
 tools/economy.py           agent-based economy: households, firms, a bank, a government and a monetary authority; money conserved; rules as formulas; known-answer tests
 tools/evolve.py            the improvement loop: studies with targets, agents' proposals and the loop's own, parallel scoring, hidden cases against overfitting
+tools/swarm.py             a swarm of agents calibrating the economy through the protocol and the workspace, with a person stepping in
 tools/lego_view.py         isometric 3D picture of a lego set (self-contained HTML)
 tools/intake.py            reads research notes (numbered paragraphs), inventories data workbooks and shows the formulas behind them, for /research-plan
 tools/report.py            writes a Word report and a PowerPoint presentation from a Markdown results report, and collects all results in one folder and zip (standard library only)
@@ -409,7 +430,8 @@ Adapt `studio-config.yaml` and `.claude/docs/confidentiality-and-ai-use.md` to t
 Agents and skills are Markdown files with YAML frontmatter; edit them freely. After changes run `python tools/validate_studio.py`. To add an agent, create `.claude/agents/<name>.md` and list it as a peer in the related agents. To add a command, create `.claude/skills/<name>/SKILL.md`. Path-scoped standards live in `.claude/rules/`. After changing commands or rules, run `python tools/sync_agents.py` to update the copies for other coding agents.
 
 ## Version history
-- **2.9.0** — For agents that improve models by themselves, over many rounds, with people in charge. An improvement loop (`tools/evolve.py`): a study sets targets for a model's results (for example unemployment and inflation), what may change and a budget. Agents propose changes with a reason, the loop adds its own variations of the best so far, and every candidate is scored in parallel. A better candidate is accepted only if it also holds up on hidden cases that no agent can see, so agents cannot win by fitting the cases they were shown. People can freeze parameters, pause, stop, and read in the report who proposed what and what was refused.
+- **3.0.0** — The studio's users can be AI agents as well as people, at scale. Versions 2.5 to 2.9 come together: agents talk to the studio in their own compact language, through MCP from any client or directly; one agent reaches hundreds of MCP servers through the gateway; hundreds of agents work on the same models in a shared workspace; an improvement loop with hidden cases lets them improve models over many rounds; and an economy of thousands of households gives them something to build on. People stay in charge throughout, with plain-language reports, notes, constraints, freezes, pauses, vetoes and the economist's sign-off. New: `tools/swarm.py` runs 100 agents calibrating the economy with a person stepping in partway, a summary of all this at the top of this README, and a version history that says who each version is for.
+- **2.9.0** — Recursive self-improvement modeling (RSIM): agents that improve models by themselves, round after round, each round building on the best result of the last, with people in charge. An improvement loop (`tools/evolve.py`): a study sets targets for a model's results (for example unemployment and inflation), what may change and a budget. Agents propose changes with a reason, the loop adds its own variations of the best so far, and every candidate is scored in parallel. A better candidate is accepted only if it also holds up on hidden cases that no agent can see, so agents cannot win by fitting the cases they were shown. People can freeze parameters, pause, stop, and read in the report who proposed what and what was refused.
 - **2.8.0** — An economy of agents, for agents and people to build on. `tools/economy.py` simulates an economy of 1,000 households (or 100,000) with firms, a bank, a government and a monetary authority, each household with its own productivity, job, income and savings. Every payment moves money between accounts, so money is never created or lost by mistake: each run checks this every quarter. Behaviour rules (how households spend, how firms set prices and wages, how the policy rate responds) are short formulas that a person or an agent can replace without writing code, checked against a list of allowed names before they run. Known-answer tests, many runs in parallel, and the same operations for agents through the protocol, MCP and the shared workspace. Setup files for Cursor, VS Code and Gemini CLI join the one for Claude Code, so the studio's MCP server works in each of them out of the box.
 - **2.7.0** — For many AI agents working at the same time, with people in charge. Until now the studio assumed one user at a time. A shared workspace (`tools/workspace.py`) lets many agents work on the same model at once, tested with 100, without any agent overwriting another's change. Everything they do is logged. At any moment a person can ask for a plain-language report of where the work stands and what each agent did, and steer the agents: leave notes, set constraints the agents must read before they change anything else, freeze parts of the model, pause the work, undo a change, or answer an agent's question.
 - **2.6.0** — For any AI tool that speaks MCP (Model Context Protocol), the open standard for connecting AI tools to other software. It is supported by Claude Code, Claude Desktop, Cursor, VS Code with GitHub Copilot, Gemini CLI, Codex, Windsurf and others; nothing here is specific to one of them. The studio runs as an MCP server (`tools/mcp_server.py`), so these tools can call its operations directly, run its 94 skills as prompts and read its registries and guides. A gateway (`tools/mcp_gateway.py`) connects one agent to many MCP servers at once (tested with 100): it starts them in parallel, lets the agent search all their tools by keyword, and runs many calls in parallel in one request.
