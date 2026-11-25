@@ -1,0 +1,923 @@
+{
+ "targets": {
+  "unemployment": [
+   0.06,
+   1.0
+  ],
+  "inflation": [
+   0.02,
+   1.0
+  ],
+  "wealth_gini": [
+   0.35,
+   0.5
+  ]
+ },
+ "free": {
+  "z_sigma": [
+   0.0,
+   1.2
+  ],
+  "search": [
+   1,
+   8
+  ],
+  "res_decay": [
+   0.0,
+   0.3
+  ],
+  "theta_w": [
+   0.0,
+   0.08
+  ],
+  "theta_p": [
+   0.0,
+   0.15
+  ],
+  "mpc_w": [
+   0.01,
+   0.15
+  ],
+  "rate_sens": [
+   0.0,
+   10.0
+  ],
+  "phi_pi": [
+   1.0,
+   3.0
+  ],
+  "inv_target": [
+   0.05,
+   0.6
+  ]
+ },
+ "train_seeds": [
+  1,
+  2
+ ],
+ "test_seeds": [
+  101,
+  102,
+  103,
+  104,
+  105,
+  106,
+  107,
+  108
+ ],
+ "budget": 400,
+ "economy": {
+  "households": 1000,
+  "firms": 50,
+  "periods": 200
+ },
+ "default_on_test": {
+  "loss": 1.3185282888088807,
+  "moments": {
+   "unemployment": 0.0029550000000000028,
+   "inflation": 0.030958555278717,
+   "growth_sd": 0.014657538101667237,
+   "growth_ac1": -0.37618818595080555,
+   "policy_rate": 0.08517209567008754,
+   "cons_share": 0.817393002328246,
+   "debt_gdp": 0.6238076129317743,
+   "wealth_gini": 0.18260052719557526,
+   "default_rate": 1.25e-05,
+   "output": 997.4650377829129
+  }
+ },
+ "hidden_seeds_record": {
+  "calib1": "{\"seeds\": [6788673, 9830802]}",
+  "calib2": "{\"seeds\": [9186338, 3545075]}",
+  "calib3": "{\"seeds\": [3596346, 3811639]}"
+ },
+ "reps": [
+  {
+   "rep": 1,
+   "rsim": {
+    "rounds": [
+     {
+      "round": 1,
+      "scored": 1,
+      "best_this_round": 1.313007802916224,
+      "overfit_refused": 0,
+      "new_champion": true,
+      "champion_loss": 1.313007802916224,
+      "evals": 4
+     },
+     {
+      "round": 2,
+      "scored": 16,
+      "best_this_round": 1.1524024258576329,
+      "overfit_refused": 0,
+      "new_champion": true,
+      "champion_loss": 1.1524024258576329,
+      "evals": 38
+     },
+     {
+      "round": 3,
+      "scored": 16,
+      "best_this_round": 0.2513289683210974,
+      "overfit_refused": 1,
+      "new_champion": true,
+      "champion_loss": 0.6986188281314876,
+      "evals": 74
+     },
+     {
+      "round": 4,
+      "scored": 16,
+      "best_this_round": 0.6200498907273441,
+      "overfit_refused": 0,
+      "new_champion": true,
+      "champion_loss": 0.6200498907273441,
+      "evals": 108
+     },
+     {
+      "round": 5,
+      "scored": 16,
+      "best_this_round": 0.4755164193009591,
+      "overfit_refused": 0,
+      "new_champion": true,
+      "champion_loss": 0.4755164193009591,
+      "evals": 142
+     },
+     {
+      "round": 6,
+      "scored": 16,
+      "best_this_round": 0.37865597326080486,
+      "overfit_refused": 0,
+      "new_champion": true,
+      "champion_loss": 0.37865597326080486,
+      "evals": 176
+     },
+     {
+      "round": 7,
+      "scored": 16,
+      "best_this_round": 0.24014767837587356,
+      "overfit_refused": 0,
+      "new_champion": true,
+      "champion_loss": 0.24014767837587356,
+      "evals": 210
+     },
+     {
+      "round": 8,
+      "scored": 16,
+      "best_this_round": 0.10058189098472539,
+      "overfit_refused": 0,
+      "new_champion": true,
+      "champion_loss": 0.10058189098472539,
+      "evals": 244
+     },
+     {
+      "round": 9,
+      "scored": 16,
+      "best_this_round": 0.10813188836650815,
+      "overfit_refused": 0,
+      "new_champion": false,
+      "champion_loss": 0.10058189098472539,
+      "evals": 276
+     },
+     {
+      "round": 10,
+      "scored": 16,
+      "best_this_round": 0.09347606117070385,
+      "overfit_refused": 1,
+      "new_champion": false,
+      "champion_loss": 0.10058189098472539,
+      "evals": 310
+     },
+     {
+      "round": 11,
+      "scored": 16,
+      "best_this_round": 0.037241233607336124,
+      "overfit_refused": 0,
+      "new_champion": true,
+      "champion_loss": 0.037241233607336124,
+      "evals": 344
+     },
+     {
+      "round": 12,
+      "scored": 16,
+      "best_this_round": 0.027686385886667476,
+      "overfit_refused": 0,
+      "new_champion": true,
+      "champion_loss": 0.027686385886667476,
+      "evals": 378
+     },
+     {
+      "round": 13,
+      "scored": 11,
+      "best_this_round": 0.023940012153305802,
+      "overfit_refused": 0,
+      "new_champion": true,
+      "champion_loss": 0.023940012153305802,
+      "evals": 402
+     }
+    ],
+    "champion": {
+     "id": 188,
+     "by": "loop",
+     "params": {
+      "z_sigma": 0.784402533387633,
+      "search": 4,
+      "res_decay": 0.10695931479870349,
+      "theta_w": 0.04377135899435143,
+      "theta_p": 0.038115178237666386,
+      "mpc_w": 0.039526254905234516,
+      "rate_sens": 5.491396218896034,
+      "phi_pi": 1.3094872006876326,
+      "inv_target": 0.24528963772539258
+     },
+     "rules": {},
+     "loss": 0.023940012153305802,
+     "moments": {
+      "unemployment": 0.062010000000000016,
+      "inflation": 0.016979160290435797,
+      "growth_sd": 0.022897276155491204,
+      "growth_ac1": -0.49268561677092226,
+      "policy_rate": 0.050832962487976904,
+      "cons_share": 0.8318692457533188,
+      "debt_gdp": 0.8409457644605356,
+      "wealth_gini": 0.34900010493252853,
+      "default_rate": 0.00235,
+      "output": 916.4659798330536
+     },
+     "hidden_loss": 0.006867701829923781
+    },
+    "counts": {
+     "champion": 11,
+     "overfit": 2,
+     "scored": 175
+    },
+    "evals": 402
+   },
+   "random": {
+    "best_loss": 0.07315554015456989,
+    "params": {
+     "z_sigma": 0.5882254208969215,
+     "search": 6,
+     "res_decay": 0.2648016054573026,
+     "theta_w": 0.050709679372494404,
+     "theta_p": 0.13566147835604175,
+     "mpc_w": 0.04022528452391679,
+     "rate_sens": 5.0216909240912315,
+     "phi_pi": 2.761854794267059,
+     "inv_target": 0.15725818735315192
+    },
+    "moments": {
+     "unemployment": 0.051063333333333336,
+     "inflation": 0.016667376964288792,
+     "growth_sd": 0.05970672529932014,
+     "growth_ac1": -0.392688956986322,
+     "policy_rate": 0.06881056356662135,
+     "cons_share": 0.8455844165360298,
+     "debt_gdp": 0.7710748708616522,
+     "wealth_gini": 0.27459932221664585,
+     "default_rate": 0.00115,
+     "output": 936.4689379581627
+    },
+    "path": [
+     {
+      "evals": 32,
+      "best_loss": 1.0166165386735178
+     },
+     {
+      "evals": 64,
+      "best_loss": 0.07315554015456989
+     },
+     {
+      "evals": 96,
+      "best_loss": 0.07315554015456989
+     },
+     {
+      "evals": 128,
+      "best_loss": 0.07315554015456989
+     },
+     {
+      "evals": 160,
+      "best_loss": 0.07315554015456989
+     },
+     {
+      "evals": 192,
+      "best_loss": 0.07315554015456989
+     },
+     {
+      "evals": 224,
+      "best_loss": 0.07315554015456989
+     },
+     {
+      "evals": 256,
+      "best_loss": 0.07315554015456989
+     },
+     {
+      "evals": 288,
+      "best_loss": 0.07315554015456989
+     },
+     {
+      "evals": 320,
+      "best_loss": 0.07315554015456989
+     },
+     {
+      "evals": 352,
+      "best_loss": 0.07315554015456989
+     },
+     {
+      "evals": 384,
+      "best_loss": 0.07315554015456989
+     },
+     {
+      "evals": 400,
+      "best_loss": 0.07315554015456989
+     }
+    ]
+   },
+   "rsim_seconds": 260.3,
+   "random_seconds": 198.7,
+   "test": {
+    "rsim": {
+     "loss": 0.023247379422386166,
+     "moments": {
+      "unemployment": 0.06089,
+      "inflation": 0.01699182018209001,
+      "growth_sd": 0.021912437885692186,
+      "growth_ac1": -0.3728531872307752,
+      "policy_rate": 0.050404853272075945,
+      "cons_share": 0.831382973812722,
+      "debt_gdp": 0.8222796443621985,
+      "wealth_gini": 0.3599548651467238,
+      "default_rate": 0.0026249999999999997,
+      "output": 938.9385418252471
+     },
+     "acc_err": 1.379173111234671e-14
+    },
+    "random": {
+     "loss": 0.0893354948259592,
+     "moments": {
+      "unemployment": 0.04449250000000001,
+      "inflation": 0.01991675657237075,
+      "growth_sd": 0.05912412875402686,
+      "growth_ac1": -0.44743629741996993,
+      "policy_rate": 0.07406480195915759,
+      "cons_share": 0.8429912534844831,
+      "debt_gdp": 0.7914424045707772,
+      "wealth_gini": 0.2757249842406814,
+      "default_rate": 0.0011374999999999998,
+      "output": 956.0412492882108
+     },
+     "acc_err": 1.2380338162355516e-14
+    }
+   }
+  },
+  {
+   "rep": 2,
+   "rsim": {
+    "rounds": [
+     {
+      "round": 1,
+      "scored": 1,
+      "best_this_round": 1.313007802916224,
+      "overfit_refused": 0,
+      "new_champion": true,
+      "champion_loss": 1.313007802916224,
+      "evals": 4
+     },
+     {
+      "round": 2,
+      "scored": 16,
+      "best_this_round": 0.9656080107983102,
+      "overfit_refused": 0,
+      "new_champion": true,
+      "champion_loss": 0.9656080107983102,
+      "evals": 38
+     },
+     {
+      "round": 3,
+      "scored": 16,
+      "best_this_round": 0.8275411378622334,
+      "overfit_refused": 0,
+      "new_champion": true,
+      "champion_loss": 0.8275411378622334,
+      "evals": 72
+     },
+     {
+      "round": 4,
+      "scored": 16,
+      "best_this_round": 0.49334313442305294,
+      "overfit_refused": 0,
+      "new_champion": true,
+      "champion_loss": 0.49334313442305294,
+      "evals": 106
+     },
+     {
+      "round": 5,
+      "scored": 16,
+      "best_this_round": 0.45733926344005804,
+      "overfit_refused": 0,
+      "new_champion": true,
+      "champion_loss": 0.45733926344005804,
+      "evals": 140
+     },
+     {
+      "round": 6,
+      "scored": 16,
+      "best_this_round": 0.2581490947268129,
+      "overfit_refused": 0,
+      "new_champion": true,
+      "champion_loss": 0.2581490947268129,
+      "evals": 174
+     },
+     {
+      "round": 7,
+      "scored": 16,
+      "best_this_round": 0.06750644037066954,
+      "overfit_refused": 0,
+      "new_champion": true,
+      "champion_loss": 0.06750644037066954,
+      "evals": 208
+     },
+     {
+      "round": 8,
+      "scored": 16,
+      "best_this_round": 0.04100615087827503,
+      "overfit_refused": 0,
+      "new_champion": true,
+      "champion_loss": 0.04100615087827503,
+      "evals": 242
+     },
+     {
+      "round": 9,
+      "scored": 16,
+      "best_this_round": 0.02993234096660431,
+      "overfit_refused": 0,
+      "new_champion": true,
+      "champion_loss": 0.02993234096660431,
+      "evals": 276
+     },
+     {
+      "round": 10,
+      "scored": 16,
+      "best_this_round": 0.02894839788002379,
+      "overfit_refused": 0,
+      "new_champion": true,
+      "champion_loss": 0.02894839788002379,
+      "evals": 310
+     },
+     {
+      "round": 11,
+      "scored": 16,
+      "best_this_round": 0.02663127090154196,
+      "overfit_refused": 0,
+      "new_champion": true,
+      "champion_loss": 0.02663127090154196,
+      "evals": 344
+     },
+     {
+      "round": 12,
+      "scored": 16,
+      "best_this_round": 0.02071288029408172,
+      "overfit_refused": 0,
+      "new_champion": true,
+      "champion_loss": 0.02071288029408172,
+      "evals": 378
+     },
+     {
+      "round": 13,
+      "scored": 11,
+      "best_this_round": 0.02071288029408172,
+      "overfit_refused": 0,
+      "new_champion": false,
+      "champion_loss": 0.02071288029408172,
+      "evals": 400
+     }
+    ],
+    "champion": {
+     "id": 352,
+     "by": "loop",
+     "params": {
+      "z_sigma": 0.7493331010836095,
+      "search": 1,
+      "res_decay": 0.1307519611568136,
+      "theta_w": 0.039112416837631316,
+      "theta_p": 0.04298888296115026,
+      "mpc_w": 0.04797789287055694,
+      "rate_sens": 6.011520535508898,
+      "phi_pi": 2.827023369344615,
+      "inv_target": 0.15
+     },
+     "rules": {},
+     "loss": 0.02071288029408172,
+     "moments": {
+      "unemployment": 0.05608333333333336,
+      "inflation": 0.017648364593399503,
+      "growth_sd": 0.03920927449794011,
+      "growth_ac1": -0.32053198928732163,
+      "policy_rate": 0.0482784906679409,
+      "cons_share": 0.83209055087811,
+      "debt_gdp": 0.7419170149271697,
+      "wealth_gini": 0.3753657984418165,
+      "default_rate": 0.0,
+      "output": 925.1353728055368
+     },
+     "hidden_loss": 0.038279257831826265
+    },
+    "counts": {
+     "champion": 12,
+     "scored": 176
+    },
+    "evals": 400
+   },
+   "random": {
+    "best_loss": 0.08478528518443292,
+    "params": {
+     "z_sigma": 0.4897058863925181,
+     "search": 1,
+     "res_decay": 0.024924862139026283,
+     "theta_w": 0.021823243442171042,
+     "theta_p": 0.13929144480730368,
+     "mpc_w": 0.06397596992675247,
+     "rate_sens": 7.460093180978673,
+     "phi_pi": 2.3883931670886493,
+     "inv_target": 0.08616765299035128
+    },
+    "moments": {
+     "unemployment": 0.06480666666666664,
+     "inflation": 0.0158620308370457,
+     "growth_sd": 0.11943820672074501,
+     "growth_ac1": -0.48297392372111525,
+     "policy_rate": 0.0801388774154066,
+     "cons_share": 0.8701114489902763,
+     "debt_gdp": 0.9052952386977346,
+     "wealth_gini": 0.2566601470223826,
+     "default_rate": 0.0,
+     "output": 925.3251282655563
+    },
+    "path": [
+     {
+      "evals": 32,
+      "best_loss": 0.1887878562284329
+     },
+     {
+      "evals": 64,
+      "best_loss": 0.1887878562284329
+     },
+     {
+      "evals": 96,
+      "best_loss": 0.15731719055875523
+     },
+     {
+      "evals": 128,
+      "best_loss": 0.15731719055875523
+     },
+     {
+      "evals": 160,
+      "best_loss": 0.15731719055875523
+     },
+     {
+      "evals": 192,
+      "best_loss": 0.15731719055875523
+     },
+     {
+      "evals": 224,
+      "best_loss": 0.15731719055875523
+     },
+     {
+      "evals": 256,
+      "best_loss": 0.15731719055875523
+     },
+     {
+      "evals": 288,
+      "best_loss": 0.15731719055875523
+     },
+     {
+      "evals": 320,
+      "best_loss": 0.15731719055875523
+     },
+     {
+      "evals": 352,
+      "best_loss": 0.15731719055875523
+     },
+     {
+      "evals": 384,
+      "best_loss": 0.08478528518443292
+     },
+     {
+      "evals": 400,
+      "best_loss": 0.08478528518443292
+     }
+    ]
+   },
+   "rsim_seconds": 329.6,
+   "random_seconds": 221.9,
+   "test": {
+    "rsim": {
+     "loss": 0.06461368947198982,
+     "moments": {
+      "unemployment": 0.058165,
+      "inflation": 0.015167757054986691,
+      "growth_sd": 0.038902820607428015,
+      "growth_ac1": -0.35005750325960977,
+      "policy_rate": 0.04146596328147885,
+      "cons_share": 0.8313425543690328,
+      "debt_gdp": 0.7088187260910274,
+      "wealth_gini": 0.38604123022744957,
+      "default_rate": 0.0001,
+      "output": 942.5071059414222
+     },
+     "acc_err": 9.159305355621776e-15
+    },
+    "random": {
+     "loss": 0.4144730489785747,
+     "moments": {
+      "unemployment": 0.08838666666666668,
+      "inflation": 0.012085598006895598,
+      "growth_sd": 0.13691247204517862,
+      "growth_ac1": -0.4778208535210433,
+      "policy_rate": 0.07924219959881088,
+      "cons_share": 0.8862626625963436,
+      "debt_gdp": 0.9233807503744048,
+      "wealth_gini": 0.2586714205661311,
+      "default_rate": 1.25e-05,
+      "output": 912.2392411434963
+     },
+     "acc_err": 9.424290474575294e-15
+    }
+   }
+  },
+  {
+   "rep": 3,
+   "rsim": {
+    "rounds": [
+     {
+      "round": 1,
+      "scored": 1,
+      "best_this_round": 1.313007802916224,
+      "overfit_refused": 0,
+      "new_champion": true,
+      "champion_loss": 1.313007802916224,
+      "evals": 4
+     },
+     {
+      "round": 2,
+      "scored": 16,
+      "best_this_round": 0.9656080107983102,
+      "overfit_refused": 0,
+      "new_champion": true,
+      "champion_loss": 0.9656080107983102,
+      "evals": 38
+     },
+     {
+      "round": 3,
+      "scored": 16,
+      "best_this_round": 0.6946226413040121,
+      "overfit_refused": 0,
+      "new_champion": true,
+      "champion_loss": 0.6946226413040121,
+      "evals": 72
+     },
+     {
+      "round": 4,
+      "scored": 16,
+      "best_this_round": 0.47821531961287883,
+      "overfit_refused": 0,
+      "new_champion": true,
+      "champion_loss": 0.47821531961287883,
+      "evals": 106
+     },
+     {
+      "round": 5,
+      "scored": 16,
+      "best_this_round": 0.29101250540576673,
+      "overfit_refused": 0,
+      "new_champion": true,
+      "champion_loss": 0.29101250540576673,
+      "evals": 140
+     },
+     {
+      "round": 6,
+      "scored": 16,
+      "best_this_round": 0.10138819475720381,
+      "overfit_refused": 0,
+      "new_champion": true,
+      "champion_loss": 0.10138819475720381,
+      "evals": 174
+     },
+     {
+      "round": 7,
+      "scored": 16,
+      "best_this_round": 0.09886921565998898,
+      "overfit_refused": 0,
+      "new_champion": true,
+      "champion_loss": 0.09886921565998898,
+      "evals": 208
+     },
+     {
+      "round": 8,
+      "scored": 16,
+      "best_this_round": 0.09136729349338982,
+      "overfit_refused": 2,
+      "new_champion": false,
+      "champion_loss": 0.09886921565998898,
+      "evals": 244
+     },
+     {
+      "round": 9,
+      "scored": 16,
+      "best_this_round": 0.0805846882580398,
+      "overfit_refused": 0,
+      "new_champion": true,
+      "champion_loss": 0.0805846882580398,
+      "evals": 278
+     },
+     {
+      "round": 10,
+      "scored": 16,
+      "best_this_round": 0.0666329742626241,
+      "overfit_refused": 1,
+      "new_champion": false,
+      "champion_loss": 0.0805846882580398,
+      "evals": 312
+     },
+     {
+      "round": 11,
+      "scored": 16,
+      "best_this_round": 0.07940030141610288,
+      "overfit_refused": 0,
+      "new_champion": true,
+      "champion_loss": 0.07940030141610288,
+      "evals": 346
+     },
+     {
+      "round": 12,
+      "scored": 16,
+      "best_this_round": 0.060875599642623526,
+      "overfit_refused": 0,
+      "new_champion": true,
+      "champion_loss": 0.060875599642623526,
+      "evals": 380
+     },
+     {
+      "round": 13,
+      "scored": 10,
+      "best_this_round": 0.03508327062861183,
+      "overfit_refused": 0,
+      "new_champion": true,
+      "champion_loss": 0.03508327062861183,
+      "evals": 402
+     }
+    ],
+    "champion": {
+     "id": 555,
+     "by": "loop",
+     "params": {
+      "z_sigma": 0.555365813440155,
+      "search": 4,
+      "res_decay": 0.1743000300820705,
+      "theta_w": 0.037319627953682745,
+      "theta_p": 0.04010779491863918,
+      "mpc_w": 0.039936265223231994,
+      "rate_sens": 0.04350387302911111,
+      "phi_pi": 2.2946006045780156,
+      "inv_target": 0.18238325767910094
+     },
+     "rules": {},
+     "loss": 0.03508327062861183,
+     "moments": {
+      "unemployment": 0.05925333333333335,
+      "inflation": 0.01904289890868162,
+      "growth_sd": 0.02261356500072531,
+      "growth_ac1": -0.24590733485679295,
+      "policy_rate": 0.08234786492697457,
+      "cons_share": 0.8553749762489258,
+      "debt_gdp": 0.9696332421930516,
+      "wealth_gini": 0.26057749978346834,
+      "default_rate": 0.00255,
+      "output": 926.9081920155784
+     },
+     "hidden_loss": 0.037812969620119305
+    },
+    "counts": {
+     "champion": 11,
+     "overfit": 3,
+     "scored": 173
+    },
+    "evals": 402
+   },
+   "random": {
+    "best_loss": 0.01804091968332217,
+    "params": {
+     "z_sigma": 0.9145423051091472,
+     "search": 8,
+     "res_decay": 0.28585338848326486,
+     "theta_w": 0.033470395492569506,
+     "theta_p": 0.0847644122288715,
+     "mpc_w": 0.031099733934842215,
+     "rate_sens": 3.242952943315066,
+     "phi_pi": 1.9890563868903548,
+     "inv_target": 0.4692729229967049
+    },
+    "moments": {
+     "unemployment": 0.062443333333333344,
+     "inflation": 0.018041631510404436,
+     "growth_sd": 0.028340194319216472,
+     "growth_ac1": -0.5002310309915045,
+     "policy_rate": 0.04964412041211735,
+     "cons_share": 0.8342300325831042,
+     "debt_gdp": 0.7439718017808548,
+     "wealth_gini": 0.39080046077878283,
+     "default_rate": 0.00245,
+     "output": 907.344031872017
+    },
+    "path": [
+     {
+      "evals": 32,
+      "best_loss": 0.8142838623066924
+     },
+     {
+      "evals": 64,
+      "best_loss": 0.5629387830033026
+     },
+     {
+      "evals": 96,
+      "best_loss": 0.09940384340668834
+     },
+     {
+      "evals": 128,
+      "best_loss": 0.03773501775053022
+     },
+     {
+      "evals": 160,
+      "best_loss": 0.03773501775053022
+     },
+     {
+      "evals": 192,
+      "best_loss": 0.03773501775053022
+     },
+     {
+      "evals": 224,
+      "best_loss": 0.01804091968332217
+     },
+     {
+      "evals": 256,
+      "best_loss": 0.01804091968332217
+     },
+     {
+      "evals": 288,
+      "best_loss": 0.01804091968332217
+     },
+     {
+      "evals": 320,
+      "best_loss": 0.01804091968332217
+     },
+     {
+      "evals": 352,
+      "best_loss": 0.01804091968332217
+     },
+     {
+      "evals": 384,
+      "best_loss": 0.01804091968332217
+     },
+     {
+      "evals": 400,
+      "best_loss": 0.01804091968332217
+     }
+    ]
+   },
+   "rsim_seconds": 238.5,
+   "random_seconds": 198.7,
+   "test": {
+    "rsim": {
+     "loss": 0.07924153084718916,
+     "moments": {
+      "unemployment": 0.06523,
+      "inflation": 0.0159122347044918,
+      "growth_sd": 0.020989147265131052,
+      "growth_ac1": -0.3677975473189847,
+      "policy_rate": 0.07321248802341347,
+      "cons_share": 0.8553658226938454,
+      "debt_gdp": 0.9065432052755673,
+      "wealth_gini": 0.2644553311338484,
+      "default_rate": 0.0022874999999999996,
+      "output": 934.3016271019669
+     },
+     "acc_err": 1.9250674199024222e-14
+    },
+    "random": {
+     "loss": 0.017052476924090433,
+     "moments": {
+      "unemployment": 0.06178083333333333,
+      "inflation": 0.018429798155153682,
+      "growth_sd": 0.03085038138146457,
+      "growth_ac1": -0.47878178953943895,
+      "policy_rate": 0.04963206295587433,
+      "cons_share": 0.8335575670512038,
+      "debt_gdp": 0.7446087921557304,
+      "wealth_gini": 0.3995165447675444,
+      "default_rate": 0.0024624999999999994,
+      "output": 936.4084873702446
+     },
+     "acc_err": 1.2041886405728433e-14
+    }
+   }
+  }
+ ]
+}

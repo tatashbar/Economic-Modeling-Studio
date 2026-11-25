@@ -1,0 +1,35 @@
+workspace: <replication-folder>\output\swarm\workspace.db
+100 agents: 1 runner, 5 validators, 10 critics, 84 explorers; economy of 1000 households and 50 firms; up to 48 candidates a round
+round 1: 22 scored in 16.58s; new champion 12 by explorer-032, distance 1.4732
+round 2: 48 scored in 35.71s; new champion 54 by explorer-034, distance 1.2767
+round 3: 48 scored in 36.26s; new champion 69 by explorer-079, distance 0.7748
+  a person stepped in: constraint "keep the tax rate as it is" and a freeze on theta_w
+  the report the person read:
+    # Track eco
+    
+    Goal: calibrate the economy: unemployment 6%, inflation 2%, wealth Gini 0.35
+    Status: open. Kind: economy. Writes: 3. State: fa92d50ebd9d. Score: 0.774758.
+    
+    ## The economy now
+    1000 households, 50 firms, 120 periods.
+    Parameters: benefit = 0.4, cash_buffer = 1, debt_target = 0.6, default_after = 6, dep_share = 0, firm_w0 = 20, fiscal_rho = 0.05, g_share = 0.18, inv_target = 0.15, lam = 0.5, markup = 0.15, markup_lo = 0.02, mpc_w = 0.03426, mpc_y = 0.85, payout = 0.9, phi_pi = 1.5, phi_u = 0.5, pistar = 0.02, prod = 1, rate_sens = 5.952, res_decay = 0.1, rstar = 0.02, search = 4, spread = 0.03, tau = 0.22, theta_p = 0.04, theta_w = 0.02, ustar = 0.06, w0 = 6, z_sigma = 0.3
+    Last run: cons_share 0.8161, debt_gdp 0.6171, default_rate 0.0001667, growth_ac1 -0.4772, growth_sd 0.0169, inflation 0.01536, output 979.7, policy_rate 0.05595, unemployment 0.01456, wealth_gini 0.1601
+    
+    ## What people have set
+    - Frozen: theta_w
+    - Constraint: keep the tax rate as it is
+    
+round 4: 48 scored in 41.12s; new champion 129 by explorer-074, distance 0.3694; 1 refused by the hidden cases
+round 5: 48 scored in 38.6s; new champion 204 by explorer-081, distance 0.1598
+round 6: 48 scored in 42.26s; new champion 247 by explorer-050, distance 0.1159; 1 refused by the hidden cases
+
+90006 protocol messages in 220s from 100 agents (408 a second); work done by role: {'runner': 6, 'validator': 5, 'critic': 5, 'explorer': 306}
+refusals by code: {503: 84, 504: 65}
+champion 247 by explorer-050: distance 0.1159 (hidden cases 0.1090)
+  results: unemployment 0.048, inflation 0.015, wealth_gini 0.329
+  targets: unemployment 0.06, inflation 0.02, wealth_gini 0.35
+90 agents had read the person's messages by the end
+theta_w after the freeze: 0.0426 (frozen from round 3)
+report: <replication-folder>\output\swarm\swarm-report.md
+
+--- stderr ---

@@ -1,0 +1,98 @@
+Q: Wieland Cwik Muller Schmidt Wolters A new comparative approach to macroeconomic modeling and policy analysis
+    {"title": "A new comparative approach to macroeconomic modeling and policy analysis", "journal": "Journal of Economic Behavior &amp; Organization", "year": 2012, "vol": "83", "issue": "3", "page": "523-541", "article": null, "doi": "10.1016/j.jebo.2012.01.006", "authors": "Wieland V, Cwik T, Müller G, Schmidt S, Wolters M"}
+Q: Meyer-Gohde Saecker Solving linear DSGE models with Newton methods
+    {"title": "Solving linear DSGE models with Newton methods", "journal": "Economic Modelling", "year": 2024, "vol": "133", "issue": null, "page": "106670", "article": "106670", "doi": "10.1016/j.econmod.2024.106670", "authors": "Meyer-Gohde A, Saecker J"}
+Q: Hommes Poledna Forecasting economic crises Great Recession sovereign debt crisis COVID-19 euro area
+    {"title": "Forecasting economic crises: The Great Recession, the sovereign debt crisis, and COVID-19 in the euro area", "journal": "Economic Modelling", "year": 2026, "vol": "158", "issue": null, "page": "107497", "article": "107497", "doi": "10.1016/j.econmod.2026.107497", "authors": "Hommes C, Poledna S"}
+Q: Korinek Generative AI for economic research use cases and implications for economists
+    {"title": "Generative AI for Economic Research: Use Cases and Implications for Economists", "journal": "Journal of Economic Literature", "year": 2023, "vol": "61", "issue": "4", "page": "1281-1317", "article": null, "doi": "10.1257/jel.20231736", "authors": "Korinek A"}
+Q: Horton Large language models as simulated economic agents Homo silicus
+    {"title": "Large Language Models as Simulated Economic Agents: What Can We Learn from Homo Silicus?", "journal": "", "year": 2023, "vol": null, "issue": null, "page": null, "article": null, "doi": "10.3386/w31122", "authors": "Horton J, Filippas A, Manning B"}
+Q: Lengnick Agent-based macroeconomics a baseline model
+    {"title": "Agent-based macroeconomics: A baseline model", "journal": "Journal of Economic Behavior &amp; Organization", "year": 2013, "vol": "86", "issue": null, "page": "102-120", "article": null, "doi": "10.1016/j.jebo.2012.12.021", "authors": "Lengnick M"}
+Q: Caiani Godin Caverzasi Gallegati Kinsella Stiglitz Agent based-stock flow consistent macroeconomics towards a benchmark model
+    {"title": "Agent Based-Stock Flow Consistent Macroeconomics: Towards a Benchmark Model", "journal": "", "year": 2015, "vol": null, "issue": null, "page": null, "article": null, "doi": "10.2139/ssrn.2664125", "authors": "Caiani A, Godin A, Caverzasi E, Gallegati M, Kinsella S, Stiglitz J"}
+Q: Dawid Delli Gatti Agent-based macroeconomics Handbook of Computational Economics
+    {"title": "Agent-Based Macroeconomics", "journal": "SSRN Electronic Journal", "year": 2018, "vol": null, "issue": null, "page": null, "article": null, "doi": "10.2139/ssrn.3112074", "authors": "Dawid H, Delli Gatti D"}
+Q: Assenza Delli Gatti Grazzini Emergent dynamics of a macroeconomic agent based model with capital and credit
+    {"title": "Emergent Dynamics of a Macroeconomic Agent Based Model with Capital and Credit", "journal": "", "year": 2014, "vol": null, "issue": null, "page": null, "article": null, "doi": "10.2139/ssrn.2436852", "authors": "Assenza T, Delli Gatti D, Grazzini J"}
+Q: Poledna Miess Hommes Rabitsch Economic forecasting with an agent-based model
+    {"title": "Economic forecasting with an agent-based model", "journal": "European Economic Review", "year": 2023, "vol": "151", "issue": null, "page": "104306", "article": "104306", "doi": "10.1016/j.euroecorev.2022.104306", "authors": "Poledna S, Miess M, Hommes C, Rabitsch K"}
+Q: Axtell Farmer Agent-based modeling in economics and finance past present and future
+    {"title": "Agent-Based Modeling in Economics and Finance: Past, Present, and Future", "journal": "Journal of Economic Literature", "year": 2025, "vol": "63", "issue": "1", "page": "197-287", "article": null, "doi": "10.1257/jel.20221319", "authors": "Axtell R, Farmer J"}
+Q: Grazzini Richiardi Tsionas Bayesian estimation of agent-based models
+    {"title": "Bayesian estimation of agent-based models", "journal": "Journal of Economic Dynamics and Control", "year": 2017, "vol": "77", "issue": null, "page": "26-47", "article": null, "doi": "10.1016/j.jedc.2017.01.014", "authors": "Grazzini J, Richiardi M, Tsionas M"}
+Q: Platt A comparison of economic agent-based model calibration methods
+    {"title": "A Comparison of Economic Agent-Based Model Calibration Methods", "journal": "", "year": 2019, "vol": null, "issue": null, "page": null, "article": null, "doi": "10.2139/ssrn.3335397", "authors": "Platt D"}
+Q: Lamperti Roventini Sani Agent-based model calibration using machine learning surrogates
+    {"title": "Agent-Based Model Calibration Using Machine Learning Surrogates", "journal": "", "year": 2017, "vol": null, "issue": null, "page": null, "article": null, "doi": "10.2139/ssrn.2943297", "authors": "Lamperti F, Roventini A, Sani A"}
+Q: Dwork Feldman Hardt Pitassi Reingold Roth The reusable holdout preserving validity in adaptive data analysis
+    {"title": "The reusable holdout: Preserving validity in adaptive data analysis", "journal": "Science", "year": 2015, "vol": "349", "issue": "6248", "page": "636-638", "article": null, "doi": "10.1126/science.aaa9375", "authors": "Dwork C, Feldman V, Hardt M, Pitassi T, Reingold O, Roth A"}
+Q: Cawley Talbot On over-fitting in model selection and subsequent selection bias in performance evaluation
+    {"title": "Over-Fitting in Model Selection and Its Avoidance", "journal": "Lecture Notes in Computer Science", "year": 2012, "vol": null, "issue": null, "page": "1-1", "article": null, "doi": "10.1007/978-3-642-34156-4_1", "authors": "Cawley G"}
+Q: Bergstra Bengio Random search for hyper-parameter optimization
+    {"title": "Hyper-Parameter Tuning based on Random Search for DenseNet Optimization", "journal": "2020 7th International Conference on Information Technology, Computer, and Electrical Engineering (ICITACEE)", "year": 2020, "vol": null, "issue": null, "page": "96-99", "article": null, "doi": "10.1109/icitacee50144.2020.9239164", "authors": "Nugroho A, Suhartanto H"}
+Q: Romera-Paredes Mathematical discoveries from program search with large language models
+    {"title": "Mathematical discoveries from program search with large language models", "journal": "Nature", "year": 2023, "vol": "625", "issue": "7995", "page": "468-475", "article": null, "doi": "10.1038/s41586-023-06924-6", "authors": "Romera-Paredes B, Barekatain M, Novikov A, Balog M, Kumar M, Dupont E"}
+Q: Parnas On the criteria to be used in decomposing systems into modules
+    {"title": "On the Criteria to Be Used in Decomposing Systems into Modules", "journal": "", "year": 1971, "vol": null, "issue": null, "page": null, "article": null, "doi": "10.21236/ad0773837", "authors": "Parnas D"}
+Q: Tarjan Depth-first search and linear graph algorithms
+    {"title": "Depth-first search and linear graph algorithms", "journal": "12th Annual Symposium on Switching and Automata Theory (swat 1971)", "year": 1971, "vol": null, "issue": null, "page": "114-121", "article": null, "doi": "10.1109/swat.1971.10", "authors": "Tarjan R"}
+Q: Steward Partitioning and tearing systems of equations
+    {"title": "Partitioning and Tearing Systems of Equations", "journal": "Journal of the Society for Industrial and Applied Mathematics Series B Numerical Analysis", "year": 1965, "vol": "2", "issue": "2", "page": "345-365", "article": null, "doi": "10.1137/0702028", "authors": "Steward D"}
+Q: Gilli Causal ordering and beyond
+    {"title": "Causal Ordering and Beyond", "journal": "International Economic Review", "year": 1992, "vol": "33", "issue": "4", "page": "957", "article": null, "doi": "10.2307/2527152", "authors": "Gilli M"}
+Q: Peng Reproducible research in computational science
+    {"title": "Reproducible Research in Computational Science", "journal": "Science", "year": 2011, "vol": "334", "issue": "6060", "page": "1226-1227", "article": null, "doi": "10.1126/science.1213847", "authors": "Peng R"}
+Q: Chang Li Is economics research replicable sixty published papers from thirteen journals
+    {"title": "Is Economics Research Replicable? Sixty Published Papers from Thirteen Journals Say 'Usually Not'", "journal": "", "year": 2015, "vol": null, "issue": null, "page": null, "article": null, "doi": "10.2139/ssrn.2669564", "authors": "Chang A, Li P"}
+Q: Vilhuber Reproducibility and replicability in economics
+    {"title": "Reproducibility and Replicability in Economics", "journal": "Harvard Data Science Review", "year": 2020, "vol": "2", "issue": "4", "page": null, "article": null, "doi": "10.1162/99608f92.4f6b9e67", "authors": "Vilhuber L"}
+Q: Li Gao Li Li Liao EconAgent large language model-empowered agents for simulating macroeconomic activities
+    {"title": "Large Language Model-Empowered Agents for Simulating Macroeconomic Activities", "journal": "", "year": 2023, "vol": null, "issue": null, "page": null, "article": null, "doi": "10.2139/ssrn.4606937", "authors": "Li N, Gao C, Li Y, Liao Q"}
+Q: Park O'Brien Cai Morris Liang Bernstein Generative agents interactive simulacra of human behavior
+    {"title": "Generative Agents: Interactive Simulacra of Human Behavior", "journal": "Proceedings of the 36th Annual ACM Symposium on User Interface Software and Technology", "year": 2023, "vol": null, "issue": null, "page": "1-22", "article": null, "doi": "10.1145/3586183.3606763", "authors": "Park J, O'Brien J, Cai C, Morris M, Liang P, Bernstein M"}
+Q: Zheng Trott Srinivasa Parkes Socher The AI Economist taxation policy design via two-level deep multiagent reinforcement learning
+    {"title": "The AI Economist: Taxation policy design via two-level deep multiagent reinforcement learning", "journal": "Science Advances", "year": 2022, "vol": "8", "issue": "18", "page": null, "article": "eabk2607", "doi": "10.1126/sciadv.abk2607", "authors": "Zheng S, Trott A, Srinivasa S, Parkes D, Socher R"}
+Q: Smets Wouters Shocks and frictions in US business cycles a Bayesian DSGE approach
+    {"title": "Shocks and Frictions in Us Business Cycles: A Bayesian DSGE Approach", "journal": "", "year": 2007, "vol": null, "issue": null, "page": null, "article": null, "doi": "10.2139/ssrn.958687", "authors": "Smets F, Wouters R"}
+Q: Taylor Discretion versus policy rules in practice
+    {"title": "Rules Versus Discretion: Assessing the Debate Over the Conduct of Monetary Policy", "journal": "", "year": 2017, "vol": null, "issue": null, "page": null, "article": null, "doi": "10.3386/w24149", "authors": "Taylor J"}
+Q: Leeper Equilibria under active and passive monetary and fiscal policies
+    {"title": "Equilibria under ‘active’ and ‘passive’ monetary and fiscal policies", "journal": "Journal of Monetary Economics", "year": 1991, "vol": "27", "issue": "1", "page": "129-147", "article": null, "doi": "10.1016/0304-3932(91)90007-b", "authors": "Leeper E"}
+Q: Yao Zhao Yu Du Shafran Narasimhan Cao ReAct synergizing reasoning and acting in language models
+    {"title": "Tree of Thoughts: Deliberate Problem Solving with Large Language Models", "journal": "Advances in Neural Information Processing Systems 36", "year": 2023, "vol": null, "issue": null, "page": "11809-11822", "article": null, "doi": "10.52202/075280-0517", "authors": "Yao S, Yu D, Zhao J, Shafran I, Griffiths T, Cao Y"}
+Q: Wang Ma Feng Zhang A survey on large language model based autonomous agents
+    {"title": "A survey on large language model based autonomous agents", "journal": "Frontiers of Computer Science", "year": 2024, "vol": "18", "issue": "6", "page": null, "article": "186345", "doi": "10.1007/s11704-024-40231-1", "authors": "Wang L, Ma C, Feng X, Zhang Z, Yang H, Zhang J"}
+Q: Brayton Tinsley A guide to FRB/US a macroeconomic model of the United States
+    {"title": "A Guide to FRB/US: A Macroeconomic Model of the United States", "journal": "Finance and Economics Discussion Series", "year": 1996, "vol": "1996.0", "issue": "42", "page": "1-45", "article": null, "doi": "10.17016/feds.1996.42", "authors": "Tetlow R, Brayton F, Tinsley P, Bomfim A, Reifschneider D, Von zur Muehlen P"}
+Q: Fagiolo Guerini Lamperti Moneta Roventini Validation of agent-based models in economics and finance
+    {"title": "Validation of Agent-Based Models in Economics and Finance", "journal": "Simulation Foundations, Methods and Applications", "year": 2019, "vol": null, "issue": null, "page": "763-787", "article": null, "doi": "10.1007/978-3-319-70766-2_31", "authors": "Fagiolo G, Guerini M, Lamperti F, Moneta A, Roventini A"}
+Q: Godley Lavoie Monetary Economics An Integrated Approach to Credit Money Income Production and Wealth
+    {"title": "Monetary Economics: An Integrated Approach to Credit, Money, Income, Production and Wealth. By WYNNE GODLEY and MARC LAVOIE", "journal": "Economica", "year": 2008, "vol": "75", "issue": "300", "page": "798-799", "article": null, "doi": "10.1111/j.1468-0335.2008.00655.x", "authors": "GOODHART C"}
+Q: Delli Gatti Desiderio Gaffeo Cirillo Gallegati Macroeconomics from the Bottom-up
+    {"title": "Macroeconomics from the Bottom-up", "journal": "New Economic Windows", "year": 2011, "vol": null, "issue": null, "page": null, "article": null, "doi": "10.1007/978-88-470-1971-3", "authors": "Delli Gatti D, Desiderio S, Gaffeo E, Cirillo P, Gallegati M"}
+Q: Hansen Heckman The empirical foundations of calibration
+    {"title": "The Empirical Foundations of Calibration", "journal": "Real Business Cycles", "year": 1998, "vol": null, "issue": null, "page": "254-271", "article": null, "doi": "10.4324/9780203070710.ch14", "authors": "Peter Hansen L, Heckman J"}
+Q: Lucas Econometric policy evaluation a critique
+    {"title": "Econometric policy evaluation: A critique", "journal": "Carnegie-Rochester Conference Series on Public Policy", "year": 1976, "vol": "1", "issue": null, "page": "19-46", "article": null, "doi": "10.1016/s0167-2231(76)80003-6", "authors": "Lucas R"}
+Q: Kydland Prescott The computational experiment an econometric tool
+    {"title": "The Computational Experiment: An Econometric Tool", "journal": "", "year": 1994, "vol": null, "issue": null, "page": null, "article": null, "doi": "10.21034/sr.178", "authors": "Kydland F, Prescott E"}
+Q: Gentzkow Kelly Taddy Text as data
+    {"title": "Text as Data", "journal": "", "year": 2017, "vol": null, "issue": null, "page": null, "article": null, "doi": "10.3386/w23276", "authors": "Gentzkow M, Kelly B, Taddy M"}
+Q: Hamilton Why you should never use the Hodrick-Prescott filter
+    {"title": "Why You Should Never Use the Hodrick-Prescott Filter", "journal": "", "year": 2017, "vol": null, "issue": null, "page": null, "article": null, "doi": "10.3386/w23429", "authors": "Hamilton J"}
+Q: Berg Karam Laxton Practical model-based monetary policy analysis a how-to guide
+    {"title": "Practical Model-Based Monetary Policy Analysis", "journal": "", "year": null, "vol": null, "issue": null, "page": null, "article": null, "doi": "10.5089/9781451863413.001.a001", "authors": "Laxton D, Berg A, Karam P"}
+Q: Pagan Report on modelling and forecasting at the Bank of England
+    {"title": "Bank of England", "journal": "Statistics, Econometrics and Forecasting", "year": 2004, "vol": null, "issue": null, "page": "1-78", "article": null, "doi": "10.1017/cbo9780511493188.002", "authors": ""}
+Q: Burgess Fernandez-Corugedo Groth Harrison Monti Theodoridis Waldron The Bank of England's forecasting platform COMPASS MAPS EASE
+    {"title": "The Bank of England's Forecasting Platform: COMPASS, MAPS, EASE and the Suite of Models", "journal": "", "year": 2013, "vol": null, "issue": null, "page": null, "article": null, "doi": "10.2139/ssrn.2266506", "authors": "Burgess S, Fernandez-Corugedo E, Groth C, Harrison R, Monti F, Theodoridis K"}
+Q: Novikov AlphaEvolve a coding agent for scientific and algorithmic discovery
+    {"title": "Algorithmic Behavioral Science: Machine Learning as a Tool for Scientific Discovery", "journal": "", "year": 2022, "vol": null, "issue": null, "page": null, "article": null, "doi": "10.2139/ssrn.4164272", "authors": "Ludwig J, Mullainathan S"}
+Q: Zhang Hu Lu Lange Clune Darwin Godel Machine open-ended evolution of self-improving agents
+    {"title": "Darwin Gödel Machine: Open-Ended Evolution of Self-Improving Agents", "journal": "SuperIntelligence - Robotics - Safety &amp; Alignment", "year": 2025, "vol": "2", "issue": "3", "page": null, "article": null, "doi": "10.70777/si.v2i3.15063", "authors": "Zhang J, Hu S, Lu C, Lange R, Clune J"}
+Q: Adjemian Juillard Karame Mutschler Pfeifer Ratto Rion Villemot Dynare reference manual version 6
+    {"title": "Scalable Global Solution Techniques for High-Dimensional Models in Dynare", "journal": "", "year": 2025, "vol": null, "issue": null, "page": null, "article": null, "doi": "10.2139/ssrn.5183788", "authors": "Eftekhari A, Juillard M, Rion N, Scheidegger S"}
+Q: Fernandez-Villaverde Rubio-Ramirez Schorfheide Solution and estimation methods for DSGE models
+    {"title": "Solution and Estimation Methods for DSGE Models", "journal": "", "year": 2016, "vol": null, "issue": null, "page": null, "article": null, "doi": "10.3386/w21862", "authors": "Fernández-Villaverde J, Ramírez J, Schorfheide F"}

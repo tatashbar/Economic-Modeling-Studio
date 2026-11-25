@@ -1,0 +1,23 @@
+{
+ "agents": 100,
+ "messages": 90006,
+ "seconds": 220,
+ "rounds": 6,
+ "dist_first": 1.4732,
+ "dist_last": 0.1159,
+ "hidden_last": 0.109,
+ "refused_503": 84,
+ "refused_504": 65,
+ "overfit": 2,
+ "readers": 90,
+ "u": 0.048,
+ "pi": 0.015,
+ "gini": 0.329,
+ "theta_w_changes_after_freeze": [
+  {
+   "id": 129,
+   "proposed_before_freeze": true,
+   "theta_w": 0.04259128549739601
+  }
+ ]
+}

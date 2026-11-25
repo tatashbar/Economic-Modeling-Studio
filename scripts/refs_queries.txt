@@ -1,0 +1,49 @@
+Wieland Cwik Muller Schmidt Wolters A new comparative approach to macroeconomic modeling and policy analysis
+Meyer-Gohde Saecker Solving linear DSGE models with Newton methods
+Hommes Poledna Forecasting economic crises Great Recession sovereign debt crisis COVID-19 euro area
+Korinek Generative AI for economic research use cases and implications for economists
+Horton Large language models as simulated economic agents Homo silicus
+Lengnick Agent-based macroeconomics a baseline model
+Caiani Godin Caverzasi Gallegati Kinsella Stiglitz Agent based-stock flow consistent macroeconomics towards a benchmark model
+Dawid Delli Gatti Agent-based macroeconomics Handbook of Computational Economics
+Assenza Delli Gatti Grazzini Emergent dynamics of a macroeconomic agent based model with capital and credit
+Poledna Miess Hommes Rabitsch Economic forecasting with an agent-based model
+Axtell Farmer Agent-based modeling in economics and finance past present and future
+Grazzini Richiardi Tsionas Bayesian estimation of agent-based models
+Platt A comparison of economic agent-based model calibration methods
+Lamperti Roventini Sani Agent-based model calibration using machine learning surrogates
+Dwork Feldman Hardt Pitassi Reingold Roth The reusable holdout preserving validity in adaptive data analysis
+Cawley Talbot On over-fitting in model selection and subsequent selection bias in performance evaluation
+Bergstra Bengio Random search for hyper-parameter optimization
+Romera-Paredes Mathematical discoveries from program search with large language models
+Parnas On the criteria to be used in decomposing systems into modules
+Tarjan Depth-first search and linear graph algorithms
+Steward Partitioning and tearing systems of equations
+Gilli Causal ordering and beyond
+Peng Reproducible research in computational science
+Chang Li Is economics research replicable sixty published papers from thirteen journals
+Vilhuber Reproducibility and replicability in economics
+Li Gao Li Li Liao EconAgent large language model-empowered agents for simulating macroeconomic activities
+Park O'Brien Cai Morris Liang Bernstein Generative agents interactive simulacra of human behavior
+Zheng Trott Srinivasa Parkes Socher The AI Economist taxation policy design via two-level deep multiagent reinforcement learning
+Smets Wouters Shocks and frictions in US business cycles a Bayesian DSGE approach
+Taylor Discretion versus policy rules in practice
+Leeper Equilibria under active and passive monetary and fiscal policies
+Yao Zhao Yu Du Shafran Narasimhan Cao ReAct synergizing reasoning and acting in language models
+Wang Ma Feng Zhang A survey on large language model based autonomous agents
+Brayton Tinsley A guide to FRB/US a macroeconomic model of the United States
+Fagiolo Guerini Lamperti Moneta Roventini Validation of agent-based models in economics and finance
+Godley Lavoie Monetary Economics An Integrated Approach to Credit Money Income Production and Wealth
+Delli Gatti Desiderio Gaffeo Cirillo Gallegati Macroeconomics from the Bottom-up
+Hansen Heckman The empirical foundations of calibration
+Lucas Econometric policy evaluation a critique
+Kydland Prescott The computational experiment an econometric tool
+Gentzkow Kelly Taddy Text as data
+Hamilton Why you should never use the Hodrick-Prescott filter
+Berg Karam Laxton Practical model-based monetary policy analysis a how-to guide
+Pagan Report on modelling and forecasting at the Bank of England
+Burgess Fernandez-Corugedo Groth Harrison Monti Theodoridis Waldron The Bank of England's forecasting platform COMPASS MAPS EASE
+Novikov AlphaEvolve a coding agent for scientific and algorithmic discovery
+Zhang Hu Lu Lange Clune Darwin Godel Machine open-ended evolution of self-improving agents
+Adjemian Juillard Karame Mutschler Pfeifer Ratto Rion Villemot Dynare reference manual version 6
+Fernandez-Villaverde Rubio-Ramirez Schorfheide Solution and estimation methods for DSGE models

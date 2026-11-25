@@ -1,0 +1,20 @@
+{
+ "script": "rsim_vs_random.py",
+ "args": [
+  "--reps",
+  "3",
+  "--budget",
+  "400",
+  "--pop",
+  "16"
+ ],
+ "started": "2026-11-24 19:54:16",
+ "finished": "2026-11-24 20:18:59",
+ "studio_commit": "76797dbce6433ce570e8d64ceca4e87bd2433746",
+ "python": "3.11.0",
+ "platform": "Windows-10-10.0.26200-SP0",
+ "cpus": 16,
+ "reps": 3,
+ "budget": 400,
+ "pop": 16
+}

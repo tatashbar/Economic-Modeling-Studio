@@ -1,0 +1,47 @@
+[
+ {
+  "test": "money is conserved every quarter",
+  "pass": true,
+  "detail": "largest relative error 3.41e-15"
+ },
+ {
+  "test": "same seed, same economy",
+  "pass": true,
+  "detail": "moments identical"
+ },
+ {
+  "test": "another seed, another draw",
+  "pass": true,
+  "detail": "moments differ"
+ },
+ {
+  "test": "stationary deposits equal (1 - mpc_y) y / mpc_w",
+  "pass": true,
+  "detail": "expected 1.9507, got 1.9507"
+ },
+ {
+  "test": "an entity added by configuration collects exactly what its formula says",
+  "pass": true,
+  "detail": "expected 500, got 500.000000000; accounts off by 3.5e-15"
+ },
+ {
+  "test": "a scheduled change and a parameter rule apply from the period they name",
+  "pass": true,
+  "detail": "policy rate from period 10: 0.05; tax rate in periods 19 and 20: 0.22, 0.3"
+ },
+ {
+  "test": "policy rule at inflation 4% and unemployment 8%",
+  "pass": true,
+  "detail": "expected 0.0600, got 0.0600"
+ },
+ {
+  "test": "policy rate is not negative",
+  "pass": true,
+  "detail": "got 0"
+ },
+ {
+  "test": "a rule cannot call anything outside the list",
+  "pass": true,
+  "detail": "refused"
+ }
+]

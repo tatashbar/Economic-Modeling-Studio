@@ -1,0 +1,12 @@
+Caiani Agent based-stock flow consistent macroeconomics benchmark model Journal of Economic Dynamics and Control 2016
+Assenza Emergent dynamics macroeconomic agent based model capital credit Journal of Economic Dynamics and Control 2015
+Platt comparison of economic agent-based model calibration methods Journal of Economic Dynamics and Control 2020
+Lamperti agent-based model calibration machine learning surrogates Journal of Economic Dynamics and Control 2018
+Smets Wouters Shocks and frictions in US business cycles American Economic Review 2007
+Chang Li Is economics research replicable Critical Finance Review 2022
+Parnas criteria decomposing systems into modules Communications of the ACM 1972
+Tarjan Depth-first search linear graph algorithms SIAM Journal on Computing 1972
+Bergstra Bengio Random search hyper-parameter optimization Journal of Machine Learning Research 2012
+Taylor Discretion versus policy rules in practice Carnegie-Rochester 1993
+Dawid Delli Gatti Agent-based macroeconomics Handbook of Computational Economics volume 4 2018
+Berg Karam Laxton A practical model-based approach to monetary policy analysis overview IMF working paper 2006

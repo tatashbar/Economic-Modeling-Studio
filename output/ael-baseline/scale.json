@@ -1,0 +1,29 @@
+[
+ {
+  "households": 1000,
+  "firms": 50,
+  "periods": 200,
+  "seconds": 3.09,
+  "accounting_error": 8.807247847761222e-15,
+  "unemployment": 0.003053333333333336,
+  "inflation": 0.031305276435425605
+ },
+ {
+  "households": 10000,
+  "firms": 1000,
+  "periods": 200,
+  "seconds": 35.31,
+  "accounting_error": 1.9750435027113413e-14,
+  "unemployment": 0.0028873333333333264,
+  "inflation": 0.03156003538421662
+ },
+ {
+  "households": 100000,
+  "firms": 1000,
+  "periods": 200,
+  "seconds": 549.93,
+  "accounting_error": 1.2995956375927049e-13,
+  "unemployment": 0.003920066666666664,
+  "inflation": 0.028864279356788848
+ }
+]

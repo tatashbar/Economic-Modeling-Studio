@@ -1,0 +1,28 @@
+{
+ "script": "swarm_run.py",
+ "args": [],
+ "started": "2026-11-24 20:19:07",
+ "finished": "2026-11-24 20:22:48",
+ "studio_commit": "76797dbce6433ce570e8d64ceca4e87bd2433746",
+ "python": "3.11.0",
+ "platform": "Windows-10-10.0.26200-SP0",
+ "cpus": 16,
+ "command": [
+  "<studio>\\tools\\swarm.py",
+  "--agents",
+  "100",
+  "--households",
+  "1000",
+  "--rounds",
+  "6",
+  "--person-at",
+  "3",
+  "keep the tax rate as it is",
+  "--ws",
+  "<replication-folder>\\output\\swarm\\workspace.db",
+  "--report",
+  "<replication-folder>\\output\\swarm\\swarm-report.md"
+ ],
+ "returncode": 0,
+ "seconds": 221.2
+}
